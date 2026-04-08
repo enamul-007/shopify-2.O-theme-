@@ -1,132 +1,735 @@
+{%- style -%}
+  #shopify-section-{{ section.id }} .header-section {
+    background-color: {{ section.settings.color_scheme.settings.background }};
+    color: {{ section.settings.color_scheme.settings.text }};
+    border-bottom: {{ section.settings.border_thickness }}px solid {{ section.settings.border_color }};
+    padding: {{ section.settings.padding_v }}px {{ section.settings.padding_h }}px;
+    {% if section.settings.sticky_header %}
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    {% endif %}
+    {% if section.settings.header_shadow %}
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    {% endif %}
+    transition: box-shadow 0.3s ease;
+  }
+
+  #shopify-section-{{ section.id }} .navbar {
+    padding: 0;
+  }
+
+  #shopify-section-{{ section.id }} .container-fluid {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: nowrap;
+  }
+
+  #shopify-section-{{ section.id }} .navbar-brand {
+    color: {{ section.settings.color_scheme.settings.text }};
+    font-size: {{ section.settings.logo_font_size }}px;
+    font-weight: 700;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    flex-shrink: 0;
+    {% if section.settings.logo_position == 'center' %}
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    {% elsif section.settings.logo_position == 'right' %}
+      order: 3;
+      margin-left: auto;
+    {% endif %}
+  }
+
+  #shopify-section-{{ section.id }} .navbar-brand img {
+    height: {{ section.settings.logo_height }}px;
+    width: auto;
+    display: block;
+  }
+
+  #shopify-section-{{ section.id }} .navbar-collapse {
+    display: flex !important;
+    align-items: center;
+    flex-grow: 1;
+  }
+
+  #shopify-section-{{ section.id }} .navbar-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: {{ section.settings.nav_gap }}px;
+    flex-grow: 1;
+    {% if section.settings.nav_position == 'left' %}
+      justify-content: flex-start;
+    {% elsif section.settings.nav_position == 'center' %}
+      justify-content: center;
+    {% elsif section.settings.nav_position == 'right' %}
+      justify-content: flex-end;
+    {% endif %}
+  }
+
+  #shopify-section-{{ section.id }} .navbar-nav .nav-link {
+    color: {{ section.settings.color_scheme.settings.text }};
+    font-size: {{ section.settings.nav_font_size }}px;
+    font-weight: {{ section.settings.nav_font_weight }};
+    padding: 8px 4px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    white-space: nowrap;
+    letter-spacing: {{ section.settings.nav_letter_spacing }}px;
+    text-transform: {{ section.settings.nav_text_transform }};
+  }
+
+  #shopify-section-{{ section.id }} .navbar-nav .nav-link:hover {
+    color: {{ section.settings.nav_hover_color }};
+  }
+
+  #shopify-section-{{ section.id }} .nav-item {
+    position: relative;
+    list-style: none;
+  }
+
+  {% comment %} ── Dropdown ── {% endcomment %}
+  #shopify-section-{{ section.id }} .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background-color: {{ section.settings.color_scheme.settings.background }};
+    border: 1px solid {{ section.settings.color_scheme.settings.shadow }};
+    border-radius: 8px;
+    padding: 8px 0;
+    min-width: 180px;
+    z-index: 999;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  #shopify-section-{{ section.id }} .dropdown-menu.is-open {
+    display: block;
+  }
+
+  #shopify-section-{{ section.id }} .dropdown-item {
+    color: {{ section.settings.color_scheme.settings.text }};
+    padding: 8px 16px;
+    display: block;
+    text-decoration: none;
+    font-size: {{ section.settings.nav_font_size | minus: 1 }}px;
+    transition: background 0.2s ease;
+  }
+
+  #shopify-section-{{ section.id }} .dropdown-item:hover {
+    background-color: {{ section.settings.color_scheme.settings.button }};
+    color: {{ section.settings.color_scheme.settings.button_label }};
+  }
+
+  {% comment %} ── Mega Menu ── {% endcomment %}
+  #shopify-section-{{ section.id }} .mega-submenu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: {{ section.settings.color_scheme.settings.background }};
+    border-top: 2px solid {{ section.settings.color_scheme.settings.button }};
+    border-radius: 8px;
+    padding: 2rem;
+    min-width: 600px;
+    z-index: 999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  #shopify-section-{{ section.id }} .mega-submenu.is-open {
+    display: block;
+  }
+
+  #shopify-section-{{ section.id }} .mega-heading a {
+    color: {{ section.settings.color_scheme.settings.text }};
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  #shopify-section-{{ section.id }} .mega-submenu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #shopify-section-{{ section.id }} .mega-submenu ul li a {
+    color: {{ section.settings.color_scheme.settings.text }};
+    font-size: 13px;
+    text-decoration: none;
+    display: block;
+    padding: 4px 0;
+    opacity: 0.75;
+    transition: opacity 0.2s;
+  }
+
+  #shopify-section-{{ section.id }} .mega-submenu ul li a:hover {
+    opacity: 1;
+    color: {{ section.settings.nav_hover_color }};
+  }
+
+  {% comment %} ── Icons ── {% endcomment %}
+  #shopify-section-{{ section.id }} .header-icons {
+    display: flex;
+    align-items: center;
+    gap: {{ section.settings.icon_gap }}px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  #shopify-section-{{ section.id }} .header-icons a,
+  #shopify-section-{{ section.id }} .header-icons span {
+    color: {{ section.settings.color_scheme.settings.text }};
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    text-decoration: none;
+  }
+
+  #shopify-section-{{ section.id }} .header-icons a:hover,
+  #shopify-section-{{ section.id }} .header-icons span:hover {
+    opacity: 0.7;
+  }
+
+  #shopify-section-{{ section.id }} .header-icons svg {
+    fill: {{ section.settings.color_scheme.settings.text }};
+    width: {{ section.settings.icon_size }}px;
+    height: {{ section.settings.icon_size }}px;
+  }
+
+  #shopify-section-{{ section.id }} .cart-count {
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 3px;
+    color: {{ section.settings.color_scheme.settings.text }};
+  }
+
+  #shopify-section-{{ section.id }} .navbar-toggler {
+    border: 1px solid {{ section.settings.color_scheme.settings.text }};
+    padding: 6px 10px;
+    background: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: none;
+  }
+
+  #shopify-section-{{ section.id }} .toggler-line {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: {{ section.settings.color_scheme.settings.text }};
+    margin: 4px 0;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 991px) {
+    #shopify-section-{{ section.id }} .navbar-toggler { display: block; }
+    #shopify-section-{{ section.id }} .navbar-brand {
+      position: static !important;
+      transform: none !important;
+      order: 0 !important;
+      margin-left: 0 !important;
+    }
+    #shopify-section-{{ section.id }} .navbar-collapse {
+      display: none !important;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      padding: 16px 0;
+    }
+    #shopify-section-{{ section.id }} .navbar-collapse.open {
+      display: flex !important;
+    }
+    #shopify-section-{{ section.id }} .navbar-nav {
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      gap: 0;
+    }
+    #shopify-section-{{ section.id }} .nav-item { width: 100%; }
+    #shopify-section-{{ section.id }} .nav-link { padding: 10px 0 !important; width: 100%; display: block; }
+    #shopify-section-{{ section.id }} .dropdown-menu,
+    #shopify-section-{{ section.id }} .mega-submenu {
+      position: static;
+      transform: none;
+      min-width: 100%;
+      box-shadow: none;
+      border: none;
+      border-left: 2px solid {{ section.settings.color_scheme.settings.button }};
+      border-radius: 0;
+      padding: 8px 16px;
+      top: auto;
+    }
+    #shopify-section-{{ section.id }} .header-icons { margin-left: auto; }
+    #shopify-section-{{ section.id }} .container-fluid { flex-wrap: wrap; }
+  }
+{%- endstyle -%}
+
 <div class="header-section">
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ shop.url }}">
-                {% if settings.logo != blank %}
-                    <img src="{{ settings.logo | img_url:'small' }}" width="auto" height="auto">
+  <nav class="navbar">
+    <div class="container-fluid">
+
+      <a class="navbar-brand" href="{{ shop.url }}">
+        {% if section.settings.custom_logo != blank %}
+          <img src="{{ section.settings.custom_logo | image_url: height: section.settings.logo_height }}" alt="{{ shop.name }}" height="{{ section.settings.logo_height }}" width="auto">
+        {% elsif settings.logo != blank %}
+          <img src="{{ settings.logo | image_url: height: section.settings.logo_height }}" alt="{{ shop.name }}" height="{{ section.settings.logo_height }}" width="auto">
+        {% else %}
+          {{ shop.name }}
+        {% endif %}
+      </a>
+
+      <button class="navbar-toggler" id="toggler-{{ section.id }}" aria-label="Toggle menu">
+        <span class="toggler-line"></span>
+        <span class="toggler-line"></span>
+        <span class="toggler-line"></span>
+      </button>
+
+      <div class="navbar-collapse" id="nav-{{ section.id }}">
+        <ul class="navbar-nav">
+          {% for link in section.settings.menu.links %}
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="{{ link.url }}"
+                {% if link.links.size > 0 %}aria-haspopup="true"{% endif %}
+              >
+                {{ link.title }}
+                {% if link.links.size > 0 %}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-left:4px;vertical-align:middle">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                {% endif %}
+              </a>
+
+              {% if link.links.size > 0 %}
+                {% if section.settings.mega_menu %}
+                  <div class="mega-submenu">
+                    <div class="mega-inner">
+                      <div class="row">
+                        {% for child in link.links %}
+                          <div class="col-md-3">
+                            <h4 class="mega-heading">
+                              <a href="{{ child.url }}">{{ child.title }}</a>
+                            </h4>
+                            {% if child.links.size > 0 %}
+                              <ul>
+                                {% for grandChild in child.links %}
+                                  <li><a href="{{ grandChild.url }}">{{ grandChild.title }}</a></li>
+                                {% endfor %}
+                              </ul>
+                            {% endif %}
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
                 {% else %}
-                    {{ shop.name }}
-                {% endif  %}
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                {% for link in section.settings.menu.links %}
-                <li class="nav-item{% if link.links.size > 0 %} dropdown{% endif %}">
-                    <a class="nav-link{% if link.links.size > 0 %} dropdown-toggle{% if section.settings.mega_menu %} mega-menu-items{% endif %}{% endif %}" aria-current="page" href="{{ link.url }}"{% if link.links.size > 0 %} data-bs-toggle="dropdown" aria-expanded="false"{% endif %}>{{ link.title }}</a>  
-                    {% if link.links.size > 0 %}
-                        {% if section.settings.mega_menu %}
-                        <div class="mega-submenu">
-                            <div class="container mega-inner py-4">
-                                <div class="row">
-                                    {% for child in link.links %}
-                                        <div class="col-md-3">
-                                            <h4 class="mega-heading">
-                                                <a href="{{ child.url }}" class="nav-link">{{ child.title }}</a>
-                                                {% if child.links.size > 0 %}
-                                                    <ul>
-                                                        {% for grandChild in child.links %}
-                                                            <li>
-                                                                <a href="{{ grandChild.url }}">{{ grandChild.title }}</a>
-                                                            </li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                {% endif %}
-                                            </h4>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                        {% else %}
-                        <ul class="dropdown-menu">
-                            {% for child in link.links %}
-                                <li><a class="dropdown-item" href="{{ child.url }}">{{ child.title }}</a></li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    {% endif %}                     
-                </li>
-                {% endfor %}
-            </ul>
-            <span class="my-2 mx-2" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                </svg>
-            </span>   
-            {% if shop.customer_accounts_enabled %}
-            <div class="customer-account mx-2">
-                <a href="{{ routes.account_url }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
-                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
-                    </svg>
-                </a>
-            </div>  
+                  <ul class="dropdown-menu">
+                    {% for child in link.links %}
+                      <li><a class="dropdown-item" href="{{ child.url }}">{{ child.title }}</a></li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              {% endif %}
+
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="header-icons">
+        {% if section.settings.show_search %}
+          <span data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop" aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+            </svg>
+          </span>
+        {% endif %}
+
+        {% if section.settings.show_account and shop.customer_accounts_enabled %}
+          <a href="{{ routes.account_url }}" aria-label="Account">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+            </svg>
+          </a>
+        {% endif %}
+
+        {% if section.settings.show_cart %}
+          <a
+            href="{% if settings.cart_type == 'drawer' %}#offcanvasRight{% else %}{{ routes.cart_url }}{% endif %}"
+            {% if settings.cart_type == 'drawer' %}data-bs-toggle="offcanvas" aria-controls="offcanvasRight"{% endif %}
+            aria-label="Cart"
+            style="position:relative;"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+              <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
+            </svg>
+            {% if cart.item_count > 0 %}
+              <span class="cart-count">({{ cart.item_count }})</span>
             {% endif %}
-               
-            <div class="header-cart-count mx-2">
-                <a href="{% if settings.cart_type == 'drawer' %}#offcanvasRight{% else %}{{ routes.cart_url }}{% endif %}" class="cart_link"{% if settings.cart_type == 'drawer' %} type="button" data-bs-toggle="offcanvas" aria-controls="offcanvasRight"{% endif %}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bag" viewBox="0 0 16 16">
-                    <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
-                    </svg>
-                    {% if cart.item_count > 0 %}
-                    <span id="cartCounter">
-                        ({{ cart.item_count }})
-                    </span>
-                    {% endif %}
-                </a>
-            </div>
-            </div>
-        </div>
-    </nav>
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </nav>
 </div>
 
-{% comment %} Searchbox {% endcomment %}
+{% comment %} ── Search Offcanvas ── {% endcomment %}
 <div class="offcanvas offcanvas-top" tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel">
   <div class="offcanvas-body">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <predictive-search>
-                <form action="{{ routes.search_url }}" method="get" role="search">
-                    <div class="form-field d-flex align-items-center">
-                        <input type="search"
-                            name="q"
-                            id="Search"
-                            value="{{ search.terms | escape }}"
-                            area-expanded="false"
-                            area-owns="predictive-search-results"
-                            area-controls="predictive-search-results"
-                            placeholder="Search"
-                            class="form-control">
-                        <button type="button" class="btn-close text-reset mx-2" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                    </div>
-                    <input type="hidden" name="options[prefix]" value="last">
-                </form>
-                <div id="predictive-search" tabindex="-1"></div>
-            </predictive-search>
-        </div>
-        
+      <div class="col-md-6">
+        <predictive-search>
+          <form action="{{ routes.search_url }}" method="get" role="search">
+            <div class="form-field d-flex align-items-center">
+              <input type="search" name="q" id="Search-{{ section.id }}" value="{{ search.terms | escape }}" placeholder="{{ section.settings.search_placeholder }}" class="form-control" aria-label="Search">
+              <button type="button" class="btn-close text-reset mx-2" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <input type="hidden" name="options[prefix]" value="last">
+          </form>
+          <div id="predictive-search-{{ section.id }}" tabindex="-1"></div>
+        </predictive-search>
+      </div>
     </div>
   </div>
 </div>
 
+<script>
+(function() {
+  const sectionId = '{{ section.id }}';
+  const section   = document.getElementById('shopify-section-' + sectionId);
+  if (!section) return;
+
+  // ── Mobile toggler ──
+  const toggler = document.getElementById('toggler-' + sectionId);
+  const nav     = document.getElementById('nav-' + sectionId);
+  if (toggler && nav) {
+    toggler.addEventListener('click', function() {
+      nav.classList.toggle('open');
+    });
+  }
+
+  // ── Desktop: JS hover with delay so gap doesn't close menu ──
+  if (window.innerWidth > 991) {
+    const navItems = section.querySelectorAll('.nav-item');
+
+    navItems.forEach(function(item) {
+      const submenu = item.querySelector('.dropdown-menu, .mega-submenu');
+      if (!submenu) return;
+
+      let closeTimer = null;
+
+      function openMenu() {
+        clearTimeout(closeTimer);
+        // close all other open menus first
+        navItems.forEach(function(other) {
+          if (other !== item) {
+            const otherSub = other.querySelector('.dropdown-menu, .mega-submenu');
+            if (otherSub) otherSub.classList.remove('is-open');
+          }
+        });
+        submenu.classList.add('is-open');
+      }
+
+      function closeMenu() {
+        // 150ms delay — enough time to move mouse into submenu
+        closeTimer = setTimeout(function() {
+          submenu.classList.remove('is-open');
+        }, 150);
+      }
+
+      // Hover on nav-item (includes the link)
+      item.addEventListener('mouseenter', openMenu);
+      item.addEventListener('mouseleave', closeMenu);
+
+      // When mouse enters submenu itself, cancel close
+      submenu.addEventListener('mouseenter', function() {
+        clearTimeout(closeTimer);
+      });
+      submenu.addEventListener('mouseleave', closeMenu);
+    });
+
+    // Close all menus when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!section.contains(e.target)) {
+        section.querySelectorAll('.dropdown-menu.is-open, .mega-submenu.is-open').forEach(function(m) {
+          m.classList.remove('is-open');
+        });
+      }
+    });
+  }
+
+  // ── Mobile: click to toggle submenu ──
+  if (window.innerWidth <= 991) {
+    section.querySelectorAll('.nav-link[aria-haspopup]').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const submenu = this.parentElement.querySelector('.dropdown-menu, .mega-submenu');
+        if (submenu) submenu.classList.toggle('is-open');
+      });
+    });
+  }
+})();
+</script>
+
 {% schema %}
 {
-    "name": "Header",
-    "settings": [
-        {
-            "type": "link_list",
-            "id": "menu",
-            "label": "Menu"
-        },
-        {
-            "type": "checkbox",
-            "id": "mega_menu",
-            "label": "Enable Mega menu",
-            "default": false
-        }
-    ]
+  "name": "Header",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Color & Border"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color Scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "border_thickness",
+      "label": "Border Thickness",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border Color",
+      "default": "#e5e7eb"
+    },
+    {
+      "type": "checkbox",
+      "id": "header_shadow",
+      "label": "Show Shadow",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_v",
+      "label": "Padding Top/Bottom",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_h",
+      "label": "Padding Left/Right",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Sticky Header"
+    },
+    {
+      "type": "checkbox",
+      "id": "sticky_header",
+      "label": "Sticky Header",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Logo"
+    },
+    {
+      "type": "image_picker",
+      "id": "custom_logo",
+      "label": "Custom Logo"
+    },
+    {
+      "type": "select",
+      "id": "logo_position",
+      "label": "Logo Position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "logo_height",
+      "label": "Logo Height",
+      "min": 20,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "logo_font_size",
+      "label": "Logo Text Size (if no image)",
+      "min": 12,
+      "max": 36,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu"
+    },
+    {
+      "type": "select",
+      "id": "nav_position",
+      "label": "Menu Position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "nav_font_size",
+      "label": "Font Size",
+      "min": 12,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "select",
+      "id": "nav_font_weight",
+      "label": "Font Weight",
+      "options": [
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "SemiBold" },
+        { "value": "700", "label": "Bold" }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "select",
+      "id": "nav_text_transform",
+      "label": "Text Transform",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "uppercase", "label": "Uppercase" },
+        { "value": "capitalize", "label": "Capitalize" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "nav_letter_spacing",
+      "label": "Letter Spacing",
+      "min": 0,
+      "max": 5,
+      "step": 0.5,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "nav_gap",
+      "label": "Gap Between Links",
+      "min": 4,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "nav_hover_color",
+      "label": "Link Hover Color",
+      "default": "#2563eb"
+    },
+    {
+      "type": "checkbox",
+      "id": "mega_menu",
+      "label": "Enable Mega Menu",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Icons"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show Search",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "label": "Show Account",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart",
+      "label": "Show Cart",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon Size",
+      "min": 14,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "icon_gap",
+      "label": "Gap Between Icons",
+      "min": 4,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Search"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search Placeholder",
+      "default": "Search products..."
+    }
+  ]
 }
 {% endschema %}

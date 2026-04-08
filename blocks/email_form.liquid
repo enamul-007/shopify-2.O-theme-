@@ -1,0 +1,31 @@
+
+<div class="email-form-block">
+  {% form 'customer' %}
+    {{ form.errors | default_errors }}
+    <div class="email-form__field">
+      <input
+        type="email"
+        name="contact[email]"
+        id="email"
+        placeholder="Enter your email"
+        required
+      >
+      <button type="submit">Subscribe</button>
+    </div>
+  {% endform %}
+</div>
+
+{% schema %}
+{
+  "name": "Email Form",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button Label",
+      "default": "Subscribe"
+    }
+  ]
+}
+{% endschema %}
+EOF

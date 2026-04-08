@@ -1,21 +1,332 @@
-<div class="announcementbar">
-    <div class="container">
-        <p class="announce-text text-center">
-           {{ section.settings.message }}
-        </p>
-    </div>
+{%- style -%}
+  #shopify-section-{{ section.id }} .announcementbar {
+    background-color: {{ section.settings.color_scheme.settings.background }};
+    background-image: {% if section.settings.use_gradient and section.settings.color_scheme.settings.background_gradient != blank %}
+      {{ section.settings.color_scheme.settings.background_gradient }};
+    {% else %}
+      none;
+    {% endif %}
+    padding: {{ section.settings.padding_top }}px {{ section.settings.padding_sides }}px {{ section.settings.padding_bottom }}px {{ section.settings.padding_sides }}px;
+    text-align: center;
+    position: relative;
+    border-bottom: {{ section.settings.border_thickness }}px solid {{ section.settings.color_scheme.settings.text }};
+  }
+
+  #shopify-section-{{ section.id }} .announce-text {
+    color: {{ section.settings.color_scheme.settings.text }};
+    font-size: {{ section.settings.text_font_size }}px;
+    font-family: {{ section.settings.text_font.family }}, {{ section.settings.text_font.fallback_families }};
+    font-weight: {{ section.settings.text_font.weight }};
+    font-style: {{ section.settings.text_font.style }};
+    margin: 0;
+    padding: 10px 0;
+    letter-spacing: {{ section.settings.letter_spacing }}px;
+    line-height: {{ section.settings.line_height }};
+    text-transform: {{ section.settings.text_transform }};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  #shopify-section-{{ section.id }} .announce-link {
+    color: {{ section.settings.color_scheme.settings.text }};
+    text-decoration: {{ section.settings.link_underline }};
+    margin-left: 10px;
+    transition: all 0.3s ease;
+  }
+
+  #shopify-section-{{ section.id }} .announce-link:hover {
+    opacity: 0.8;
+    {% if section.settings.link_underline == 'none' %}
+      text-decoration: underline;
+    {% endif %}
+  }
+
+  #shopify-section-{{ section.id }} .close-announcement {
+    position: absolute;
+    right: {{ section.settings.padding_sides }}px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 20px;
+    color: {{ section.settings.color_scheme.settings.text }};
+    background: none;
+    border: none;
+    padding: 0;
+    transition: transform 0.3s ease;
+    line-height: 1;
+  }
+
+  #shopify-section-{{ section.id }} .close-announcement:hover {
+    transform: translateY(-50%) scale(1.2);
+  }
+
+  #shopify-section-{{ section.id }} .announcementbar.hidden {
+    display: none !important;
+  }
+
+  #shopify-section-{{ section.id }} .announce-container {
+    max-width: {{ section.settings.container_width }}px;
+    margin: 0 auto;
+  }
+
+  {%- if section.settings.enable_animation -%}
+    #shopify-section-{{ section.id }} .announcementbar {
+      animation: slideInAnnouncement-{{ section.id }} 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideInAnnouncement-{{ section.id }} {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  {%- endif -%}
+
+  @media (max-width: 768px) {
+    #shopify-section-{{ section.id }} .announce-text {
+      font-size: calc({{ section.settings.text_font_size }}px * 0.85);
+      padding-right: 30px;
+    }
+
+    #shopify-section-{{ section.id }} .close-announcement {
+      right: 10px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="announcementbar" id="announcementbar-{{ section.id }}">
+  <div class="announce-container">
+    <p class="announce-text">
+      <span class="announce-message">{{ section.settings.message }}</span>
+
+      {%- if section.settings.announcement_link != blank and section.settings.link_text != blank -%}
+        <a href="{{ section.settings.announcement_link }}" class="announce-link">
+          {{ section.settings.link_text }}
+        </a>
+      {%- endif -%}
+    </p>
+
+    {%- if section.settings.show_close_button -%}
+      <button
+        class="close-announcement"
+        id="close-btn-{{ section.id }}"
+        aria-label="Close announcement"
+      >
+        &#x2715;
+      </button>
+    {%- endif -%}
+  </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const announcementBar = document.getElementById('announcementbar-{{ section.id }}');
+    const closeBtn = document.getElementById('close-btn-{{ section.id }}');
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() {
+        announcementBar.classList.add('hidden');
+      });
+    }
+  });
+</script>
 
 {% schema %}
 {
-    "name": "Announcementbar",
-    "settings": [
-        {
-            "type": "text",
-            "id": "message",
-            "label": "Announcement text",
-            "default": "25% OFF for US based delivery!"
-        }
-    ]
+  "name": "Announcement Bar",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Message Content"
+    },
+    {
+      "type": "text",
+      "id": "message",
+      "label": "Announcement Message",
+      "default": "Welcome to our store! Enjoy 25% OFF your first order!"
+    },
+    {
+      "type": "url",
+      "id": "announcement_link",
+      "label": "Link URL"
+    },
+    {
+      "type": "text",
+      "id": "link_text",
+      "label": "Link Text",
+      "default": "Learn More"
+    },
+    {
+      "type": "header",
+      "content": "Text Styling"
+    },
+    {
+      "type": "font_picker",
+      "id": "text_font",
+      "label": "Font Family",
+      "default": "assistant_n4"
+    },
+    {
+      "type": "range",
+      "id": "text_font_size",
+      "label": "Font Size",
+      "min": 10,
+      "max": 48,
+      "step": 1,
+      "default": 16,
+      "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "text_transform",
+      "label": "Text Transform",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "uppercase", "label": "UPPERCASE" },
+        { "value": "lowercase", "label": "lowercase" },
+        { "value": "capitalize", "label": "Capitalize" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "label": "Letter Spacing",
+      "min": -2,
+      "max": 5,
+      "step": 0.5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "line_height",
+      "label": "Line Height",
+      "min": 1,
+      "max": 3,
+      "step": 0.1,
+      "default": 1.5
+    },
+    {
+      "type": "header",
+      "content": "Colors & Background"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color Scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_gradient",
+      "label": "Use Gradient Background",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "border_thickness",
+      "label": "Bottom Border Thickness",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "link_underline",
+      "label": "Link Underline",
+      "options": [
+        { "value": "none", "label": "None (underline on hover)" },
+        { "value": "underline", "label": "Always underlined" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "Spacing & Size"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding Top",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "default": 10,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding Bottom",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "default": 10,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_sides",
+      "label": "Padding Sides",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "default": 20,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "container_width",
+      "label": "Container Width",
+      "min": 800,
+      "max": 1600,
+      "step": 50,
+      "default": 1200,
+      "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Effects & Behavior"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_animation",
+      "label": "Enable Slide-In Animation",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_close_button",
+      "label": "Show Close Button",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement Bar - Sale",
+      "settings": {
+        "message": "LIMITED TIME OFFER - 25% OFF EVERYTHING!",
+        "text_font_size": 16,
+        "text_transform": "uppercase"
+      }
+    },
+    {
+      "name": "Announcement Bar - Info",
+      "settings": {
+        "message": "Free Shipping on Orders Over $50",
+        "text_font_size": 14
+      }
+    }
+  ]
 }
 {% endschema %}

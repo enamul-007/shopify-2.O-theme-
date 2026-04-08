@@ -19,7 +19,7 @@
                     {% for item in search.results %}
                         {% case item.object_type %}
                             {% when 'product' %}
-                                {% render 'card-product', product: item %}
+                                {% render 'product-card', product: item %}
                             {% when 'article' %}
                             <div class="col-md-3 article">
                                 <a href="{{ item.url }}">{{ item.title }}</a>

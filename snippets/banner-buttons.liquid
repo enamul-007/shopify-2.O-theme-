@@ -1,0 +1,16 @@
+<div class="banner-cta" {{ block.shopify_attributes }}>
+  {% if block.settings.label_1 != blank %}
+    <a
+      href="{{ block.settings.url_1 }}"
+      class="btn-primary"
+      style="background: {{ block.settings.btn_bg }}; color: {{ block.settings.btn_text_color }};"
+    >
+      {{ block.settings.label_1 }}
+    </a>
+  {% endif %}
+  {% if block.settings.label_2 != blank %}
+    <a href="{{ block.settings.url_2 }}" class="btn-secondary">
+      {{ block.settings.label_2 }}
+    </a>
+  {% endif %}
+</div>

@@ -1,0 +1,57 @@
+{%- style -%}
+  #block-{{ block.id }} {
+    display: block;
+    font-size: {{ block.settings.font_size }}px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-bottom: {{ block.settings.margin_bottom }}px;
+  }
+{%- endstyle -%}
+
+<span id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+  {{ block.settings.text }}
+</span>
+
+{% schema %}
+{
+  "name": "Badge Text",
+  "tag": "span",
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Text",
+      "default": "Spring Collection 2026"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font Size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "label": "Spacing Below",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    {
+      "name": "Badge Text",
+      "settings": {
+        "text": "Spring Collection 2026"
+      }
+    }
+  ]
+}
+{% endschema %}

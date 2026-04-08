@@ -1,0 +1,54 @@
+{%- style -%}
+  #block-{{ block.id }} {
+    font-size: clamp(1rem, 2vw, {{ block.settings.max_size }}px);
+    opacity: 0.85;
+    line-height: 1.6;
+    margin-bottom: {{ block.settings.margin_bottom }}px;
+  }
+{%- endstyle -%}
+
+<p id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+  {{ block.settings.text }}
+</p>
+
+{% schema %}
+{
+  "name": "Subheading",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Text",
+      "default": "Discover curated pieces that blend minimalist aesthetics with exceptional craftsmanship"
+    },
+    {
+      "type": "range",
+      "id": "max_size",
+      "label": "Max Font Size",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "label": "Spacing Below",
+      "min": 0,
+      "max": 64,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    }
+  ],
+  "presets": [
+    {
+      "name": "Subheading",
+      "settings": {
+        "text": "Discover curated pieces that blend minimalist aesthetics with exceptional craftsmanship"
+      }
+    }
+  ]
+}
+{% endschema %}

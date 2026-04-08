@@ -1,0 +1,831 @@
+{% liquid
+  comment
+    ╔══════════════════════════════════════════════════════╗
+    ║   HERO SECTION — Full Customizable                  ║
+    ║   Supports: Dual Media, Mobile Media, Overlay,      ║
+    ║   Blurred Reflection, Layout, Spacing, Theme Blocks ║
+    ╚══════════════════════════════════════════════════════╝
+  endcomment
+
+  # ── Media type detection ─────────────────────────────
+  assign media_1 = 'none'
+  assign media_2 = 'none'
+  assign media_count = 0
+
+  if section.settings.image_1 != blank and section.settings.media_type_1 == 'image'
+    assign media_1 = 'image'
+    assign media_count = media_count | plus: 1
+  endif
+  if section.settings.video_1 != blank and section.settings.media_type_1 == 'video'
+    assign media_1 = 'video'
+    assign media_count = media_count | plus: 1
+  endif
+  if section.settings.image_2 != blank and section.settings.media_type_2 == 'image'
+    assign media_2 = 'image'
+    assign media_count = media_count | plus: 1
+  endif
+  if section.settings.video_2 != blank and section.settings.media_type_2 == 'video'
+    assign media_2 = 'video'
+    assign media_count = media_count | plus: 1
+  endif
+
+  # ── Mobile media detection ────────────────────────────
+  assign media_1_mob = 'none'
+  assign media_2_mob = 'none'
+  assign media_count_mob = 0
+
+  if section.settings.custom_mobile_media
+    if section.settings.image_1_mob != blank and section.settings.media_type_1_mob == 'image'
+      assign media_1_mob = 'image'
+      assign media_count_mob = media_count_mob | plus: 1
+    endif
+    if section.settings.video_1_mob != blank and section.settings.media_type_1_mob == 'video'
+      assign media_1_mob = 'video'
+      assign media_count_mob = media_count_mob | plus: 1
+    endif
+    if section.settings.image_2_mob != blank and section.settings.media_type_2_mob == 'image'
+      assign media_2_mob = 'image'
+      assign media_count_mob = media_count_mob | plus: 1
+    endif
+    if section.settings.video_2_mob != blank and section.settings.media_type_2_mob == 'video'
+      assign media_2_mob = 'video'
+      assign media_count_mob = media_count_mob | plus: 1
+    endif
+  endif
+
+  # Fallback: if no custom mobile media, use desktop
+  if section.settings.custom_mobile_media == false or media_count_mob == 0
+    assign media_count_mob = media_count
+    assign media_1_mob = media_1
+    assign media_2_mob = media_2
+  endif
+
+  # ── Overlay ───────────────────────────────────────────
+  assign overlay_bg = 'transparent'
+  if section.settings.toggle_overlay
+    if section.settings.overlay_style == 'gradient'
+      assign overlay_bg = 'linear-gradient(' | append: section.settings.gradient_direction | append: ', ' | append: section.settings.overlay_color | append: ', transparent)'
+    else
+      assign overlay_bg = section.settings.overlay_color
+    endif
+  endif
+
+  # ── Blurred reflection ────────────────────────────────
+  assign has_only_video = false
+  if media_1 != 'image' and media_2 != 'image' and media_count > 0
+    assign has_only_video = true
+  endif
+
+  # ── Height ────────────────────────────────────────────
+  case section.settings.section_height
+    when 'small'
+      assign section_min_height = '50svh'
+    when 'medium'
+      assign section_min_height = '65svh'
+    when 'large'
+      assign section_min_height = '80svh'
+    when 'full'
+      assign section_min_height = '100svh'
+    when 'custom'
+      assign section_min_height = section.settings.section_height_custom | append: 'px'
+    else
+      assign section_min_height = 'auto'
+  endcase
+
+  # ── Section width ─────────────────────────────────────
+  assign content_class = 'hero-content'
+  if section.settings.section_width == 'page'
+    assign content_class = content_class | append: ' hero-content--page'
+  endif
+%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --hero-min-height: {{ section_min_height }};
+    --hero-overlay-bg: {{ overlay_bg }};
+    --hero-blur-opacity: {{ section.settings.reflection_opacity | divided_by: 100.0 }};
+    --hero-gap: {{ section.settings.gap }}px;
+    --hero-pt: {{ section.settings.padding_top }}px;
+    --hero-pb: {{ section.settings.padding_bottom }}px;
+    --hero-media-count: {{ media_count }};
+    --hero-media-count-mob: {{ media_count_mob }};
+    --hero-content-align: {% case section.settings.h_align %}
+      {% when 'left' %}flex-start
+      {% when 'center' %}center
+      {% when 'right' %}flex-end
+      {% else %}flex-start
+    {% endcase %};
+    --hero-v-align: {% case section.settings.v_align %}
+      {% when 'top' %}flex-start
+      {% when 'center' %}center
+      {% when 'bottom' %}flex-end
+      {% else %}center
+    {% endcase %};
+  }
+
+  {% if section.settings.custom_css != blank %}
+    #shopify-section-{{ section.id }} {
+      {{ section.settings.custom_css }}
+    }
+  {% endif %}
+{%- endstyle -%}
+
+{%- comment -%} ── Section link overlay ── {%- endcomment -%}
+{%- if section.settings.section_link != blank -%}
+  <a
+    href="{{ section.settings.section_link }}"
+    class="hero-section-link"
+    {% if section.settings.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+    aria-label="{{ 'accessibility.section_link' | t | default: 'Section link' }}"
+  ></a>
+{%- endif -%}
+
+<div
+  class="hero{% if section.settings.stack_media_on_mobile %} hero--stack-mobile{% endif %}{% if section.settings.section_height == 'auto' and section.blocks.size == 0 %} hero--auto-height{% endif %}"
+  id="Hero-{{ section.id }}"
+  {% if section.settings.blurred_reflection and has_only_video == false %}
+    data-blur-shadow="true"
+  {% endif %}
+>
+
+  {%- comment -%} ══════════ MEDIA GRID ══════════ {%- endcomment -%}
+  <div class="hero__media-grid">
+
+    {%- comment -%} ── OVERLAY ── {%- endcomment -%}
+    {% if section.settings.toggle_overlay %}
+      <div class="hero__overlay" aria-hidden="true"></div>
+    {% endif %}
+
+    {%- comment -%} ── BLURRED REFLECTION ── {%- endcomment -%}
+    {% if section.settings.blurred_reflection and has_only_video == false %}
+      <div class="hero__blur hero__blur--desktop" aria-hidden="true">
+        {% if media_1 == 'image' %}
+          {{ section.settings.image_1 | image_url: width: 1800 | image_tag: class: 'hero__blur-img', alt: '' }}
+        {% endif %}
+        {% if media_2 == 'image' %}
+          {{ section.settings.image_2 | image_url: width: 1800 | image_tag: class: 'hero__blur-img', alt: '' }}
+        {% endif %}
+        {% if media_count == 0 %}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'hero__blur-img' }}
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {%- comment -%} ── DESKTOP MEDIA 1 ── {%- endcomment -%}
+    {% if media_1 == 'image' %}
+      <div class="hero__media-wrap hero__media-wrap--desktop">
+        {{ section.settings.image_1
+          | image_url: width: 3840
+          | image_tag:
+            class: 'hero__media',
+            loading: 'eager',
+            fetchpriority: 'high',
+            widths: '768,1200,1800,2560,3840',
+            sizes: '(min-width: 750px) 100vw, 100vw',
+            alt: section.settings.image_1.alt | escape
+        }}
+      </div>
+    {% elsif media_1 == 'video' %}
+      <div class="hero__media-wrap hero__media-wrap--desktop">
+        {{ section.settings.video_1
+          | video_tag:
+            autoplay: true,
+            loop: true,
+            muted: true,
+            controls: false,
+            class: 'hero__media'
+        }}
+      </div>
+    {% endif %}
+
+    {%- comment -%} ── DESKTOP MEDIA 2 ── {%- endcomment -%}
+    {% if media_2 == 'image' %}
+      <div class="hero__media-wrap hero__media-wrap--desktop">
+        {{ section.settings.image_2
+          | image_url: width: 3840
+          | image_tag:
+            class: 'hero__media',
+            loading: 'eager',
+            widths: '768,1200,1800,2560,3840',
+            sizes: '(min-width: 750px) 50vw, 100vw',
+            alt: section.settings.image_2.alt | escape
+        }}
+      </div>
+    {% elsif media_2 == 'video' %}
+      <div class="hero__media-wrap hero__media-wrap--desktop">
+        {{ section.settings.video_2
+          | video_tag:
+            autoplay: true,
+            loop: true,
+            muted: true,
+            controls: false,
+            class: 'hero__media'
+        }}
+      </div>
+    {% endif %}
+
+    {%- comment -%} ── MOBILE MEDIA (when custom_mobile_media enabled) ── {%- endcomment -%}
+    {% if section.settings.custom_mobile_media and media_count_mob > 0 %}
+
+      {% if media_1_mob == 'image' %}
+        <div class="hero__media-wrap hero__media-wrap--mobile">
+          {{ section.settings.image_1_mob
+            | image_url: width: 1200
+            | image_tag:
+              class: 'hero__media',
+              loading: 'eager',
+              widths: '400,600,800,1200',
+              sizes: '100vw',
+              alt: section.settings.image_1_mob.alt | escape
+          }}
+        </div>
+      {% elsif media_1_mob == 'video' %}
+        <div class="hero__media-wrap hero__media-wrap--mobile">
+          {{ section.settings.video_1_mob
+            | video_tag:
+              autoplay: true,
+              loop: true,
+              muted: true,
+              controls: false,
+              class: 'hero__media'
+          }}
+        </div>
+      {% endif %}
+
+      {% if media_2_mob == 'image' %}
+        <div class="hero__media-wrap hero__media-wrap--mobile">
+          {{ section.settings.image_2_mob
+            | image_url: width: 1200
+            | image_tag:
+              class: 'hero__media',
+              loading: 'eager',
+              widths: '400,600,800,1200',
+              sizes: '100vw',
+              alt: section.settings.image_2_mob.alt | escape
+          }}
+        </div>
+      {% elsif media_2_mob == 'video' %}
+        <div class="hero__media-wrap hero__media-wrap--mobile">
+          {{ section.settings.video_2_mob
+            | video_tag:
+              autoplay: true,
+              loop: true,
+              muted: true,
+              controls: false,
+              class: 'hero__media'
+          }}
+        </div>
+      {% endif %}
+
+    {% endif %}
+
+    {%- comment -%} ── PLACEHOLDER (no media) ── {%- endcomment -%}
+    {% if media_count == 0 %}
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'hero__media hero__media--placeholder' }}
+    {% endif %}
+
+  </div>
+  {%- comment -%} /.hero__media-grid {%- endcomment -%}
+
+  {%- comment -%} ══════════ CONTENT AREA ══════════ {%- endcomment -%}
+  <div class="{{ content_class }}">
+    <div
+      class="hero__inner hero__inner--{{ section.settings.content_direction }}{% if section.settings.align_baseline %} hero__inner--baseline{% endif %}"
+    >
+      {% content_for 'blocks' %}
+    </div>
+  </div>
+
+</div>
+
+{% stylesheet %}
+  /* ════════════════════════════════════════════════════
+     HERO SECTION STYLES
+  ════════════════════════════════════════════════════ */
+
+  .hero {
+    position: relative;
+    min-height: var(--hero-min-height, 65svh);
+    display: flex;
+    align-items: var(--hero-v-align, center);
+    overflow: hidden;
+  }
+
+  /* ── Media Grid ─────────────────────────────────── */
+  .hero__media-grid {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(var(--hero-media-count, 1), 1fr);
+  }
+
+  .hero--auto-height .hero__media-grid {
+    position: relative;
+  }
+
+  .hero__media-wrap {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .hero__media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .hero__media--placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ── Desktop / Mobile visibility ────────────────── */
+  .hero__media-wrap--mobile  { display: none; }
+  .hero__media-wrap--desktop { display: block; }
+
+  @media (max-width: 749px) {
+    .hero__media-wrap--desktop { display: none; }
+    .hero__media-wrap--mobile  { display: block; }
+
+    .hero__media-grid {
+      grid-template-columns: repeat(var(--hero-media-count-mob, 1), 1fr);
+    }
+
+    .hero--stack-mobile .hero__media-grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(var(--hero-media-count-mob, 1), 1fr);
+    }
+  }
+
+  /* ── Overlay ─────────────────────────────────────── */
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--hero-overlay-bg, transparent);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ── Blurred Reflection ─────────────────────────── */
+  .hero[data-blur-shadow='true'] {
+    --blur-filter: blur(24px) saturate(1.6);
+    --blur-mask: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+  }
+
+  .hero__blur {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    mask-image: var(--blur-mask);
+    -webkit-mask-image: var(--blur-mask);
+    transform: translateY(52%);
+    overflow: hidden;
+  }
+
+  .hero__blur-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: var(--blur-filter);
+    opacity: var(--hero-blur-opacity, 0.75);
+    transform: scale(2, 1.3);
+  }
+
+  .hero__blur--desktop {
+    display: none;
+    @media screen and (min-width: 750px) { display: block; }
+  }
+
+  /* ── Section Link ───────────────────────────────── */
+  .hero-section-link {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: block;
+  }
+
+  /* ── Content Wrapper ────────────────────────────── */
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    padding-top: var(--hero-pt, 0px);
+    padding-bottom: var(--hero-pb, 0px);
+    padding-inline: clamp(1rem, 4vw, 2.5rem);
+    pointer-events: none;
+  }
+
+  .hero-content--page {
+    max-width: 1400px;
+    margin-inline: auto;
+  }
+
+  .hero-content :is(a, button, input, select, textarea, details) {
+    pointer-events: auto;
+  }
+
+  /* ── Inner layout ───────────────────────────────── */
+  .hero__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--hero-gap, 16px);
+    align-items: var(--hero-v-align, center);
+    justify-content: var(--hero-content-align, flex-start);
+  }
+
+  .hero__inner--column {
+    flex-direction: column;
+    align-items: var(--hero-content-align, flex-start);
+  }
+
+  .hero__inner--row {
+    flex-direction: row;
+  }
+
+  .hero__inner--baseline {
+    align-items: baseline;
+  }
+
+  @media (max-width: 749px) {
+    .hero__inner--row {
+      flex-direction: column;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Hero Section",
+  "tag": "section",
+  "class": "hero-wrapper",
+  "blocks": [
+    { "type": "@theme" },
+    { "type": "@app" }
+  ],
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+
+    {
+      "type": "header",
+      "content": "Media 1"
+    },
+    {
+      "type": "select",
+      "id": "media_type_1",
+      "label": "Media 1 Type",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_1",
+      "label": "Image 1",
+      "visible_if": "{{ section.settings.media_type_1 == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "video_1",
+      "label": "Video 1",
+      "visible_if": "{{ section.settings.media_type_1 == 'video' }}"
+    },
+
+    {
+      "type": "header",
+      "content": "Media 2"
+    },
+    {
+      "type": "select",
+      "id": "media_type_2",
+      "label": "Media 2 Type",
+      "options": [
+        { "value": "none",  "label": "None" },
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_2",
+      "label": "Image 2",
+      "visible_if": "{{ section.settings.media_type_2 == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "video_2",
+      "label": "Video 2",
+      "visible_if": "{{ section.settings.media_type_2 == 'video' }}"
+    },
+
+    {
+      "type": "header",
+      "content": "Mobile Media"
+    },
+    {
+      "type": "checkbox",
+      "id": "stack_media_on_mobile",
+      "label": "Stack media on mobile",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "custom_mobile_media",
+      "label": "Use different media on mobile",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "media_type_1_mob",
+      "label": "Mobile Media 1 Type",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ],
+      "default": "image",
+      "visible_if": "{{ section.settings.custom_mobile_media }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_1_mob",
+      "label": "Mobile Image 1",
+      "visible_if": "{{ section.settings.custom_mobile_media and section.settings.media_type_1_mob == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "video_1_mob",
+      "label": "Mobile Video 1",
+      "visible_if": "{{ section.settings.custom_mobile_media and section.settings.media_type_1_mob == 'video' }}"
+    },
+    {
+      "type": "select",
+      "id": "media_type_2_mob",
+      "label": "Mobile Media 2 Type",
+      "options": [
+        { "value": "none",  "label": "None" },
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ],
+      "default": "none",
+      "visible_if": "{{ section.settings.custom_mobile_media }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_2_mob",
+      "label": "Mobile Image 2",
+      "visible_if": "{{ section.settings.custom_mobile_media and section.settings.media_type_2_mob == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "video_2_mob",
+      "label": "Mobile Video 2",
+      "visible_if": "{{ section.settings.custom_mobile_media and section.settings.media_type_2_mob == 'video' }}"
+    },
+
+    {
+      "type": "header",
+      "content": "Section Link"
+    },
+    {
+      "type": "url",
+      "id": "section_link",
+      "label": "Section Link URL"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_new_tab",
+      "label": "Open link in new tab",
+      "default": false,
+      "visible_if": "{{ section.settings.section_link != blank }}"
+    },
+
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "content_direction",
+      "label": "Content Direction",
+      "options": [
+        { "value": "column", "label": "Vertical (Column)" },
+        { "value": "row",    "label": "Horizontal (Row)" }
+      ],
+      "default": "column"
+    },
+    {
+      "type": "select",
+      "id": "h_align",
+      "label": "Horizontal Alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "v_align",
+      "label": "Vertical Position",
+      "options": [
+        { "value": "top",    "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "align_baseline",
+      "label": "Align items to baseline",
+      "default": false,
+      "info": "Applies when direction is Horizontal",
+      "visible_if": "{{ section.settings.content_direction == 'row' }}"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap between blocks",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Content Width",
+      "options": [
+        { "value": "full", "label": "Full Width" },
+        { "value": "page", "label": "Page Width (max 1400px)" }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "select",
+      "id": "section_height",
+      "label": "Section Height",
+      "options": [
+        { "value": "auto",   "label": "Auto" },
+        { "value": "small",  "label": "Small (50svh)" },
+        { "value": "medium", "label": "Medium (65svh)" },
+        { "value": "large",  "label": "Large (80svh)" },
+        { "value": "full",   "label": "Full Screen (100svh)" },
+        { "value": "custom", "label": "Custom (px)" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "range",
+      "id": "section_height_custom",
+      "label": "Custom Height",
+      "min": 300,
+      "max": 1200,
+      "step": 20,
+      "unit": "px",
+      "default": 700,
+      "visible_if": "{{ section.settings.section_height == 'custom' }}"
+    },
+
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color Scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "checkbox",
+      "id": "toggle_overlay",
+      "label": "Enable Media Overlay",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay Color",
+      "alpha": true,
+      "default": "#00000066",
+      "visible_if": "{{ section.settings.toggle_overlay }}"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "Overlay Style",
+      "options": [
+        { "value": "solid",    "label": "Solid" },
+        { "value": "gradient", "label": "Gradient" }
+      ],
+      "default": "solid",
+      "visible_if": "{{ section.settings.toggle_overlay }}"
+    },
+    {
+      "type": "select",
+      "id": "gradient_direction",
+      "label": "Gradient Direction",
+      "options": [
+        { "value": "to top",    "label": "↑ Bottom to Top" },
+        { "value": "to bottom", "label": "↓ Top to Bottom" },
+        { "value": "to right",  "label": "→ Left to Right" },
+        { "value": "to left",   "label": "← Right to Left" }
+      ],
+      "default": "to top",
+      "visible_if": "{{ section.settings.toggle_overlay and section.settings.overlay_style == 'gradient' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "blurred_reflection",
+      "label": "Enable Blurred Reflection",
+      "default": false,
+      "info": "Adds a blurred glow effect below the section. Only works with images."
+    },
+    {
+      "type": "range",
+      "id": "reflection_opacity",
+      "label": "Reflection Opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 75,
+      "visible_if": "{{ section.settings.blurred_reflection }}"
+    },
+
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding Top",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding Bottom",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    },
+
+    {
+      "type": "header",
+      "content": "Custom CSS"
+    },
+    {
+      "type": "textarea",
+      "id": "custom_css",
+      "label": "Custom CSS",
+      "info": "Add custom CSS rules. Automatically scoped to this section.",
+      "placeholder": ".hero__inner { max-width: 600px; }"
+    }
+
+  ],
+  "presets": [
+    
+    {
+      "name": "Hero",
+      "settings": {
+        "media_type_1": "video",
+        "section_height": "full",
+        "toggle_overlay": true,
+        "overlay_color": "#00000080",
+        "overlay_style": "gradient",
+        "gradient_direction": "to top",
+        "h_align": "center",
+        "v_align": "center",
+        "padding_top": 40,
+        "padding_bottom": 40
+      },
+      "blocks": [
+        { "type": "hero-badge" },
+        { "type": "hero-heading" },
+        { "type": "button" }
+      ]
+    }
+  ]
+}
+{% endschema %}

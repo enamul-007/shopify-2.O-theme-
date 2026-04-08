@@ -1,0 +1,492 @@
+{%- style -%}
+  #shopify-section-{{ section.id }} .hero-section {
+    position: relative;
+    height: {{ section.settings.mobile_height }}px;
+    background-color: {{ section.settings.color_scheme.settings.background }};
+    color: {{ section.settings.color_scheme.settings.text }};
+    overflow: hidden;
+  }
+
+  @media (min-width: 768px) {
+    #shopify-section-{{ section.id }} .hero-section {
+      height: {{ section.settings.tablet_height }}px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    #shopify-section-{{ section.id }} .hero-section {
+      height: {{ section.settings.desktop_height }}px;
+    }
+  }
+
+  #shopify-section-{{ section.id }} .hero-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: {{ section.settings.image_opacity | divided_by: 100.0 }};
+    display: block;
+  }
+
+  #shopify-section-{{ section.id }} .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, {{ section.settings.overlay_opacity | divided_by: 100.0 }});
+  }
+
+  #shopify-section-{{ section.id }} .hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    {% if section.settings.content_alignment == 'center' %}
+      justify-content: center;
+    {% elsif section.settings.content_alignment == 'right' %}
+      justify-content: flex-end;
+    {% else %}
+      justify-content: flex-start;
+    {% endif %}
+  }
+
+  @media (min-width: 640px) {
+    #shopify-section-{{ section.id }} .hero-inner { padding: 0 1.5rem; }
+  }
+  @media (min-width: 1024px) {
+    #shopify-section-{{ section.id }} .hero-inner { padding: 0 2rem; }
+  }
+
+  #shopify-section-{{ section.id }} .hero-content {
+    max-width: 42rem;
+    width: 100%;
+    text-align: {{ section.settings.content_alignment }};
+    opacity: 0;
+    transform: translateY(30px);
+    animation: heroFadeUp-{{ section.id }} 0.8s ease forwards;
+  }
+
+  {% if section.settings.content_alignment == 'center' %}
+    #shopify-section-{{ section.id }} .hero-buttons {
+      justify-content: center;
+    }
+  {% elsif section.settings.content_alignment == 'right' %}
+    #shopify-section-{{ section.id }} .hero-buttons {
+      justify-content: flex-end;
+    }
+  {% endif %}
+
+  {% comment %} ── Block styles ── {% endcomment %}
+  #shopify-section-{{ section.id }} .hero-eyebrow {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+    margin-top: 0;
+    opacity: 0;
+    animation: heroFadeIn-{{ section.id }} 0.6s ease 0.2s forwards;
+  }
+
+  #shopify-section-{{ section.id }} .hero-heading {
+    font-weight: 300;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    margin-top: 0;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: heroFadeUp-{{ section.id }} 0.6s ease 0.4s forwards;
+  }
+
+  #shopify-section-{{ section.id }} .hero-subtext {
+    margin-bottom: 2rem;
+    margin-top: 0;
+    opacity: 0;
+    animation: heroFadeIn-{{ section.id }} 0.6s ease 0.6s forwards;
+  }
+
+  #shopify-section-{{ section.id }} .hero-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: heroFadeUp-{{ section.id }} 0.6s ease 0.8s forwards;
+  }
+
+  #shopify-section-{{ section.id }} .btn-primary-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    background-color: {{ section.settings.color_scheme.settings.button }};
+    color: {{ section.settings.color_scheme.settings.button_label }};
+    border-radius: 0.5rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+
+  #shopify-section-{{ section.id }} .btn-primary-hero:hover {
+    opacity: 0.88;
+  }
+
+  #shopify-section-{{ section.id }} .btn-primary-hero .arrow-icon {
+    transition: transform 0.2s ease;
+    width: 20px;
+    height: 20px;
+  }
+
+  #shopify-section-{{ section.id }} .btn-primary-hero:hover .arrow-icon {
+    transform: translateX(4px);
+  }
+
+  #shopify-section-{{ section.id }} .btn-secondary-hero {
+    display: inline-flex;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: transparent;
+    color: {{ section.settings.color_scheme.settings.secondary_button_label }};
+    border: 2px solid {{ section.settings.color_scheme.settings.secondary_button_label }};
+    border-radius: 0.5rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  #shopify-section-{{ section.id }} .btn-secondary-hero:hover {
+    background-color: {{ section.settings.color_scheme.settings.secondary_button_label }};
+    color: {{ section.settings.color_scheme.settings.background }};
+  }
+
+  @keyframes heroFadeUp-{{ section.id }} {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes heroFadeIn-{{ section.id }} {
+    to { opacity: 1; }
+  }
+{%- endstyle -%}
+
+<section class="hero-section">
+
+  {% comment %} ── Background Image ── {% endcomment %}
+  {% if section.settings.image != blank %}
+    {{
+      section.settings.image
+      | image_url: width: 2000
+      | image_tag:
+        class: 'hero-bg',
+        widths: '600,900,1200,1600,2000',
+        fetchpriority: 'high',
+        loading: 'eager',
+        alt: 'Hero background'
+    }}
+  {% else %}
+    {{ 'hero-apparel-1' | placeholder_svg_tag: 'hero-bg' }}
+  {% endif %}
+
+  <div class="hero-overlay"></div>
+
+  <div class="hero-inner">
+    <div class="hero-content">
+
+      {% for block in section.blocks %}
+        {% case block.type %}
+
+          {% when 'eyebrow' %}
+            <p
+              class="hero-eyebrow"
+              style="color: {{ block.settings.color }}; font-size: {{ block.settings.font_size }}px;"
+              {{ block.shopify_attributes }}
+            >
+              {{ block.settings.text }}
+            </p>
+
+          {% when 'heading' %}
+            <h1
+              class="hero-heading"
+              style="color: {{ block.settings.color }}; font-size: clamp({{ block.settings.font_size_min }}px, 6vw, {{ block.settings.font_size_max }}px);"
+              {{ block.shopify_attributes }}
+            >
+              {{ block.settings.text }}
+            </h1>
+
+          {% when 'subtext' %}
+            <p
+              class="hero-subtext"
+              style="color: {{ block.settings.color }}; font-size: clamp(1rem, 2vw, {{ block.settings.font_size }}px);"
+              {{ block.shopify_attributes }}
+            >
+              {{ block.settings.text }}
+            </p>
+
+          {% when 'buttons' %}
+            <div class="hero-buttons" {{ block.shopify_attributes }}>
+              {% if block.settings.btn1_label != blank %}
+                <a href="{{ block.settings.btn1_url }}" class="btn-primary-hero">
+                  {{ block.settings.btn1_label }}
+                  {% if block.settings.btn1_show_arrow %}
+                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                      <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                  {% endif %}
+                </a>
+              {% endif %}
+              {% if block.settings.btn2_label != blank %}
+                <a href="{{ block.settings.btn2_url }}" class="btn-secondary-hero">
+                  {{ block.settings.btn2_label }}
+                </a>
+              {% endif %}
+            </div>
+
+        {% endcase %}
+      {% endfor %}
+
+    </div>
+  </div>
+
+</section>
+
+{% schema %}
+{
+  "name": "Hero Section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Color & Style"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color Scheme",
+      "default": "scheme-3"
+    },
+    {
+      "type": "header",
+      "content": "Background Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Background Image"
+    },
+    {
+      "type": "range",
+      "id": "image_opacity",
+      "label": "Image Opacity",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Dark Overlay",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Height"
+    },
+    {
+      "type": "range",
+      "id": "mobile_height",
+      "label": "Mobile Height",
+      "min": 300,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 600
+    },
+    {
+      "type": "range",
+      "id": "tablet_height",
+      "label": "Tablet Height",
+      "min": 400,
+      "max": 900,
+      "step": 20,
+      "unit": "px",
+      "default": 700
+    },
+    {
+      "type": "range",
+      "id": "desktop_height",
+      "label": "Desktop Height",
+      "min": 500,
+      "max": 1000,
+      "step": 20,
+      "unit": "px",
+      "default": 800
+    },
+    {
+      "type": "header",
+      "content": "Content Alignment"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Content Position",
+      "options": [
+        { "value": "left",   "label": "Left"   },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right"  }
+      ],
+      "default": "left"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "eyebrow",
+      "name": "Eyebrow Text",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Spring Collection 2026"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "Color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "label": "Font Size",
+          "min": 10,
+          "max": 20,
+          "step": 1,
+          "unit": "px",
+          "default": 14
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "name": "Heading",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Heading",
+          "default": "Timeless Design for Modern Living"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "Color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "range",
+          "id": "font_size_min",
+          "label": "Min Font Size (mobile)",
+          "min": 24,
+          "max": 60,
+          "step": 2,
+          "unit": "px",
+          "default": 40
+        },
+        {
+          "type": "range",
+          "id": "font_size_max",
+          "label": "Max Font Size (desktop)",
+          "min": 40,
+          "max": 100,
+          "step": 2,
+          "unit": "px",
+          "default": 72
+        }
+      ]
+    },
+    {
+      "type": "subtext",
+      "name": "Subtext",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Subtext",
+          "default": "Discover curated pieces that blend minimalist aesthetics with exceptional craftsmanship"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "Color",
+          "default": "#e5e7eb"
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "label": "Font Size",
+          "min": 14,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "type": "buttons",
+      "name": "Buttons",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "btn1_label",
+          "label": "Primary Button Label",
+          "default": "Shop Now"
+        },
+        {
+          "type": "url",
+          "id": "btn1_url",
+          "label": "Primary Button Link"
+        },
+        {
+          "type": "checkbox",
+          "id": "btn1_show_arrow",
+          "label": "Show Arrow Icon",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "btn2_label",
+          "label": "Secondary Button Label",
+          "default": "View Collection"
+        },
+        {
+          "type": "url",
+          "id": "btn2_url",
+          "label": "Secondary Button Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Section",
+      "blocks": [
+        { "type": "eyebrow" },
+        { "type": "heading" },
+        { "type": "subtext" },
+        { "type": "buttons" }
+      ]
+    }
+  ]
+}
+{% endschema %}

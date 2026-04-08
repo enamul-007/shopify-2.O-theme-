@@ -1,0 +1,432 @@
+{%- style -%}
+  #shopify-section-{{ section.id }} .promo-section {
+    position: relative;
+    height: {{ section.settings.mobile_height }}px;
+    background-color: {{ section.settings.color_scheme.settings.background }};
+    color: {{ section.settings.color_scheme.settings.text }};
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (min-width: 768px) {
+    #shopify-section-{{ section.id }} .promo-section {
+      height: {{ section.settings.tablet_height }}px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    #shopify-section-{{ section.id }} .promo-section {
+      height: {{ section.settings.desktop_height }}px;
+    }
+  }
+
+  #shopify-section-{{ section.id }} .promo-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: {{ section.settings.image_opacity | divided_by: 100.0 }};
+  }
+
+  #shopify-section-{{ section.id }} .promo-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,{{ section.settings.overlay_opacity | divided_by: 100.0 }});
+  }
+
+  #shopify-section-{{ section.id }} .promo-inner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 0 1rem;
+    max-width: 800px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  #shopify-section-{{ section.id }} .promo-inner.is-visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* ── Block styles ── */
+  #shopify-section-{{ section.id }} .promo-eyebrow {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin: 0;
+  }
+
+  #shopify-section-{{ section.id }} .promo-heading {
+    font-weight: 300;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  #shopify-section-{{ section.id }} .promo-subtext {
+    max-width: 36rem;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  #shopify-section-{{ section.id }} .promo-subtext p { margin: 0; }
+
+  #shopify-section-{{ section.id }} .promo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+  }
+
+  #shopify-section-{{ section.id }} .promo-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+
+  #shopify-section-{{ section.id }} .promo-btn .btn-arrow {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  #shopify-section-{{ section.id }} .promo-btn:hover .btn-arrow {
+    transform: translateX(4px);
+  }
+{%- endstyle -%}
+
+<section class="promo-section">
+
+  {% comment %} ── Background Image ── {% endcomment %}
+  {% if section.settings.image != blank %}
+    {{
+      section.settings.image
+      | image_url: width: 2000
+      | image_tag:
+        class: 'promo-bg',
+        widths: '600,900,1200,1600,2000',
+        fetchpriority: 'high',
+        loading: 'eager',
+        alt: 'Promotional banner'
+    }}
+  {% else %}
+    {{ 'lifestyle-1' | placeholder_svg_tag: 'promo-bg' }}
+  {% endif %}
+
+  <div class="promo-overlay"></div>
+
+  <div class="promo-inner js-promo-reveal">
+    {% for block in section.blocks %}
+      {% case block.type %}
+
+        {% when 'eyebrow' %}
+          <p
+            class="promo-eyebrow"
+            style="color: {{ block.settings.color }}; font-size: {{ block.settings.font_size }}px;"
+            {{ block.shopify_attributes }}
+          >
+            {{ block.settings.text }}
+          </p>
+
+        {% when 'heading' %}
+          <h2
+            class="promo-heading"
+            style="color: {{ block.settings.color }}; font-size: clamp({{ block.settings.font_size_min }}px, 5vw, {{ block.settings.font_size_max }}px);"
+            {{ block.shopify_attributes }}
+          >
+            {{ block.settings.text }}
+          </h2>
+
+        {% when 'subtext' %}
+          <div
+            class="promo-subtext"
+            style="color: {{ block.settings.color }}; font-size: {{ block.settings.font_size }}px;"
+            {{ block.shopify_attributes }}
+          >
+            {{ block.settings.text }}
+          </div>
+
+        {% when 'button' %}
+          {% if block.settings.label != blank %}
+            <a
+              href="{{ block.settings.url }}"
+              class="promo-btn"
+              style="background-color: {{ block.settings.bg_color }}; color: {{ block.settings.text_color }};"
+              {{ block.shopify_attributes }}
+            >
+              {{ block.settings.label }}
+              {% if block.settings.show_arrow %}
+                <svg class="btn-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+              {% endif %}
+            </a>
+          {% endif %}
+
+      {% endcase %}
+    {% endfor %}
+  </div>
+
+</section>
+
+<script>
+(function() {
+  var el = document.querySelector('#shopify-section-{{ section.id }} .js-promo-reveal');
+  if (!el) return;
+  if (!('IntersectionObserver' in window)) {
+    el.classList.add('is-visible');
+    return;
+  }
+  new IntersectionObserver(function(entries, obs) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 }).observe(el);
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Promotional Banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Color & Style"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color Scheme",
+      "default": "scheme-3"
+    },
+    {
+      "type": "header",
+      "content": "Background Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Background Image"
+    },
+    {
+      "type": "range",
+      "id": "image_opacity",
+      "label": "Image Opacity",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Dark Overlay",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Height"
+    },
+    {
+      "type": "range",
+      "id": "mobile_height",
+      "label": "Mobile Height",
+      "min": 250,
+      "max": 750,
+      "step": 20,
+      "unit": "px",
+      "default": 450
+    },
+    {
+      "type": "range",
+      "id": "tablet_height",
+      "label": "Tablet Height",
+      "min": 300,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 500
+    },
+   {
+  "type": "range",
+  "id": "desktop_height",
+  "label": "Desktop Height",
+  "min": 350,
+  "max": 950,
+  "step": 20,
+  "unit": "px",
+  "default": 510
+}
+  ],
+  "blocks": [
+    {
+      "type": "eyebrow",
+      "name": "Eyebrow Text",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Limited Time Offer"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "Color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "label": "Font Size",
+          "min": 10,
+          "max": 18,
+          "step": 1,
+          "unit": "px",
+          "default": 12
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "name": "Heading",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Heading",
+          "default": "Up to 40% Off"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "Color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "range",
+          "id": "font_size_min",
+          "label": "Min Font Size (mobile)",
+          "min": 24,
+          "max": 60,
+          "step": 2,
+          "unit": "px",
+          "default": 36
+        },
+        {
+          "type": "range",
+          "id": "font_size_max",
+          "label": "Max Font Size (desktop)",
+          "min": 40,
+          "max": 100,
+          "step": 2,
+          "unit": "px",
+          "default": 64
+        }
+      ]
+    },
+    {
+      "type": "subtext",
+      "name": "Subtext",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Subtext",
+          "default": "End of season sale on selected items. Don't miss out on these incredible deals"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "Color",
+          "default": "#e5e7eb"
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "label": "Font Size",
+          "min": 14,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "default": 18
+        }
+      ]
+    },
+    {
+      "type": "button",
+      "name": "Button",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Button Label",
+          "default": "Shop Sale"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Button Link"
+        },
+        {
+          "type": "color",
+          "id": "bg_color",
+          "label": "Button Background",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Button Text Color",
+          "default": "#111827"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_arrow",
+          "label": "Show Arrow Icon",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Promotional Banner",
+      "blocks": [
+        { "type": "eyebrow" },
+        { "type": "heading" },
+        { "type": "subtext" },
+        { "type": "button" }
+      ]
+    }
+  ]
+}
+{% endschema %}

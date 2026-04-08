@@ -1,59 +1,305 @@
-<div class="main-account-{{section.id}}">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center my-4">
-            <div class="customer-info">
-                <h4>Welcome back, <span class="text-capitalize">{{ customer.first_name }}</span></h4>
-            </div>
-            <div class="customer-action">
-                <a href="{{ routes.account_logout_url }}">Logout</a>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-9">
-                <h4>Orders</h4>
-                {% if customer.orders.size > 0 %}                    
-                
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Order date</th>
-                            <th>Payment status</th>
-                            <th>Fulfillment status</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in customer.orders %}
-                            <tr>
-                                <td>
-                                    <a href="{{ order.customer_url }}">
-                                        {{ order.name }}
-                                    </a>
-                                </td>
-                                <td>{{ order.created_at |  time_tag: format: 'date' }}</td>
-                                <td>{{ order.financial_status_label }}</td>
-                                <td>{{ order.fulfillment_status_label }}</td>
-                                <td>{{ order.total_net_amount |  money_with_currency }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p class="text-center my-5">No orders found!</p>
-            {% endif %}
-            </div>
-            <div class="col-md-3">
-                <h4>Address</h4>
-                {{ customer.default_address | format_address }} 
-                <a href="{{ routes.account_addresses_url }}">Account addresses</a>           
-            </div>
-        </div>
+<style>
+  .account-section-{{ section.id }} {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+  }
+
+  .account-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .account-topbar__welcome h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .account-topbar__welcome p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  .account-logout {
+    font-size: 0.875rem;
+    padding: 8px 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: transparent;
+    color: #374151;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .account-logout:hover {
+    background: #f3f4f6;
+  }
+
+  .account-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .account-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .account-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .account-card__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    color: #111827;
+  }
+
+  /* Orders Table */
+  .orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .orders-table thead th {
+    text-align: left;
+    padding: 8px 12px;
+    color: #6b7280;
+    font-weight: 500;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .orders-table tbody td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #f9fafb;
+    color: #111827;
+  }
+
+  .orders-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .orders-table tbody tr:hover {
+    background: #f9fafb;
+  }
+
+  .order-number-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .order-number-link:hover {
+    text-decoration: underline;
+  }
+
+  .orders-table .total {
+    text-align: right;
+  }
+
+  .orders-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+    font-size: 0.9rem;
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+
+  .badge--paid, .badge--fulfilled {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .badge--pending, .badge--unfulfilled {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .badge--refunded, .badge--voided {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* Sidebar */
+  .account-user-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .account-avatar {
+    width: 44px;
+    height: 44px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .account-user-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .account-user-email {
+    font-size: 0.8125rem;
+    color: #6b7280;
+  }
+
+  .account-address-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin-bottom: 8px;
+  }
+
+  .account-address-box {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.8125rem;
+    line-height: 1.8;
+    color: #374151;
+    margin-bottom: 12px;
+  }
+
+  .account-address-link {
+    font-size: 0.8125rem;
+    color: #2563eb;
+    text-decoration: none;
+  }
+
+  .account-address-link:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<div class="account-section-{{ section.id }}">
+
+  {% comment %} {{-- Top Bar --}} {% endcomment %}
+  <div class="account-topbar">
+    <div class="account-topbar__welcome">
+      <h4>Welcome back, <span class="text-capitalize">{{ customer.first_name }}</span></h4>
+      <p>Manage your orders and account details</p>
     </div>
+    <a href="{{ routes.account_logout_url }}" class="account-logout">Logout</a>
+  </div>
+
+  <div class="account-grid">
+
+    {% comment %} {{-- Orders --}} {% endcomment %}
+    <div class="account-card">
+      <div class="account-card__title">Order history</div>
+
+      {% if customer.orders.size > 0 %}
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Date</th>
+              <th>Payment</th>
+              <th>Fulfillment</th>
+              <th class="total">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in customer.orders %}
+              <tr>
+                <td>
+                  <a href="{{ order.customer_url }}" class="order-number-link">
+                    {{ order.name }}
+                  </a>
+                </td>
+                <td>{{ order.created_at | time_tag: format: 'date' }}</td>
+                <td>
+                  <span class="badge badge--{{ order.financial_status }}">
+                    {{ order.financial_status_label }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge badge--{{ order.fulfillment_status }}">
+                    {{ order.fulfillment_status_label }}
+                  </span>
+                </td>
+                <td class="total">{{ order.total_net_amount | money_with_currency }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="orders-empty">
+          <p>You haven't placed any orders yet.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {% comment %} {{-- Sidebar --}} {% endcomment %}
+    <div>
+      <div class="account-card">
+        <div class="account-card__title">Account</div>
+
+        <div class="account-user-row">
+          <div class="account-avatar">
+            {{ customer.first_name | slice: 0 }}{{ customer.last_name | slice: 0 }}
+          </div>
+          <div>
+            <div class="account-user-name">{{ customer.name }}</div>
+            <div class="account-user-email">{{ customer.email }}</div>
+          </div>
+        </div>
+
+        <div class="account-address-label">Default address</div>
+
+        {% if customer.default_address %}
+          <div class="account-address-box">
+            {{ customer.default_address | format_address }}
+          </div>
+        {% else %}
+          <div class="account-address-box">No address saved yet.</div>
+        {% endif %}
+
+        <a href="{{ routes.account_addresses_url }}" class="account-address-link">
+          Manage addresses →
+        </a>
+      </div>
+    </div>
+
+  </div>
 </div>
+
 {% schema %}
 {
-    "name": "Customer Account",
-    "settings": []
+  "name": "Customer Account",
+  "settings": []
 }
 {% endschema %}

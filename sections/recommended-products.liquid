@@ -7,7 +7,7 @@
             {% if recommendations.performed? and recommendations.products_count > 0 %}
                 <div class="row">
                     {% for product in recommendations.products, limit: section.settings.limit %}
-                        {%  render 'card-product', product: product %}
+                        {%  render 'product-card', product: product %}
                     {% endfor %}
                 </div>            
             {% endif %}

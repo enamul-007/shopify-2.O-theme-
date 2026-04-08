@@ -1,0 +1,696 @@
+{%- liquid
+  # Marquee configuration
+  assign marquee_direction = block.settings.direction
+  assign marquee_speed = block.settings.speed
+  assign marquee_gap = block.settings.gap
+  assign marquee_pause = block.settings.pause_on_hover
+  assign marquee_duplicate = block.settings.duplicate_content
+  
+  # Typography preset overrides
+  assign preset = block.settings.type_preset
+  assign font_family = block.settings.font
+  assign font_size = block.settings.font_size
+  assign font_weight = block.settings.font_weight
+  assign line_height = block.settings.line_height
+  assign letter_spacing = block.settings.letter_spacing
+  assign text_case = block.settings.text_case
+  assign text_wrap = block.settings.text_wrap
+  
+  # Width
+  assign width = block.settings.width
+  assign max_width = block.settings.max_width
+  
+  # Alignment
+  assign alignment = block.settings.alignment
+  
+  # Appearance
+  assign color = block.settings.color
+  assign bg_color = block.settings.background_color
+  assign has_bg = block.settings.background
+  assign radius = block.settings.corner_radius
+  
+  # Spacing
+  assign pt = block.settings.padding_top
+  assign pb = block.settings.padding_bottom
+  assign pl = block.settings.padding_left
+  assign pr = block.settings.padding_right
+  
+  # Icon settings
+  assign show_icon = block.settings.show_icon
+  assign icon_position = block.settings.icon_position
+  assign icon = block.settings.icon
+  assign icon_color = block.settings.icon_color
+  assign icon_size = block.settings.icon_size
+-%}
+
+{%- style -%}
+  #block-{{ block.id }} {
+    /* ── Width ── */
+    {%- if width == 'fill' -%}
+      width: 100%;
+    {%- elsif width == 'fit' -%}
+      width: fit-content;
+    {%- elsif width == 'custom' -%}
+      width: {{ block.settings.custom_width }}%;
+    {%- endif -%}
+    
+    /* ── Max Width ── */
+    {%- unless max_width == 'none' -%}
+      max-width: {{ max_width }};
+    {%- endunless -%}
+    
+    /* ── Alignment ── */
+    text-align: {{ alignment }};
+    {%- if alignment == 'center' -%}
+      margin-inline: auto;
+    {%- elsif alignment == 'right' -%}
+      margin-inline-start: auto;
+    {%- endif -%}
+    
+    /* ── Typography ── */
+    {%- if preset == 'h1' -%}
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    {%- elsif preset == 'h2' -%}
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    {%- elsif preset == 'h3' -%}
+      font-size: clamp(1.5rem, 3vw, 2.25rem);
+      font-weight: 600;
+      line-height: 1.2;
+    {%- elsif preset == 'h4' -%}
+      font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+      font-weight: 600;
+      line-height: 1.25;
+    {%- elsif preset == 'h5' -%}
+      font-size: clamp(1rem, 2vw, 1.375rem);
+      font-weight: 600;
+      line-height: 1.3;
+    {%- elsif preset == 'h6' -%}
+      font-size: clamp(0.875rem, 1.5vw, 1.125rem);
+      font-weight: 600;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+    {%- elsif preset == 'p' -%}
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.6;
+    {%- endif -%}
+    
+    /* ── Custom Font ── */
+    {%- if preset == 'custom' -%}
+      {%- if font_family == 'heading' -%}
+        font-family: var(--font-heading-family, serif);
+      {%- elsif font_family == 'subheading' -%}
+        font-family: var(--font-heading-family, sans-serif);
+        font-style: italic;
+      {%- elsif font_family == 'body' -%}
+        font-family: var(--font-body-family, sans-serif);
+      {%- elsif font_family == 'accent' -%}
+        font-family: var(--font-accent-family, monospace);
+      {%- endif -%}
+      font-size: {{ font_size }}px;
+      font-weight: {{ font_weight }};
+      line-height: {{ line_height | divided_by: 10.0 }};
+      letter-spacing: {{ letter_spacing | divided_by: 100.0 }}em;
+    {%- endif -%}
+    
+    /* ── Case & Wrap ── */
+    {%- unless text_case == 'none' -%}
+      text-transform: {{ text_case }};
+    {%- endunless -%}
+    text-wrap: {{ text_wrap }};
+    
+    /* ── Color ── */
+    {%- if color != blank -%}
+      color: {{ color }};
+    {%- endif -%}
+    
+    /* ── Icon styles ── */
+    {%- if show_icon -%}
+      --marquee-icon-color: {{ icon_color | default: color }};
+      --marquee-icon-size: {{ icon_size }}px;
+    {%- endif -%}
+    
+    /* ── Background ── */
+    {%- if has_bg -%}
+      background-color: {{ bg_color }};
+    {%- endif -%}
+    
+    /* ── Corner Radius ── */
+    {%- if radius > 0 -%}
+      border-radius: {{ radius }}px;
+    {%- endif -%}
+    
+    /* ── Padding ── */
+    padding: {{ pt }}px {{ pr }}px {{ pb }}px {{ pl }}px;
+    
+    /* ── Display ── */
+    display: block;
+    box-sizing: border-box;
+  }
+  
+  /* ── Marquee Container Styles ── */
+  #block-{{ block.id }} .marquee-container {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+  }
+  
+  #block-{{ block.id }} .marquee-track {
+    display: flex;
+    gap: {{ marquee_gap }}px;
+    width: fit-content;
+    animation: marquee-scroll-{{ block.id }} {{ marquee_speed }}s linear infinite;
+    {% if marquee_direction == 'right' %}
+      animation-direction: reverse;
+    {% endif %}
+    {% if marquee_pause %}
+      animation-play-state: running;
+    {% endif %}
+  }
+  
+  #block-{{ block.id }} .marquee-container:hover .marquee-track {
+    {% if marquee_pause %}
+      animation-play-state: paused;
+    {% endif %}
+  }
+  
+  #block-{{ block.id }} .marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: {{ marquee_gap }}px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  
+  #block-{{ block.id }} .marquee-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--marquee-icon-color);
+    font-size: var(--marquee-icon-size);
+    line-height: 1;
+  }
+  
+  /* Icon position styles */
+  #block-{{ block.id }} .marquee-icon--left {
+    order: -1;
+  }
+  
+  #block-{{ block.id }} .marquee-icon--right {
+    order: 1;
+  }
+  
+  /* Animation keyframes */
+  @keyframes marquee-scroll-{{ block.id }} {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  /* Responsive font adjustments */
+  @media (max-width: 768px) {
+    #block-{{ block.id }} .marquee-item {
+      white-space: normal;
+      word-break: keep-all;
+    }
+  }
+{%- endstyle -%}
+
+<div class="marquee-container" {{ block.shopify_attributes }}>
+  <div class="marquee-track">
+    {%- assign max_loops = 2 -%}
+    {%- if marquee_duplicate == false -%}
+      {%- assign max_loops = 1 -%}
+    {%- endif -%}
+    
+    {%- for i in (1..max_loops) -%}
+      {%- assign items = block.settings.marquee_items | split: ',' -%}
+      {%- for item in items -%}
+        {%- assign clean_item = item | strip -%}
+        {%- if clean_item != blank -%}
+          <div class="marquee-item">
+            {%- if show_icon and icon_position == 'left' -%}
+              <span class="marquee-icon marquee-icon--left">
+                {%- if icon contains '<svg' or icon contains 'fa-' -%}
+                  {{ icon }}
+                {%- else -%}
+                  {{ icon | default: '✦' }}
+                {%- endif -%}
+              </span>
+            {%- endif -%}
+            
+            <span>{{ clean_item }}</span>
+            
+            {%- if show_icon and icon_position == 'right' -%}
+              <span class="marquee-icon marquee-icon--right">
+                {%- if icon contains '<svg' or icon contains 'fa-' -%}
+                  {{ icon }}
+                {%- else -%}
+                  {{ icon | default: '✦' }}
+                {%- endif -%}
+              </span>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Marquee",
+  "settings": [
+    {
+      "type": "header",
+      "content": "── Content ──────────────────────────"
+    },
+    {
+      "type": "textarea",
+      "id": "marquee_items",
+      "label": "Marquee Items",
+      "default": "✨ Free Shipping, 🔥 30% Off, ⭐ Limited Edition, 🚀 Fast Delivery",
+      "info": "Separate items with commas. Example: Item 1, Item 2, Item 3"
+    },
+    
+    {
+      "type": "header",
+      "content": "── Animation ────────────────────────"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "Direction",
+      "options": [
+        { "value": "left", "label": "← Left to Right" },
+        { "value": "right", "label": "→ Right to Left" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Animation Speed",
+      "min": 5,
+      "max": 60,
+      "step": 1,
+      "unit": "sec",
+      "default": 20,
+      "info": "Lower = faster, Higher = slower"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap Between Items",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Pause on Hover",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "duplicate_content",
+      "label": "Duplicate Content for Seamless Loop",
+      "default": true,
+      "info": "Creates a seamless infinite scroll effect"
+    },
+    
+    {
+      "type": "header",
+      "content": "── Icon Settings ────────────────────"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show Icon",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "Icon Position",
+      "options": [
+        { "value": "left", "label": "Left of Text" },
+        { "value": "right", "label": "Right of Text" }
+      ],
+      "default": "left",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "text",
+      "id": "icon",
+      "label": "Icon",
+      "default": "✦",
+      "info": "Use emojis (✨), symbols (★), or HTML/SVG. Example: ✨ or <svg>...</svg>",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon Color",
+      "default": "#111111",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon Size",
+      "min": 12,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    
+    {
+      "type": "header",
+      "content": "── Layout ──────────────────────────"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Width",
+      "options": [
+        { "value": "fit",    "label": "Fit Content" },
+        { "value": "fill",   "label": "Fill (100%)" },
+        { "value": "custom", "label": "Custom (%)" }
+      ],
+      "default": "fill"
+    },
+    {
+      "type": "range",
+      "id": "custom_width",
+      "label": "Custom Width",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "max_width",
+      "label": "Max Width",
+      "options": [
+        { "value": "none",   "label": "None" },
+        { "value": "320px",  "label": "Narrow (320px)" },
+        { "value": "480px",  "label": "Small (480px)" },
+        { "value": "640px",  "label": "Medium (640px)" },
+        { "value": "768px",  "label": "Wide (768px)" },
+        { "value": "1024px", "label": "Extra Wide (1024px)" },
+        { "value": "100%",   "label": "Full" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left",    "label": "← Left" },
+        { "value": "center",  "label": "↔ Center" },
+        { "value": "right",   "label": "→ Right" }
+      ],
+      "default": "center"
+    },
+    
+    {
+      "type": "header",
+      "content": "── Typography ──────────────────────"
+    },
+    {
+      "type": "select",
+      "id": "type_preset",
+      "label": "Typography Preset",
+      "options": [
+        { "value": "h1",     "label": "H1 — Display" },
+        { "value": "h2",     "label": "H2 — Heading" },
+        { "value": "h3",     "label": "H3 — Subheading" },
+        { "value": "h4",     "label": "H4 — Section Title" },
+        { "value": "h5",     "label": "H5 — Small Heading" },
+        { "value": "h6",     "label": "H6 — Label" },
+        { "value": "p",      "label": "P — Body Text" },
+        { "value": "custom", "label": "✏️ Custom" }
+      ],
+      "default": "h3"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "Font Family",
+      "info": "Uses your theme font variables",
+      "options": [
+        { "value": "heading",    "label": "Heading Font" },
+        { "value": "subheading", "label": "Subheading (italic)" },
+        { "value": "body",       "label": "Body Font" },
+        { "value": "accent",     "label": "Accent Font" }
+      ],
+      "default": "heading",
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font Size",
+      "min": 10,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 32,
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font Weight",
+      "options": [
+        { "value": "300", "label": "Light (300)" },
+        { "value": "400", "label": "Regular (400)" },
+        { "value": "500", "label": "Medium (500)" },
+        { "value": "600", "label": "Semi Bold (600)" },
+        { "value": "700", "label": "Bold (700)" },
+        { "value": "800", "label": "Extra Bold (800)" },
+        { "value": "900", "label": "Black (900)" }
+      ],
+      "default": "600",
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "line_height",
+      "label": "Line Height",
+      "min": 8,
+      "max": 30,
+      "step": 1,
+      "default": 12,
+      "info": "Value ÷ 10 = actual (e.g. 12 → 1.2)",
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "label": "Letter Spacing",
+      "min": -10,
+      "max": 30,
+      "step": 1,
+      "default": 0,
+      "info": "Value ÷ 100 = em (e.g. -2 → -0.02em)",
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "text_case",
+      "label": "Case",
+      "options": [
+        { "value": "none",       "label": "Default" },
+        { "value": "uppercase",  "label": "UPPERCASE" },
+        { "value": "lowercase",  "label": "lowercase" },
+        { "value": "capitalize", "label": "Capitalize" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "select",
+      "id": "text_wrap",
+      "label": "Text Wrap",
+      "options": [
+        { "value": "wrap",    "label": "Wrap (default)" },
+        { "value": "balance", "label": "Balance" },
+        { "value": "pretty",  "label": "Pretty" },
+        { "value": "nowrap",  "label": "No Wrap" }
+      ],
+      "default": "nowrap"
+    },
+    
+    {
+      "type": "header",
+      "content": "── Appearance ──────────────────────"
+    },
+    {
+      "type": "color",
+      "id": "color",
+      "label": "Text Color",
+      "default": "#111111"
+    },
+    {
+      "type": "checkbox",
+      "id": "background",
+      "label": "Enable Background Color",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#F5F5F5",
+      "visible_if": "{{ block.settings.background }}"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Corner Radius",
+      "min": 0,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    
+    {
+      "type": "header",
+      "content": "── Spacing ─────────────────────────"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding Top",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding Bottom",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "Padding Left",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "Padding Right",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    {
+      "name": "Marquee",
+      "settings": {
+        "marquee_items": "✨ Free Shipping, 🔥 30% Off, ⭐ Limited Edition, 🚀 Fast Delivery, 💎 Premium Quality",
+        "direction": "left",
+        "speed": 20,
+        "gap": 48,
+        "pause_on_hover": true,
+        "duplicate_content": true,
+        "show_icon": true,
+        "icon": "✦",
+        "icon_position": "left",
+        "icon_color": "#111111",
+        "icon_size": 20,
+        "type_preset": "h3",
+        "text_case": "none",
+        "text_wrap": "nowrap",
+        "color": "#111111",
+        "alignment": "center",
+        "padding_top": 16,
+        "padding_bottom": 16,
+        "padding_left": 16,
+        "padding_right": 16
+      }
+    },
+    {
+      "name": "Marquee (Large Text)",
+      "settings": {
+        "marquee_items": "SALE • NEW ARRIVALS • BESTSELLERS • EXCLUSIVE • LIMITED",
+        "direction": "right",
+        "speed": 15,
+        "gap": 64,
+        "pause_on_hover": true,
+        "duplicate_content": true,
+        "show_icon": true,
+        "icon": "★",
+        "icon_position": "right",
+        "icon_color": "#FF6B35",
+        "icon_size": 28,
+        "type_preset": "custom",
+        "font_size": 48,
+        "font_weight": "700",
+        "text_case": "uppercase",
+        "text_wrap": "nowrap",
+        "color": "#FF6B35",
+        "alignment": "center",
+        "background": true,
+        "background_color": "#1A1A1A",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "corner_radius": 0
+      }
+    },
+    {
+      "name": "Marquee (Subtle)",
+      "settings": {
+        "marquee_items": "Free shipping on orders over $50, 30-day returns, 24/7 customer support",
+        "direction": "left",
+        "speed": 30,
+        "gap": 32,
+        "pause_on_hover": true,
+        "duplicate_content": true,
+        "show_icon": false,
+        "type_preset": "p",
+        "text_case": "none",
+        "color": "#666666",
+        "alignment": "center",
+        "padding_top": 12,
+        "padding_bottom": 12
+      }
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,53 @@
+{%- comment -%}
+  Snippet: size-style.liquid
+  Outputs CSS custom properties for width and height.
+  Guards: only outputs a variable if the setting actually exists.
+
+  Accepts:
+    settings: {block.settings | section.settings}
+{%- endcomment -%}
+
+{%- liquid
+  # ── Desktop Width ─────────────────────────────────────
+  if settings.width == 'custom'
+    assign width_value = settings.custom_width | append: '%'
+  elsif settings.width == 'fill'
+    assign width_value = '100%'
+  elsif settings.width != blank
+    assign width_value = settings.width
+  endif
+
+  if width_value != blank
+    echo '--size-style-width: ' | append: width_value | append: '; '
+  endif
+
+  # ── Desktop Height (only if height setting exists) ────
+  if settings.height == 'custom'
+    assign height_value = settings.custom_height | append: '%'
+  elsif settings.height == 'fill'
+    assign height_value = '100%'
+  elsif settings.height != blank and settings.height != 'auto'
+    assign height_value = settings.height
+  endif
+
+  if height_value != blank
+    echo '--size-style-height: ' | append: height_value | append: '; '
+  endif
+
+  # ── Mobile Width ──────────────────────────────────────
+  if settings.width_mobile == 'custom'
+    assign mobile_width_value = settings.custom_width_mobile | append: '%'
+    assign mobile_width_min   = settings.custom_width_mobile | append: '%'
+  elsif settings.width_mobile == 'fill'
+    assign mobile_width_value = '100%'
+    assign mobile_width_min   = '5rem'
+  elsif settings.width_mobile == 'fit-content'
+    assign mobile_width_value = 'fit-content'
+    assign mobile_width_min   = 'fit-content'
+  endif
+
+  if mobile_width_value != blank
+    echo '--size-style-width-mobile: '     | append: mobile_width_value | append: '; '
+    echo '--size-style-width-mobile-min: ' | append: mobile_width_min   | append: '; '
+  endif
+-%}

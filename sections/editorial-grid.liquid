@@ -1,0 +1,522 @@
+{%- style -%}
+  #shopify-section-{{ section.id }} .editorial-section {
+    padding: {{ section.settings.padding_v }}px 0;
+    background-color: {{ section.settings.color_scheme.settings.background }};
+  }
+
+  #shopify-section-{{ section.id }} .editorial-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  @media (min-width: 640px) {
+    #shopify-section-{{ section.id }} .editorial-inner { padding: 0 1.5rem; }
+  }
+
+  @media (min-width: 1024px) {
+    #shopify-section-{{ section.id }} .editorial-inner { padding: 0 2rem; }
+  }
+
+  {% comment %} ── Section Header ── {% endcomment %}
+  #shopify-section-{{ section.id }} .editorial-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  #shopify-section-{{ section.id }} .editorial-header.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  #shopify-section-{{ section.id }} .editorial-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 400;
+    color: {{ section.settings.color_scheme.settings.text }};
+    margin: 0 0 0.75rem 0;
+  }
+  #shopify-section-{{ section.id }} .editorial-subtitle {
+    color: {{ section.settings.color_scheme.settings.secondary_button_label }};
+    max-width: 40rem;
+    margin: 0 auto;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  {% comment %} ── Grid Layout ── {% endcomment %}
+  #shopify-section-{{ section.id }} .editorial-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    #shopify-section-{{ section.id }} .editorial-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 1rem;
+    }
+    #shopify-section-{{ section.id }} .editorial-card--large {
+      grid-row: 1 / 3;
+    }
+  }
+
+  {% comment %} ── Card Base ── {% endcomment %}
+  #shopify-section-{{ section.id }} .editorial-card {
+    position: relative;
+    border-radius: {{ section.settings.card_radius }}px;
+    overflow: hidden;
+    display: block;
+    text-decoration: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+  #shopify-section-{{ section.id }} .editorial-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  #shopify-section-{{ section.id }} .editorial-card--large  { min-height: 520px; }
+  #shopify-section-{{ section.id }} .editorial-card--small  { min-height: 240px; }
+
+  @media (min-width: 768px) {
+    #shopify-section-{{ section.id }} .editorial-card--large { min-height: 600px; }
+    #shopify-section-{{ section.id }} .editorial-card--small { min-height: 290px; }
+  }
+
+  {% comment %} ── Card Image ── {% endcomment %}
+  #shopify-section-{{ section.id }} .editorial-card__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.7s ease;
+  }
+  #shopify-section-{{ section.id }} .editorial-card:hover .editorial-card__img {
+    transform: scale(1.05);
+  }
+
+  {% comment %} ── Second image (hover reveal) ── {% endcomment %}
+  #shopify-section-{{ section.id }} .editorial-card__img2 {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  #shopify-section-{{ section.id }} .editorial-card:hover .editorial-card__img2 {
+    opacity: 1;
+  }
+  #shopify-section-{{ section.id }} .editorial-card:hover .editorial-card__img {
+    transform: scale(1.05);
+    opacity: 0;
+  }
+
+  {% comment %} ── Overlay gradient ── {% endcomment %}
+  #shopify-section-{{ section.id }} .editorial-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0,0,0,0.75) 0%,
+      rgba(0,0,0,0.2) 50%,
+      transparent 100%
+    );
+    transition: opacity 0.3s ease;
+  }
+
+  {% comment %} ── Card Content ── {% endcomment %}
+  #shopify-section-{{ section.id }} .editorial-card__body {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.75rem;
+    gap: 0.75rem;
+  }
+
+  #shopify-section-{{ section.id }} .editorial-card__eyebrow {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(255,255,255,0.75);
+    margin: 0;
+  }
+
+  #shopify-section-{{ section.id }} .editorial-card__title {
+    margin: 0;
+    color: #ffffff;
+    font-weight: 500;
+    line-height: 1.25;
+  }
+
+  #shopify-section-{{ section.id }} .editorial-card--large .editorial-card__title {
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+  }
+
+  #shopify-section-{{ section.id }} .editorial-card--small .editorial-card__title {
+    font-size: clamp(1rem, 2vw, 1.35rem);
+  }
+
+  #shopify-section-{{ section.id }} .editorial-card__desc {
+    margin: 0;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+    line-height: 1.65;
+    max-width: 34rem;
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    #shopify-section-{{ section.id }} .editorial-card--large .editorial-card__desc {
+      display: block;
+    }
+  }
+
+  #shopify-section-{{ section.id }} .editorial-card__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.25rem;
+  }
+
+  #shopify-section-{{ section.id }} .ec-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.6rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.15s;
+    cursor: pointer;
+  }
+  #shopify-section-{{ section.id }} .ec-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+
+  #shopify-section-{{ section.id }} .ec-btn--primary {
+    background: #ffffff;
+    color: #111827;
+  }
+  #shopify-section-{{ section.id }} .ec-btn--secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 1.5px solid rgba(255,255,255,0.6);
+  }
+  #shopify-section-{{ section.id }} .ec-btn--secondary:hover {
+    border-color: #ffffff;
+  }
+  #shopify-section-{{ section.id }} .ec-btn--ghost {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+    backdrop-filter: blur(4px);
+  }
+{%- endstyle -%}
+
+<section class="editorial-section">
+  <div class="editorial-inner">
+
+    {% comment %} ── Section Header ── {% endcomment %}
+    {% if section.settings.title != blank or section.settings.subtitle != blank %}
+      <div class="editorial-header js-ed-reveal">
+        {% if section.settings.title != blank %}
+          <h2 class="editorial-title">{{ section.settings.title }}</h2>
+        {% endif %}
+        {% if section.settings.subtitle != blank %}
+          <p class="editorial-subtitle">{{ section.settings.subtitle }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% comment %} ── Grid ── {% endcomment %}
+    <div class="editorial-grid">
+      {% for block in section.blocks %}
+
+        {%- assign is_large = false -%}
+        {%- if forloop.first -%}{%- assign is_large = true -%}{%- endif -%}
+
+        <a
+          href="{{ block.settings.link }}"
+          class="editorial-card js-ed-reveal {% if is_large %}editorial-card--large{% else %}editorial-card--small{% endif %}"
+          style="transition-delay: {{ forloop.index0 | times: 120 }}ms;"
+          {{ block.shopify_attributes }}
+        >
+
+          {% comment %} Primary image {% endcomment %}
+          {% if block.settings.image != blank %}
+            {{
+              block.settings.image
+              | image_url: width: 1200
+              | image_tag:
+                class: 'editorial-card__img',
+                widths: '600,900,1200',
+                loading: 'lazy',
+                alt: block.settings.title
+            }}
+          {% else %}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'editorial-card__img' }}
+          {% endif %}
+
+          {% comment %} Second image (hover reveal) {% endcomment %}
+          {% if block.settings.image2 != blank %}
+            {{
+              block.settings.image2
+              | image_url: width: 1200
+              | image_tag:
+                class: 'editorial-card__img2',
+                widths: '600,900,1200',
+                loading: 'lazy',
+                alt: block.settings.title
+            }}
+          {% endif %}
+
+          <div class="editorial-card__overlay"></div>
+
+          <div class="editorial-card__body">
+            {% if block.settings.eyebrow != blank %}
+              <p class="editorial-card__eyebrow">{{ block.settings.eyebrow }}</p>
+            {% endif %}
+
+            {% if block.settings.title != blank %}
+              <h3 class="editorial-card__title">{{ block.settings.title }}</h3>
+            {% endif %}
+
+            {% if block.settings.description != blank and is_large %}
+              <p class="editorial-card__desc">{{ block.settings.description }}</p>
+            {% endif %}
+
+            <div class="editorial-card__buttons">
+              {% if block.settings.btn1_label != blank %}
+                <span class="ec-btn ec-btn--{{ block.settings.btn1_style }}">
+                  {{ block.settings.btn1_label }}
+                </span>
+              {% endif %}
+              {% if block.settings.btn2_label != blank %}
+                <span class="ec-btn ec-btn--{{ block.settings.btn2_style }}">
+                  {{ block.settings.btn2_label }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+        </a>
+
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+<script>
+(function() {
+  var items = document.querySelectorAll('#shopify-section-{{ section.id }} .js-ed-reveal');
+  if (!items.length) return;
+  if (!('IntersectionObserver' in window)) {
+    items.forEach(function(el) { el.classList.add('is-visible'); });
+    return;
+  }
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  items.forEach(function(el) { obs.observe(el); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Editorial Grid",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Color & Style"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color Scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "Card Border Radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_v",
+      "label": "Padding Top / Bottom",
+      "min": 20,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "header",
+      "content": "Section Header"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Shop the Edit"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Editorial Card",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Images"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Primary Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "image2",
+          "label": "Hover Image (2nd image)"
+        },
+        {
+          "type": "header",
+          "content": "Content"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Eyebrow",
+          "default": "Category"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Card Title"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description (large card only)"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Card Link"
+        },
+        {
+          "type": "header",
+          "content": "Button 1"
+        },
+        {
+          "type": "text",
+          "id": "btn1_label",
+          "label": "Label",
+          "default": "Shop Now"
+        },
+        {
+          "type": "select",
+          "id": "btn1_style",
+          "label": "Style",
+          "options": [
+            { "value": "primary",   "label": "Primary (white)" },
+            { "value": "secondary", "label": "Secondary (outline)" },
+            { "value": "ghost",     "label": "Ghost (blur)" }
+          ],
+          "default": "primary"
+        },
+        {
+          "type": "header",
+          "content": "Button 2 (optional)"
+        },
+        {
+          "type": "text",
+          "id": "btn2_label",
+          "label": "Label"
+        },
+        {
+          "type": "select",
+          "id": "btn2_style",
+          "label": "Style",
+          "options": [
+            { "value": "primary",   "label": "Primary (white)" },
+            { "value": "secondary", "label": "Secondary (outline)" },
+            { "value": "ghost",     "label": "Ghost (blur)" }
+          ],
+          "default": "secondary"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Editorial Grid",
+      "blocks": [
+        {
+          "type": "card",
+          "settings": {
+            "eyebrow": "Living Spaces",
+            "title": "Timeless Pieces for Every Room",
+            "description": "From statement sofas to accent lighting — explore our most-loved interior essentials.",
+            "btn1_label": "Shop Furniture",
+            "btn1_style": "primary",
+            "btn2_label": "View Lookbook",
+            "btn2_style": "secondary"
+          }
+        },
+        {
+          "type": "card",
+          "settings": {
+            "eyebrow": "Bedroom",
+            "title": "Sanctuary Collection",
+            "btn1_label": "Explore",
+            "btn1_style": "primary"
+          }
+        },
+        {
+          "type": "card",
+          "settings": {
+            "eyebrow": "Outdoor",
+            "title": "Outdoor Living",
+            "btn1_label": "Shop Now",
+            "btn1_style": "ghost"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

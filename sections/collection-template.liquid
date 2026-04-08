@@ -1,119 +1,600 @@
-{{ 'collection-filter.js' | asset_url | script_tag }}
-<div class="collection-template-section">
-    <div class="collection-template">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-3">
-                    <form id="collection-filter-form">
-                        {% for filter in collection.filters %}
-                            <div class="filter-area">
-                                <p class="filter-label">
-                                    <strong>{{ filter.label }}</strong>
-                                </p>
-                                {% case filter.type %}
-                                    {% when 'boolean' %}
-                                        <ul>
-                                            <li>
-                                                <label for="Filter-{{ filter.param_name }}-{{ filter.true_value.value }}">
-                                                    <input type="checkbox"
-                                                        name="{{ filter.param_name }}"
-                                                        value="{{ filter.true_value.value }}"
-                                                        id="Filter-{{ filter.param_name }}-{{ filter.true_value.value }}"
-                                                        {% if filter.true_value.active -%}checked{%- endif %}
-                                                        {% if filter.true_value.count == 0 and filter.true_value.active == false -%}disabled{%- endif %}>
-                                                        {{ filter.true_value.label }}
-                                                </label>
-                                            </li>
-                                            <li>
-                                                <label for="Filter-{{ filter.param_name }}-{{ filter.false_value.value }}">
-                                                    <input type="checkbox"
-                                                        name="{{ filter.param_name }}"
-                                                        value="{{ filter.false_value.value }}"
-                                                        id="Filter-{{ filter.param_name }}-{{ filter.false_value.value }}"
-                                                        {% if filter.false_value.active -%}checked{%- endif %}
-                                                        {% if filter.false_value.count == 0 and filter.false_value.active == false -%}disabled{%- endif %}>
-                                                        {{ filter.false_value.label }}
-                                                </label>
-                                            </li>
-                                        </ul>
-                                    {% when 'list' %}
-                                        <ul class="list-inline">
-                                            {% for filter_value in filter.values %}
-                                                <li class="list-item">
-                                                    <label for="filter-{{ filter.param_name }}--{{ forloop.index }}">
-                                                        <input type="checkbox"
-                                                        name="{{ filter_value.param_name }}" 
-                                                        value="{{ filter_value.value }}"
-                                                        id="filter-{{ filter.param_name }}--{{ forloop.index }}"
-                                                        {% if filter_value.active -%}checked{%- endif %}
-                                                        {% if filter_value.count == 0 and filter_value.active == false -%}disabled{%- endif %}>
-                                                        {{ filter_value.label }}
-                                                    </label>
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% when 'price_range' %}
-                                    <div class="filter-group-display__price-range my-3">
-                                        <div class="row">
-                                            <div class="col">
-                                                <label for="Filter-{{filter.min_value.param_name }}">From</label>
-                                                <div class="filter-group-display__price-range-from">
-                                                    <span>{{ cart.currency.symbol }}</span>
-                                                    <input type="number"
-                                                    name="{{ filter.min_value.param_name }}"
-                                                    id="Filter-{{filter.min_value.param_name }}"
-                                                    {% if filter.min_value.value -%} value="{{ filter.min_value.value |  money_without_currency |  replace: ',', '' }}"{%- endif %}
-                                                    placeholder="0"
-                                                    min="0"
-                                                    max="{{ filter.range_max |  money_without_currency |  replace: ',', '' }}">
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <label for="Filter-{{filter.max_value.param_name}}">To</label>
-                                                <div class="filter-group-display__price-range-to">
-                                                    <span>{{ cart.currency.symbol }}</span>
-                                                    <input type="number"
-                                                        name="{{ filter.max_value.param_name }}"
-                                                        id="Filter-{{filter.max_value.param_name}}"
-                                                        {% if filter.max_value.value -%} value="{{ filter.max_value.value |  money_without_currency |  replace: ',', '' }}"{%- endif %}
-                                                        placeholder="{{ filter.range_max |  money_without_currency |  replace: ',', '' }}"
-                                                        min="0"
-                                                        max="{{ filter.range_max |  money_without_currency |  replace: ',', '' }}">
-                                                </div>
-                                            </div>
-                                        </div>                                        
-                                    </div>
-                                        
-                                {% endcase %}
-                            </div>
-                        {% endfor %}                     
-                    </form>
-                </div>
-                <div class="col-md-9">
-                    <div class="row justify-content-between">
-                        <div class="col">
-                            <p>Products: {{ collection.products_count }}</p>
-                        </div>
-                        <div class="col text-right">
-                            <div class="product-sorting">
-                                <select id="sort-by">
-                                    {% assign sort_by = collection.sort_by |  default: collection.default_sort_by %}
-                                    {% for option in collection.sort_options %}
-                                        <option value="{{ option.value }}" {% if option.value == sort_by %}selected="selected"{% endif %}>{{ option.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="collection-products">
-                        <div class="row">
-                            {% for product in collection.products %}
-                                {% render 'card-product', product: product %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% comment %}
+  Section: main-collection.liquid
+{% endcomment %}
+
+{% comment %} ── Find filters ── {% endcomment %}
+{% assign color_filter = nil %}
+{% assign price_filter = nil %}
+{% for filter in collection.filters %}
+  {% assign label_down = filter.label | downcase %}
+  {% if label_down == 'color' or label_down == 'colour' %}
+    {% assign color_filter = filter %}
+  {% endif %}
+  {% if filter.type == 'price_range' %}
+    {% assign price_filter = filter %}
+  {% endif %}
+{% endfor %}
+
+{% comment %} ── Active filters check ── {% endcomment %}
+{% assign has_active_filters = false %}
+{% for filter in collection.filters %}
+  {% for fv in filter.values %}
+    {% if fv.active %}{% assign has_active_filters = true %}{% endif %}
+  {% endfor %}
+  {% if filter.min_value.value or filter.max_value.value %}
+    {% assign has_active_filters = true %}
+  {% endif %}
+{% endfor %}
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  .cl-page { padding: 2rem 0 4rem; }
+  .cl-container { max-width: 1400px; margin: 0 auto; padding: 0 1.5rem; }
+
+  .cl-header {
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: cl-fadeup 0.5s ease forwards;
+  }
+  @keyframes cl-fadeup { to { opacity: 1; transform: translateY(0); } }
+  .cl-header h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 0.5rem;
+    line-height: 1.2;
+  }
+  .cl-header p { color: #6b7280; font-size: 0.9375rem; margin: 0; }
+
+  .cl-layout { display: flex; gap: 2rem; align-items: flex-start; }
+
+  .cl-sidebar { width: 16rem; flex-shrink: 0; position: sticky; top: 6rem; }
+  @media (max-width: 1023px) { .cl-sidebar { display: none; } }
+
+  .cl-filter-group {
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .cl-filter-group:last-of-type { border-bottom: none; padding-bottom: 0; }
+  .cl-filter-title { font-size: 0.9375rem; font-weight: 600; color: #111827; margin: 0 0 1rem; }
+
+  .cl-cat-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: none;
+    background: transparent;
+    font-size: 0.9375rem;
+    color: #374151;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    margin-bottom: 0.25rem;
+    text-decoration: none;
+  }
+  .cl-cat-btn:hover { background-color: #f9fafb; }
+  .cl-cat-btn.active { background-color: #111827; color: #ffffff; }
+
+  .cl-price-inputs { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+  .cl-price-input {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: #111827;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .cl-price-input:focus { border-color: #111827; }
+  .cl-price-sep { color: #6b7280; font-size: 0.875rem; flex-shrink: 0; }
+  .cl-price-apply {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    background: #111827;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 0.5rem;
+  }
+  .cl-price-apply:hover { background: #1f2937; }
+
+  .cl-color-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .cl-color-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .cl-color-swatch {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: 2px solid #e5e7eb;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    display: block;
+    background-color: #cccccc;
+  }
+  .cl-color-item:hover .cl-color-swatch { border-color: #9ca3af; transform: scale(1.1); }
+  .cl-color-item.active .cl-color-swatch {
+    border-color: #111827;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111827;
+  }
+  .cl-color-item.active .cl-color-swatch::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/55% no-repeat;
+  }
+  .cl-color-label {
+    font-size: 10px;
+    color: #6b7280;
+    text-align: center;
+    max-width: 2.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cl-clear-btn {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+    margin-top: 0.5rem;
+  }
+  .cl-clear-btn:hover { color: #111827; border-color: #111827; }
+
+  .cl-main { flex: 1; min-width: 0; }
+
+  .cl-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .cl-filter-toggle {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f9fafb;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    color: #111827;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .cl-filter-toggle:hover { background: #f3f4f6; }
+  .cl-filter-toggle svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  @media (max-width: 1023px) { .cl-filter-toggle { display: flex; } }
+
+  .cl-sort-wrap { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
+  .cl-sort-label { font-size: 0.875rem; color: #6b7280; white-space: nowrap; }
+  .cl-sort-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0.45rem 2rem 0.45rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: #111827;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .cl-sort-select:focus { border-color: #111827; }
+
+  .cl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  @media (max-width: 1279px) { .cl-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 900px) { .cl-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; } }
+  @media (max-width: 480px) { .cl-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; } }
+
+  .cl-empty { text-align: center; padding: 4rem 1rem; grid-column: 1 / -1; }
+  .cl-empty p { color: #6b7280; margin-bottom: 1rem; }
+  .cl-empty a { font-weight: 600; color: #111827; text-decoration: none; }
+  .cl-empty a:hover { text-decoration: underline; }
+
+  .cl-pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 3rem; flex-wrap: wrap; }
+  .cl-pagination a, .cl-pagination span {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 2.25rem; height: 2.25rem; padding: 0 0.625rem;
+    border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500;
+    text-decoration: none; border: 1px solid #e5e7eb; color: #374151; background: #fff;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .cl-pagination a:hover { background: #111827; color: #fff; border-color: #111827; }
+  .cl-pagination .cl-page-active { background: #111827; color: #fff; border-color: #111827; }
+
+  .cl-drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; opacity: 0; transition: opacity 0.3s; }
+  .cl-drawer-overlay.open { display: block; opacity: 1; }
+  .cl-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 20rem; max-width: 90vw; background: #fff; z-index: 101; overflow-y: auto; padding: 1.5rem; transform: translateX(-100%); transition: transform 0.3s; }
+  .cl-drawer.open { transform: translateX(0); }
+  .cl-drawer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .cl-drawer-header h2 { font-size: 1.25rem; font-weight: 600; color: #111827; margin: 0; }
+  .cl-drawer-close { display: flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; border: none; background: transparent; border-radius: 0.5rem; cursor: pointer; color: #111827; transition: background 0.2s; }
+  .cl-drawer-close:hover { background: #f3f4f6; }
+  .cl-drawer-close svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .cl-drawer-footer { position: sticky; bottom: 0; background: #fff; padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #e5e7eb; }
+  .cl-show-results-btn { display: block; width: 100%; padding: 0.875rem; background: #111827; color: #fff; border: none; border-radius: 0.5rem; font-size: 0.9375rem; font-weight: 500; cursor: pointer; text-align: center; transition: background 0.2s; }
+  .cl-show-results-btn:hover { background: #1f2937; }
+
+  .cl-active-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
+  .cl-active-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #f3f4f6; border-radius: 999px; font-size: 0.8125rem; color: #374151; text-decoration: none; transition: background 0.2s; }
+  .cl-active-tag:hover { background: #e5e7eb; }
+  .cl-active-tag svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+
+<div class="cl-page">
+  <div class="cl-container">
+
+    <div class="cl-header">
+      <h1>{{ collection.title }}</h1>
+      <p>{{ collection.products_count }} products</p>
     </div>
+
+    {% comment %} ── Active Filters Bar ── {% endcomment %}
+    {% if has_active_filters or current_tags %}
+      <div class="cl-active-filters">
+        {% for filter in collection.filters %}
+          {% for fv in filter.values %}
+            {% if fv.active %}
+              <a href="{{ fv.url_to_remove }}" class="cl-active-tag">
+                {{ fv.label }}
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </a>
+            {% endif %}
+          {% endfor %}
+          {% if filter.type == 'price_range' %}
+            {% if filter.min_value.value or filter.max_value.value %}
+              <a href="{{ filter.url_to_remove }}" class="cl-active-tag">
+                Price: {{ filter.min_value.value | default: 0 | money_without_currency }} – {{ filter.max_value.value | default: filter.range_max | money_without_currency }}
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </a>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {% for tag in current_tags %}
+          <a href="{{ collection.url }}" class="cl-active-tag">
+            {{ tag }}
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </a>
+        {% endfor %}
+        <a href="{{ collection.url }}" class="cl-clear-btn" style="width:auto;margin:0;padding:4px 16px;">Clear All</a>
+      </div>
+    {% endif %}
+
+    <div class="cl-layout">
+
+      {% comment %} ══ DESKTOP SIDEBAR ══ {% endcomment %}
+      <aside class="cl-sidebar">
+
+        {% comment %} All Products button only {% endcomment %}
+        <div class="cl-filter-group">
+          <p class="cl-filter-title">Categories</p>
+          <a href="{{ collection.url }}" class="cl-cat-btn {% unless has_active_filters or current_tags %}active{% endunless %}">
+            All Products
+          </a>
+        </div>
+
+        {% comment %} Price {% endcomment %}
+        {% if price_filter %}
+          {% assign range_max = price_filter.range_max | divided_by: 100 %}
+          {% assign cur_min = price_filter.min_value.value | default: 0 | divided_by: 100 %}
+          {% assign cur_max = price_filter.max_value.value | default: price_filter.range_max | divided_by: 100 %}
+          <div class="cl-filter-group">
+            <p class="cl-filter-title">Price Range</p>
+            <div class="cl-price-inputs">
+              <input type="number" class="cl-price-input" id="cl-price-min-desktop" placeholder="Min" min="0" max="{{ range_max }}" value="{% if cur_min > 0 %}{{ cur_min }}{% endif %}">
+              <span class="cl-price-sep">–</span>
+              <input type="number" class="cl-price-input" id="cl-price-max-desktop" placeholder="Max" min="0" max="{{ range_max }}" value="{% if cur_max > 0 and cur_max < range_max %}{{ cur_max }}{% endif %}">
+            </div>
+            <button class="cl-price-apply" onclick="clApplyPrice('desktop')">Apply Price</button>
+          </div>
+        {% endif %}
+
+        {% comment %} Color {% endcomment %}
+        {% if color_filter %}
+          <div class="cl-filter-group">
+            <p class="cl-filter-title">Colors</p>
+            <div class="cl-color-grid">
+              {% for fv in color_filter.values %}
+                <a
+                  href="{% if fv.active %}{{ fv.url_to_remove }}{% else %}{{ fv.url_to_add }}{% endif %}"
+                  class="cl-color-item {% if fv.active %}active{% endif %}"
+                  title="{{ fv.label }}"
+                  aria-label="{{ fv.label }}"
+                >
+                  <span class="cl-color-swatch" data-color-name="{{ fv.label | downcase | strip }}"></span>
+                  <span class="cl-color-label">{{ fv.label }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        {% comment %} Clear {% endcomment %}
+        {% if has_active_filters or current_tags %}
+          <a href="{{ collection.url }}" class="cl-clear-btn">Clear All Filters</a>
+        {% endif %}
+
+      </aside>
+
+      {% comment %} ══ MAIN ══ {% endcomment %}
+      <div class="cl-main">
+
+        <div class="cl-toolbar">
+          <button class="cl-filter-toggle" onclick="clOpenDrawer()">
+            <svg viewBox="0 0 24 24">
+              <line x1="4" y1="6" x2="20" y2="6"/>
+              <line x1="8" y1="12" x2="20" y2="12"/>
+              <line x1="12" y1="18" x2="20" y2="18"/>
+            </svg>
+            Filters
+            {% if has_active_filters %}
+              {% assign active_count = 0 %}
+              {% for filter in collection.filters %}
+                {% for fv in filter.values %}
+                  {% if fv.active %}{% assign active_count = active_count | plus: 1 %}{% endif %}
+                {% endfor %}
+              {% endfor %}
+              {% if active_count > 0 %}
+                <span style="background:#111827;color:#fff;border-radius:999px;font-size:11px;padding:2px 7px;line-height:1.4;">{{ active_count }}</span>
+              {% endif %}
+            {% endif %}
+          </button>
+
+          <div class="cl-sort-wrap">
+            <span class="cl-sort-label">Sort by:</span>
+            {% assign sort_by = collection.sort_by | default: collection.default_sort_by %}
+            <select class="cl-sort-select" onchange="clSortChange(this.value)">
+              {% for option in collection.sort_options %}
+                <option value="{{ option.value }}" {% if option.value == sort_by %}selected{% endif %}>{{ option.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        {% paginate collection.products by section.settings.products_per_page %}
+          <div class="cl-grid">
+            {% if collection.products.size > 0 %}
+              {% for product in collection.products %}
+                {% render 'product-card', product: product, index: forloop.index0 %}
+              {% endfor %}
+            {% else %}
+              <div class="cl-empty">
+                <p>No products found matching your filters.</p>
+                <a href="{{ collection.url }}">Clear all filters</a>
+              </div>
+            {% endif %}
+          </div>
+
+          {% if paginate.pages > 1 %}
+            <div class="cl-pagination">
+              {% if paginate.previous %}<a href="{{ paginate.previous.url }}">&larr;</a>{% endif %}
+              {% for part in paginate.parts %}
+                {% if part.is_link %}
+                  <a href="{{ part.url }}">{{ part.title }}</a>
+                {% elsif part.title == paginate.current_page %}
+                  <span class="cl-page-active">{{ part.title }}</span>
+                {% else %}
+                  <span>{{ part.title }}</span>
+                {% endif %}
+              {% endfor %}
+              {% if paginate.next %}<a href="{{ paginate.next.url }}">&rarr;</a>{% endif %}
+            </div>
+          {% endif %}
+        {% endpaginate %}
+
+      </div>
+    </div>
+  </div>
 </div>
+
+{% comment %} ══ MOBILE DRAWER ══ {% endcomment %}
+<div class="cl-drawer-overlay" id="cl-overlay" onclick="clCloseDrawer()"></div>
+<div class="cl-drawer" id="cl-drawer">
+  <div class="cl-drawer-header">
+    <h2>Filters</h2>
+    <button class="cl-drawer-close" onclick="clCloseDrawer()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  {% comment %} All Products button only {% endcomment %}
+  <div class="cl-filter-group">
+    <p class="cl-filter-title">Categories</p>
+    <a href="{{ collection.url }}" class="cl-cat-btn {% unless has_active_filters or current_tags %}active{% endunless %}">
+      All Products
+    </a>
+  </div>
+
+  {% comment %} Price {% endcomment %}
+  {% if price_filter %}
+    {% assign range_max_m = price_filter.range_max | divided_by: 100 %}
+    {% assign cur_min_m = price_filter.min_value.value | default: 0 | divided_by: 100 %}
+    {% assign cur_max_m = price_filter.max_value.value | default: price_filter.range_max | divided_by: 100 %}
+    <div class="cl-filter-group">
+      <p class="cl-filter-title">Price Range</p>
+      <div class="cl-price-inputs">
+        <input type="number" class="cl-price-input" id="cl-price-min-mobile" placeholder="Min" min="0" max="{{ range_max_m }}" value="{% if cur_min_m > 0 %}{{ cur_min_m }}{% endif %}">
+        <span class="cl-price-sep">–</span>
+        <input type="number" class="cl-price-input" id="cl-price-max-mobile" placeholder="Max" min="0" max="{{ range_max_m }}" value="{% if cur_max_m > 0 and cur_max_m < range_max_m %}{{ cur_max_m }}{% endif %}">
+      </div>
+      <button class="cl-price-apply" onclick="clApplyPrice('mobile')">Apply Price</button>
+    </div>
+  {% endif %}
+
+  {% comment %} Color {% endcomment %}
+  {% if color_filter %}
+    <div class="cl-filter-group">
+      <p class="cl-filter-title">Colors</p>
+      <div class="cl-color-grid">
+        {% for fv in color_filter.values %}
+          
+            href="{% if fv.active %}{{ fv.url_to_remove }}{% else %}{{ fv.url_to_add }}{% endif %}"
+            class="cl-color-item {% if fv.active %}active{% endif %}"
+            title="{{ fv.label }}"
+            aria-label="{{ fv.label }}"
+          >
+            <span class="cl-color-swatch" data-color-name="{{ fv.label | downcase | strip }}"></span>
+            <span class="cl-color-label">{{ fv.label }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% comment %} Clear {% endcomment %}
+  {% if has_active_filters or current_tags %}
+    <a href="{{ collection.url }}" class="cl-clear-btn">Clear All Filters</a>
+  {% endif %}
+
+  <div class="cl-drawer-footer">
+    <button class="cl-show-results-btn" onclick="clCloseDrawer()">Show Results</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var COLOR_MAP = {
+    'red':'#ef4444','blue':'#3b82f6','green':'#22c55e','yellow':'#eab308',
+    'pink':'#ec4899','purple':'#a855f7','orange':'#f97316','brown':'#92400e',
+    'black':'#000000','white':'#ffffff','gray':'#6b7280','grey':'#6b7280',
+    'navy':'#1e3a8a','emerald':'#059669','blush':'#f9a8d4','brass':'#d4a574',
+    'terracotta':'#e07a5f','natural':'#f5f5dc','charcoal':'#36454f',
+    'sage':'#87a878','clear':'#f0f0f0','smoke':'#738290','amber':'#ffbf00',
+    'ivory':'#fffff0','beige':'#f5f0e8','gold':'#d4af37','silver':'#c0c0c0',
+    'cream':'#fffdd0','sand':'#c2b280','rust':'#b7410e','olive':'#808000',
+    'mint':'#98ff98','lavender':'#e6e6fa','coral':'#ff7f50','teal':'#008080',
+    'cyan':'#00bcd4','maroon':'#800000','khaki':'#c3b091','indigo':'#4b0082',
+    'violet':'#8b00ff','magenta':'#ff00ff','lime':'#84cc16','rose':'#f43f5e',
+    'sky':'#0ea5e9','slate':'#64748b','stone':'#78716c','zinc':'#71717a',
+    'fuchsia':'#d946ef','peach':'#ffcba4','turquoise':'#40e0d0','tan':'#d2b48c',
+    'burgundy':'#800020','champagne':'#f7e7ce','cobalt':'#0047ab',
+    'copper':'#b87333','denim':'#1560bd','ecru':'#c2b280','forest':'#228b22',
+    'heather':'#9c7d9c','jade':'#00a86b','lemon':'#fff44f','lilac':'#c8a2c8',
+    'mauve':'#e0b0ff','midnight':'#191970','mustard':'#ffdb58','nude':'#e8c99a',
+    'pewter':'#96a8a1','plum':'#8e4585','scarlet':'#ff2400','sienna':'#a0522d',
+    'taupe':'#483c32','umber':'#635147','wine':'#722f37','bluebell':'#9999cc',
+    'aqua':'#00ffff','strawberry':'#fc5a8d','caramel':'#c68642','coffee':'#6f4e37',
+    'chocolate':'#7b3f00','mahogany':'#c04000'
+  };
+
+  var canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 1;
+  var ctx = canvas.getContext('2d');
+
+  function resolveColor(name) {
+    var lower = name.toLowerCase().trim();
+    if (COLOR_MAP[lower]) return COLOR_MAP[lower];
+    try {
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.fillStyle = '#cccccc';
+      ctx.fillStyle = lower;
+      ctx.fillRect(0, 0, 1, 1);
+      var d = ctx.getImageData(0, 0, 1, 1).data;
+      if (d[3] === 0) return '#cccccc';
+      return 'rgb(' + d[0] + ',' + d[1] + ',' + d[2] + ')';
+    } catch(e) {
+      return '#cccccc';
+    }
+  }
+
+  function applySwatchColors() {
+    document.querySelectorAll('[data-color-name]').forEach(function(el) {
+      el.style.backgroundColor = resolveColor(el.getAttribute('data-color-name'));
+    });
+  }
+
+  window.clApplyPrice = function (prefix) {
+    var minEl = document.getElementById('cl-price-min-' + prefix);
+    var maxEl = document.getElementById('cl-price-max-' + prefix);
+    var url = new URL(window.location.href);
+    if (minEl && minEl.value !== '') {
+      url.searchParams.set('filter.v.price.gte', minEl.value);
+    } else {
+      url.searchParams.delete('filter.v.price.gte');
+    }
+    if (maxEl && maxEl.value !== '') {
+      url.searchParams.set('filter.v.price.lte', maxEl.value);
+    } else {
+      url.searchParams.delete('filter.v.price.lte');
+    }
+    window.location.href = url.toString();
+  };
+
+  window.clSortChange = function (value) {
+    var url = new URL(window.location.href);
+    url.searchParams.set('sort_by', value);
+    window.location.href = url.toString();
+  };
+
+  window.clOpenDrawer = function () {
+    document.getElementById('cl-drawer').classList.add('open');
+    document.getElementById('cl-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.clCloseDrawer = function () {
+    document.getElementById('cl-drawer').classList.remove('open');
+    document.getElementById('cl-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applySwatchColors);
+  } else {
+    applySwatchColors();
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Collection Page",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 16
+    }
+  ],
+  "presets": [
+    { "name": "Collection Page" }
+  ]
+}
+{% endschema %}

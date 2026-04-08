@@ -1,0 +1,164 @@
+{%- doc -%}
+  Renders a button or link element.
+  @param {string} link            - URL to navigate to
+  @param {object} block           - The block object (required for settings access)
+  @example
+  {% render 'button', link: block.settings.link, block: block %}
+{%- enddoc -%}
+
+{%- liquid
+  # Safe fallback: if block is nil (e.g. called outside block context),
+  # use empty defaults so the snippet never crashes.
+  assign block_settings = block.settings
+
+  assign btn_label       = block_settings.label       | default: 'Shop Now'
+  assign btn_style       = block_settings.style_class  | default: 'button'
+  assign btn_new_tab     = block_settings.open_in_new_tab | default: false
+-%}
+
+<a
+  {% if link == blank %}
+    role="link"
+    aria-disabled="true"
+  {% else %}
+    href="{{ link }}"
+  {% endif %}
+  class="size-style {{ btn_style }} {{ btn_style }}--{{ block.id }}"
+  style="{% render 'size-style', settings: block_settings %}"
+  {%- if btn_new_tab -%}
+    target="_blank"
+    rel="noopener noreferrer"
+  {%- endif -%}
+  {{ block.shopify_attributes }}
+>
+  {{- btn_label -}}
+</a>
+
+{% stylesheet %}
+
+  /* ── Size utility ──────────────────────────────────── */
+  .size-style {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-style-width, fit-content);
+    box-sizing: border-box;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color 0.25s ease,
+      color 0.25s ease,
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      opacity 0.25s ease;
+  }
+
+  @media (max-width: 749px) {
+    .size-style {
+      width: var(--size-style-width-mobile, var(--size-style-width, fit-content));
+      min-width: var(--size-style-width-mobile-min, 0);
+    }
+  }
+
+  /* Disabled state */
+  .size-style[aria-disabled="true"] {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+
+  /* ══════════════════════════════════════════════════
+     PRIMARY BUTTON
+  ══════════════════════════════════════════════════ */
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    border: 2px solid #111111;
+    background-color: #ffffff;
+    color: #111111;
+    white-space: nowrap;
+  }
+
+  .button:hover {
+    background-color: #333333;
+    border-color: #333333;
+    color: #ffffff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  }
+
+  .button:active {
+    background-color: #000000;
+    border-color: #000000;
+    transform: translateY(1px);
+  }
+
+  /* ══════════════════════════════════════════════════
+     SECONDARY BUTTON
+  ══════════════════════════════════════════════════ */
+  .button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    border: 2px solid #111111;
+    background-color: transparent;
+    color: #111111;
+    white-space: nowrap;
+  }
+
+  .button-secondary:hover {
+    background-color: #111111;
+    color: #ffffff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .button-secondary:active {
+    background-color: #000000;
+    border-color: #000000;
+    color: #ffffff;
+    transform: translateY(1px);
+  }
+
+  /* ══════════════════════════════════════════════════
+     LINK STYLE
+  ══════════════════════════════════════════════════ */
+  .link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #111111;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(17, 17, 17, 0.35);
+    background: transparent;
+    border: none;
+    white-space: nowrap;
+  }
+
+  .link:hover {
+    color: #000000;
+    text-decoration-color: #000000;
+  }
+
+  .link:active {
+    opacity: 0.7;
+  }
+
+{% endstylesheet %}

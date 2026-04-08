@@ -1,0 +1,174 @@
+<section class="email-signup-banner color-{{ section.settings.color_scheme }}">
+  <div class="email-signup-banner__content">
+    {% for block in section.blocks %}
+      {% case block.type %}
+        {% when 'heading' %}
+          <h1 class="{{ block.settings.heading_size }}">{{ block.settings.heading }}</h1>
+        {% when 'paragraph' %}
+          <div class="rte {{ block.settings.text_style }}">{{ block.settings.text }}</div>
+        {% when 'email_form' %}
+          {% form 'customer' %}
+            {{ form.errors | default_errors }}
+            {% if form.posted_successfully? %}
+              <p>Thanks for subscribing!</p>
+            {% else %}
+              <div class="email-signup-banner__form">
+                <input
+                  type="email"
+                  name="contact[email]"
+                  placeholder="Enter your email"
+                  required
+                >
+                <button type="submit">Notify Me</button>
+              </div>
+            {% endif %}
+          {% endform %}
+      {% endcase %}
+    {% endfor %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Email Signup Banner",
+  "tag": "section",
+  "class": "email-signup-banner-section",
+  "blocks": [
+    {
+      "type": "heading",
+      "name": "Heading",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Opening soon"
+        },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "Heading Size",
+          "options": [
+            { "value": "h1", "label": "H1" },
+            { "value": "h2", "label": "H2" },
+            { "value": "h3", "label": "H3" }
+          ],
+          "default": "h1"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "name": "Paragraph",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Be the first to know when we launch.</p>"
+        },
+        {
+          "type": "select",
+          "id": "text_style",
+          "label": "Text Style",
+          "options": [
+            { "value": "body", "label": "Body" },
+            { "value": "subtitle", "label": "Subtitle" }
+          ],
+          "default": "body"
+        }
+      ]
+    },
+    {
+      "type": "email_form",
+      "name": "Email Form",
+      "limit": 1,
+      "settings": []
+    }
+  ],
+  "settings": [
+    {
+      "type": "range",
+      "id": "image_overlay_opacity",
+      "label": "Image Overlay Opacity",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "show_background_image",
+      "label": "Show Background Image",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "image_height",
+      "label": "Image Height",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "desktop_content_position",
+      "label": "Desktop Content Position",
+      "options": [
+        { "value": "middle-center", "label": "Center" },
+        { "value": "middle-left", "label": "Left" },
+        { "value": "middle-right", "label": "Right" }
+      ],
+      "default": "middle-center"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_text_box",
+      "label": "Show Text Box",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "desktop_content_alignment",
+      "label": "Desktop Content Alignment",
+      "options": [
+        { "value": "center", "label": "Center" },
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color Scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "mobile_content_alignment",
+      "label": "Mobile Content Alignment",
+      "options": [
+        { "value": "center", "label": "Center" },
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_text_below",
+      "label": "Show Text Below",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Email Signup Banner"
+    }
+  ]
+}
+{% endschema %}
