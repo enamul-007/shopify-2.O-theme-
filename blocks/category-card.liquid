@@ -1,0 +1,70 @@
+{%- style -%}
+  #block-{{ block.id }} .category-card-block {
+    display: block;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  #block-{{ block.id }} .category-card-block > a {
+    display: block;
+    text-decoration: none;
+  }
+
+  #block-{{ block.id }} .category-card-inner {
+    display: flex;
+    flex-direction: column;
+  }
+{%- endstyle -%}
+
+<div id="block-{{ block.id }}" class="category-card-block" {{ block.shopify_attributes }}>
+  {%- assign card_link  = block.settings.link -%}
+  {%- assign card_label = block.settings.aria_label | default: 'View category' -%}
+
+  {%- if card_link != blank -%}<a href="{{ card_link }}" class="category-card-link" aria-label="{{ card_label }}">{%- endif -%}
+
+    <div class="category-card-inner">
+      {% content_for 'block', type: '_image', id: 'static-image' %}
+      {% content_for 'blocks' %}
+    </div>
+
+  {%- if card_link != blank -%}</a>{%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Category Card",
+  "blocks": [
+    { "type": "category-image" },
+    { "type": "category-title" },
+    { "type": "subheading" },
+    { "type": "button" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Link"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Category Link"
+    },
+    {
+      "type": "text",
+      "id": "aria_label",
+      "label": "Accessibility Label",
+      "info": "Describes this link for screen readers",
+      "default": "View category"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category Card",
+      "blocks": [
+        {"type": "category-image"},
+        { "type": "category-title" }
+      ]
+    }
+  ]
+}
+{% endschema %}

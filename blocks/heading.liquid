@@ -1,11 +1,6 @@
 {%- liquid
-  # Marquee configuration
-  assign marquee_direction = block.settings.direction
-  assign marquee_speed = block.settings.speed
-  assign marquee_gap = block.settings.gap
-  assign marquee_pause = block.settings.pause_on_hover
-  assign marquee_duplicate = block.settings.duplicate_content
-  
+  assign tag = block.settings.heading_tag
+
   # Typography preset overrides
   assign preset = block.settings.type_preset
   assign font_family = block.settings.font
@@ -15,32 +10,25 @@
   assign letter_spacing = block.settings.letter_spacing
   assign text_case = block.settings.text_case
   assign text_wrap = block.settings.text_wrap
-  
+
   # Width
   assign width = block.settings.width
   assign max_width = block.settings.max_width
-  
+
   # Alignment
   assign alignment = block.settings.alignment
-  
+
   # Appearance
   assign color = block.settings.color
   assign bg_color = block.settings.background_color
   assign has_bg = block.settings.background
   assign radius = block.settings.corner_radius
-  
-  # Spacing
+
+  # Padding
   assign pt = block.settings.padding_top
   assign pb = block.settings.padding_bottom
   assign pl = block.settings.padding_left
   assign pr = block.settings.padding_right
-  
-  # Icon settings
-  assign show_icon = block.settings.show_icon
-  assign icon_position = block.settings.icon_position
-  assign icon = block.settings.icon
-  assign icon_color = block.settings.icon_color
-  assign icon_size = block.settings.icon_size
 -%}
 
 {%- style -%}
@@ -53,12 +41,12 @@
     {%- elsif width == 'custom' -%}
       width: {{ block.settings.custom_width }}%;
     {%- endif -%}
-    
+
     /* ── Max Width ── */
     {%- unless max_width == 'none' -%}
       max-width: {{ max_width }};
     {%- endunless -%}
-    
+
     /* ── Alignment ── */
     text-align: {{ alignment }};
     {%- if alignment == 'center' -%}
@@ -66,8 +54,8 @@
     {%- elsif alignment == 'right' -%}
       margin-inline-start: auto;
     {%- endif -%}
-    
-    /* ── Typography ── */
+
+    /* ── Typography Preset ── */
     {%- if preset == 'h1' -%}
       font-size: clamp(2.5rem, 5vw, 4rem);
       font-weight: 700;
@@ -100,8 +88,8 @@
       font-weight: 400;
       line-height: 1.6;
     {%- endif -%}
-    
-    /* ── Custom Font ── */
+
+    /* ── Custom Font (only if preset == custom) ── */
     {%- if preset == 'custom' -%}
       {%- if font_family == 'heading' -%}
         font-family: var(--font-heading-family, serif);
@@ -118,267 +106,56 @@
       line-height: {{ line_height | divided_by: 10.0 }};
       letter-spacing: {{ letter_spacing | divided_by: 100.0 }}em;
     {%- endif -%}
-    
+
     /* ── Case & Wrap ── */
     {%- unless text_case == 'none' -%}
       text-transform: {{ text_case }};
     {%- endunless -%}
     text-wrap: {{ text_wrap }};
-    
+
     /* ── Color ── */
     {%- if color != blank -%}
       color: {{ color }};
     {%- endif -%}
-    
-    /* ── Icon styles ── */
-    {%- if show_icon -%}
-      --marquee-icon-color: {{ icon_color | default: color }};
-      --marquee-icon-size: {{ icon_size }}px;
-    {%- endif -%}
-    
+
     /* ── Background ── */
     {%- if has_bg -%}
       background-color: {{ bg_color }};
     {%- endif -%}
-    
+
     /* ── Corner Radius ── */
     {%- if radius > 0 -%}
       border-radius: {{ radius }}px;
     {%- endif -%}
-    
+
     /* ── Padding ── */
     padding: {{ pt }}px {{ pr }}px {{ pb }}px {{ pl }}px;
-    
+
     /* ── Display ── */
     display: block;
     box-sizing: border-box;
   }
-  
-  /* ── Marquee Container Styles ── */
-  #block-{{ block.id }} .marquee-container {
-    overflow: hidden;
-    width: 100%;
-    position: relative;
-  }
-  
-  #block-{{ block.id }} .marquee-track {
-    display: flex;
-    gap: {{ marquee_gap }}px;
-    width: fit-content;
-    animation: marquee-scroll-{{ block.id }} {{ marquee_speed }}s linear infinite;
-    {% if marquee_direction == 'right' %}
-      animation-direction: reverse;
-    {% endif %}
-    {% if marquee_pause %}
-      animation-play-state: running;
-    {% endif %}
-  }
-  
-  #block-{{ block.id }} .marquee-container:hover .marquee-track {
-    {% if marquee_pause %}
-      animation-play-state: paused;
-    {% endif %}
-  }
-  
-  #block-{{ block.id }} .marquee-item {
-    display: inline-flex;
-    align-items: center;
-    gap: {{ marquee_gap }}px;
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-  
-  #block-{{ block.id }} .marquee-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--marquee-icon-color);
-    font-size: var(--marquee-icon-size);
-    line-height: 1;
-  }
-  
-  /* Icon position styles */
-  #block-{{ block.id }} .marquee-icon--left {
-    order: -1;
-  }
-  
-  #block-{{ block.id }} .marquee-icon--right {
-    order: 1;
-  }
-  
-  /* Animation keyframes */
-  @keyframes marquee-scroll-{{ block.id }} {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-  
-  /* Responsive font adjustments */
-  @media (max-width: 768px) {
-    #block-{{ block.id }} .marquee-item {
-      white-space: normal;
-      word-break: keep-all;
-    }
-  }
 {%- endstyle -%}
 
-<div class="marquee-container" {{ block.shopify_attributes }}>
-  <div class="marquee-track">
-    {%- assign max_loops = 2 -%}
-    {%- if marquee_duplicate == false -%}
-      {%- assign max_loops = 1 -%}
-    {%- endif -%}
-    
-    {%- for i in (1..max_loops) -%}
-      {%- assign items = block.settings.marquee_items | split: ',' -%}
-      {%- for item in items -%}
-        {%- assign clean_item = item | strip -%}
-        {%- if clean_item != blank -%}
-          <div class="marquee-item">
-            {%- if show_icon and icon_position == 'left' -%}
-              <span class="marquee-icon marquee-icon--left">
-                {%- if icon contains '<svg' or icon contains 'fa-' -%}
-                  {{ icon }}
-                {%- else -%}
-                  {{ icon | default: '✦' }}
-                {%- endif -%}
-              </span>
-            {%- endif -%}
-            
-            <span>{{ clean_item }}</span>
-            
-            {%- if show_icon and icon_position == 'right' -%}
-              <span class="marquee-icon marquee-icon--right">
-                {%- if icon contains '<svg' or icon contains 'fa-' -%}
-                  {{ icon }}
-                {%- else -%}
-                  {{ icon | default: '✦' }}
-                {%- endif -%}
-              </span>
-            {%- endif -%}
-          </div>
-        {%- endif -%}
-      {%- endfor -%}
-    {%- endfor -%}
-  </div>
-</div>
+<{{ tag }}
+  id="block-{{ block.id }}"
+  {{ block.shopify_attributes }}
+>
+  {{ block.settings.text }}
+</{{ tag }}>
 
 {% schema %}
 {
-  "name": "Marquee",
+  "name": "Heading",
   "settings": [
+
     {
-      "type": "header",
-      "content": "── Content ──────────────────────────"
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Timeless Design for Modern Living</p>"
     },
-    {
-      "type": "textarea",
-      "id": "marquee_items",
-      "label": "Marquee Items",
-      "default": "✨ Free Shipping, 🔥 30% Off, ⭐ Limited Edition, 🚀 Fast Delivery",
-      "info": "Separate items with commas. Example: Item 1, Item 2, Item 3"
-    },
-    
-    {
-      "type": "header",
-      "content": "── Animation ────────────────────────"
-    },
-    {
-      "type": "select",
-      "id": "direction",
-      "label": "Direction",
-      "options": [
-        { "value": "left", "label": "← Left to Right" },
-        { "value": "right", "label": "→ Right to Left" }
-      ],
-      "default": "left"
-    },
-    {
-      "type": "range",
-      "id": "speed",
-      "label": "Animation Speed",
-      "min": 5,
-      "max": 60,
-      "step": 1,
-      "unit": "sec",
-      "default": 20,
-      "info": "Lower = faster, Higher = slower"
-    },
-    {
-      "type": "range",
-      "id": "gap",
-      "label": "Gap Between Items",
-      "min": 0,
-      "max": 100,
-      "step": 4,
-      "unit": "px",
-      "default": 48
-    },
-    {
-      "type": "checkbox",
-      "id": "pause_on_hover",
-      "label": "Pause on Hover",
-      "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "duplicate_content",
-      "label": "Duplicate Content for Seamless Loop",
-      "default": true,
-      "info": "Creates a seamless infinite scroll effect"
-    },
-    
-    {
-      "type": "header",
-      "content": "── Icon Settings ────────────────────"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_icon",
-      "label": "Show Icon",
-      "default": true
-    },
-    {
-      "type": "select",
-      "id": "icon_position",
-      "label": "Icon Position",
-      "options": [
-        { "value": "left", "label": "Left of Text" },
-        { "value": "right", "label": "Right of Text" }
-      ],
-      "default": "left",
-      "visible_if": "{{ block.settings.show_icon }}"
-    },
-    {
-      "type": "text",
-      "id": "icon",
-      "label": "Icon",
-      "default": "✦",
-      "info": "Use emojis (✨), symbols (★), or HTML/SVG. Example: ✨ or <svg>...</svg>",
-      "visible_if": "{{ block.settings.show_icon }}"
-    },
-    {
-      "type": "color",
-      "id": "icon_color",
-      "label": "Icon Color",
-      "default": "#111111",
-      "visible_if": "{{ block.settings.show_icon }}"
-    },
-    {
-      "type": "range",
-      "id": "icon_size",
-      "label": "Icon Size",
-      "min": 12,
-      "max": 64,
-      "step": 2,
-      "unit": "px",
-      "default": 20,
-      "visible_if": "{{ block.settings.show_icon }}"
-    },
-    
+
     {
       "type": "header",
       "content": "── Layout ──────────────────────────"
@@ -415,7 +192,6 @@
         { "value": "480px",  "label": "Small (480px)" },
         { "value": "640px",  "label": "Medium (640px)" },
         { "value": "768px",  "label": "Wide (768px)" },
-        { "value": "1024px", "label": "Extra Wide (1024px)" },
         { "value": "100%",   "label": "Full" }
       ],
       "default": "none"
@@ -429,12 +205,27 @@
         { "value": "center",  "label": "↔ Center" },
         { "value": "right",   "label": "→ Right" }
       ],
-      "default": "center"
+      "default": "left"
     },
-    
+
     {
       "type": "header",
       "content": "── Typography ──────────────────────"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "HTML Tag",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" },
+        { "value": "h4", "label": "H4" },
+        { "value": "h5", "label": "H5" },
+        { "value": "h6", "label": "H6" },
+        { "value": "p",  "label": "P (Paragraph)" }
+      ],
+      "default": "h2"
     },
     {
       "type": "select",
@@ -450,7 +241,7 @@
         { "value": "p",      "label": "P — Body Text" },
         { "value": "custom", "label": "✏️ Custom" }
       ],
-      "default": "h3"
+      "default": "h2"
     },
     {
       "type": "select",
@@ -474,7 +265,7 @@
       "max": 120,
       "step": 2,
       "unit": "px",
-      "default": 32,
+      "default": 48,
       "visible_if": "{{ block.settings.type_preset == 'custom' }}"
     },
     {
@@ -490,7 +281,7 @@
         { "value": "800", "label": "Extra Bold (800)" },
         { "value": "900", "label": "Black (900)" }
       ],
-      "default": "600",
+      "default": "700",
       "visible_if": "{{ block.settings.type_preset == 'custom' }}"
     },
     {
@@ -537,9 +328,9 @@
         { "value": "pretty",  "label": "Pretty" },
         { "value": "nowrap",  "label": "No Wrap" }
       ],
-      "default": "nowrap"
+      "default": "pretty"
     },
-    
+
     {
       "type": "header",
       "content": "── Appearance ──────────────────────"
@@ -548,7 +339,7 @@
       "type": "color",
       "id": "color",
       "label": "Text Color",
-      "default": "#111111"
+      "default": "#ffffff"
     },
     {
       "type": "checkbox",
@@ -573,10 +364,10 @@
       "unit": "px",
       "default": 0
     },
-    
+
     {
       "type": "header",
-      "content": "── Spacing ─────────────────────────"
+      "content": "── Padding ─────────────────────────"
     },
     {
       "type": "range",
@@ -586,7 +377,7 @@
       "max": 80,
       "step": 4,
       "unit": "px",
-      "default": 16
+      "default": 0
     },
     {
       "type": "range",
@@ -596,7 +387,7 @@
       "max": 80,
       "step": 4,
       "unit": "px",
-      "default": 16
+      "default": 0
     },
     {
       "type": "range",
@@ -606,7 +397,7 @@
       "max": 80,
       "step": 4,
       "unit": "px",
-      "default": 16
+      "default": 0
     },
     {
       "type": "range",
@@ -616,79 +407,52 @@
       "max": 80,
       "step": 4,
       "unit": "px",
-      "default": 16
+      "default": 0
     }
+
   ],
   "presets": [
     {
-      "name": "Marquee",
+      "name": "Heading",
       "settings": {
-        "marquee_items": "✨ Free Shipping, 🔥 30% Off, ⭐ Limited Edition, 🚀 Fast Delivery, 💎 Premium Quality",
-        "direction": "left",
-        "speed": 20,
-        "gap": 48,
-        "pause_on_hover": true,
-        "duplicate_content": true,
-        "show_icon": true,
-        "icon": "✦",
-        "icon_position": "left",
-        "icon_color": "#111111",
-        "icon_size": 20,
-        "type_preset": "h3",
-        "text_case": "none",
-        "text_wrap": "nowrap",
-        "color": "#111111",
-        "alignment": "center",
-        "padding_top": 16,
-        "padding_bottom": 16,
-        "padding_left": 16,
-        "padding_right": 16
+        "text": "<p>Timeless Design for Modern Living</p>",
+        "heading_tag": "h2",
+        "type_preset": "h2",
+        "alignment": "left"
       }
     },
     {
-      "name": "Marquee (Large Text)",
+      "name": "Display Heading",
       "settings": {
-        "marquee_items": "SALE • NEW ARRIVALS • BESTSELLERS • EXCLUSIVE • LIMITED",
-        "direction": "right",
-        "speed": 15,
-        "gap": 64,
-        "pause_on_hover": true,
-        "duplicate_content": true,
-        "show_icon": true,
-        "icon": "★",
-        "icon_position": "right",
-        "icon_color": "#FF6B35",
-        "icon_size": 28,
+        "text": "<p>Bold. Beautiful. Unforgettable.</p>",
+        "heading_tag": "h1",
+        "type_preset": "h1",
+        "alignment": "center",
+        "text_wrap": "balance"
+      }
+    },
+    {
+      "name": "Section Label",
+      "settings": {
+        "text": "<p>Our Collection</p>",
+        "heading_tag": "h6",
+        "type_preset": "h6",
+        "text_case": "uppercase",
+        "alignment": "left"
+      }
+    },
+    {
+      "name": "Custom Heading",
+      "settings": {
+        "text": "<p>Your Custom Heading</p>",
+        "heading_tag": "h2",
         "type_preset": "custom",
+        "font": "heading",
         "font_size": 48,
         "font_weight": "700",
-        "text_case": "uppercase",
-        "text_wrap": "nowrap",
-        "color": "#FF6B35",
-        "alignment": "center",
-        "background": true,
-        "background_color": "#1A1A1A",
-        "padding_top": 24,
-        "padding_bottom": 24,
-        "corner_radius": 0
-      }
-    },
-    {
-      "name": "Marquee (Subtle)",
-      "settings": {
-        "marquee_items": "Free shipping on orders over $50, 30-day returns, 24/7 customer support",
-        "direction": "left",
-        "speed": 30,
-        "gap": 32,
-        "pause_on_hover": true,
-        "duplicate_content": true,
-        "show_icon": false,
-        "type_preset": "p",
-        "text_case": "none",
-        "color": "#666666",
-        "alignment": "center",
-        "padding_top": 12,
-        "padding_bottom": 12
+        "line_height": 12,
+        "letter_spacing": -2,
+        "alignment": "left"
       }
     }
   ]

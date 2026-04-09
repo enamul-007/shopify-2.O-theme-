@@ -74,138 +74,80 @@
     }
   }
 
-  {% comment %} ── Category Card ── {% endcomment %}
-  #shopify-section-{{ section.id }} .category-card {
-    display: block;
-    text-decoration: none;
+  {% comment %} ── Grid item reveal animation ── {% endcomment %}
+  #shopify-section-{{ section.id }} .category-grid-item {
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.5s ease, transform 0.5s ease;
   }
 
-  #shopify-section-{{ section.id }} .category-card.is-visible {
+  #shopify-section-{{ section.id }} .category-grid-item.is-visible {
     opacity: 1;
     transform: translateY(0);
-  }
-
-  #shopify-section-{{ section.id }} .category-img-wrap {
-    aspect-ratio: 1 / 1;
-    background-color: {{ section.settings.color_scheme.settings.background }};
-    border-radius: {{ section.settings.card_radius }}px;
-    overflow: hidden;
-    margin-bottom: 0.75rem;
-  }
-
-  #shopify-section-{{ section.id }} .category-img-wrap img,
-  #shopify-section-{{ section.id }} .category-img-wrap svg {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.5s ease;
-  }
-
-  #shopify-section-{{ section.id }} .category-card:hover .category-img-wrap img {
-    transform: scale(1.1);
-  }
-
-  #shopify-section-{{ section.id }} .category-name {
-    text-align: center;
-    font-weight: 500;
-    font-size: 0.95rem;
-    color: {{ section.settings.color_scheme.settings.text }};
-    transition: color 0.2s ease;
-    margin: 0;
-  }
-
-  #shopify-section-{{ section.id }} .category-card:hover .category-name {
-    color: {{ section.settings.color_scheme.settings.secondary_button_label }};
   }
 {%- endstyle -%}
 
 <section class="category-section">
   <div class="category-inner">
 
-    {% comment %} ── Header ── {% endcomment %}
-    {% if section.settings.title != blank or section.settings.subtitle != blank %}
+    {% comment %} ── Section Header ── {% endcomment %}
+    {%- if section.settings.title != blank or section.settings.subtitle != blank -%}
       <div class="category-header js-reveal">
-        {% if section.settings.title != blank %}
+        {%- if section.settings.title != blank -%}
           <h2 class="category-title">{{ section.settings.title }}</h2>
-        {% endif %}
-        {% if section.settings.subtitle != blank %}
+        {%- endif -%}
+        {%- if section.settings.subtitle != blank -%}
           <p class="category-subtitle">{{ section.settings.subtitle }}</p>
-        {% endif %}
+        {%- endif -%}
       </div>
-    {% endif %}
+    {%- endif -%}
 
-    {% comment %} ── Grid ── {% endcomment %}
+    {% comment %} ── Category Grid (Theme Blocks) ── {% endcomment %}
     <div class="category-grid">
-      {% for block in section.blocks %}
-        {% if block.type == 'category' %}
-          <a
-            href="{{ block.settings.link }}"
-            class="category-card js-reveal"
-            style="transition-delay: {{ forloop.index0 | times: 100 }}ms;"
-            {{ block.shopify_attributes }}
-          >
-            <div class="category-img-wrap">
-              {% if block.settings.image != blank %}
-                {{
-                  block.settings.image
-                  | image_url: width: 600
-                  | image_tag:
-                    widths: '200,300,400,600',
-                    loading: 'lazy',
-                    alt: block.settings.name
-                }}
-              {% else %}
-                {{ 'collection-1' | placeholder_svg_tag }}
-              {% endif %}
-            </div>
-            {% if block.settings.name != blank %}
-              <p class="category-name">{{ block.settings.name }}</p>
-            {% endif %}
-          </a>
-        {% endif %}
-      {% endfor %}
-
-      {% if section.blocks.size == 0 %}
-        {% for i in (1..6) %}
-          <a href="#" class="category-card js-reveal" style="transition-delay: {{ forloop.index0 | times: 100 }}ms;">
-            <div class="category-img-wrap">
-              {{ 'collection-' | append: forloop.index | placeholder_svg_tag }}
-            </div>
-            <p class="category-name">Category {{ forloop.index }}</p>
-          </a>
-        {% endfor %}
-      {% endif %}
+      {% content_for 'blocks' %}
     </div>
 
   </div>
 </section>
 
+{% comment %}
+  NOTE FOR DEVELOPERS:
+  ─────────────────────────────────────────────────────────────────────────────
+  The grid items are rendered by theme blocks (category-card.liquid).
+  To apply staggered animation to each grid cell, the .category-grid-item
+  wrapper and transition-delay are handled inside category-card.liquid via
+  the block's shopify_attributes. The IntersectionObserver below targets
+  any .js-reveal element inside this section.
+  ─────────────────────────────────────────────────────────────────────────────
+{% endcomment %}
+
 <script>
-(function() {
-  {% comment %} Scroll reveal with IntersectionObserver {% endcomment %}
-  const items = document.querySelectorAll('#shopify-section-{{ section.id }} .js-reveal');
+(function () {
+  var sectionEl = document.getElementById('shopify-section-{{ section.id }}');
+  if (!sectionEl) return;
+
+  var items = sectionEl.querySelectorAll('.js-reveal');
   if (!items.length) return;
 
-  const observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
       if (entry.isIntersecting) {
         entry.target.classList.add('is-visible');
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.15 });
+  }, { threshold: 0.12 });
 
-  items.forEach(function(el) { observer.observe(el); });
+  items.forEach(function (el) { observer.observe(el); });
 })();
 </script>
 
 {% schema %}
 {
   "name": "Category Grid",
+  "blocks": [
+    { "type": "@theme" }
+  ],
   "settings": [
     {
       "type": "header",
@@ -216,16 +158,6 @@
       "id": "color_scheme",
       "label": "Color Scheme",
       "default": "scheme-1"
-    },
-    {
-      "type": "range",
-      "id": "card_radius",
-      "label": "Card Border Radius",
-      "min": 0,
-      "max": 32,
-      "step": 2,
-      "unit": "px",
-      "default": 12
     },
     {
       "type": "header",
@@ -295,41 +227,9 @@
       "default": "Explore our carefully curated collections designed for every space in your home"
     }
   ],
-  "blocks": [
-    {
-      "type": "category",
-      "name": "Category",
-      "settings": [
-        {
-          "type": "image_picker",
-          "id": "image",
-          "label": "Category Image"
-        },
-        {
-          "type": "text",
-          "id": "name",
-          "label": "Category Name",
-          "default": "Living Room"
-        },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Category Link"
-        }
-      ]
-    }
-  ],
   "presets": [
     {
-      "name": "Category Grid",
-      "blocks": [
-        { "type": "category" },
-        { "type": "category" },
-        { "type": "category" },
-        { "type": "category" },
-        { "type": "category" },
-        { "type": "category" }
-      ]
+      "name": "Category Grid"
     }
   ]
 }

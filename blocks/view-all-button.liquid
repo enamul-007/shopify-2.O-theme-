@@ -1,0 +1,346 @@
+{%- comment -%}
+  ╔══════════════════════════════════════════════════════╗
+  ║  BLOCK: view-all-button                             ║
+  ║  Path:  blocks/view-all-button.liquid               ║
+  ║  Fully customizable View All button block.          ║
+  ║  Works in Best Sellers, Featured Collection, etc.   ║
+  ╚══════════════════════════════════════════════════════╝
+{%- endcomment -%}
+
+{%- liquid
+  assign btn_label = block.settings.label
+  assign btn_url   = block.settings.url
+  if btn_label == blank
+    assign btn_label = 'View All'
+  endif
+-%}
+
+{%- style -%}
+  .vab-{{ block.id }} {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: {{ block.settings.icon_gap }}px;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    line-height: 1.2;
+
+    /* Typography */
+    font-size: {{ block.settings.font_size }}px;
+    font-weight: {{ block.settings.font_weight }};
+    letter-spacing: {{ block.settings.letter_spacing | times: 0.01 }}em;
+    text-transform: {{ block.settings.text_transform }};
+
+    /* Sizing */
+    padding: {{ block.settings.padding_v }}px {{ block.settings.padding_h }}px;
+
+    /* Colors */
+    color: {{ block.settings.text_color }};
+    background-color: {{ block.settings.bg_color }};
+
+    /* Border */
+    border: {{ block.settings.border_width }}px solid {{ block.settings.border_color }};
+    border-radius: {{ block.settings.border_radius }}px;
+
+    /* Transition */
+    transition:
+      color 0.22s ease,
+      background-color 0.22s ease,
+      border-color 0.22s ease,
+      gap 0.2s ease,
+      transform 0.18s ease;
+  }
+
+  .vab-{{ block.id }}:hover {
+    color: {{ block.settings.hover_text_color }};
+    background-color: {{ block.settings.hover_bg_color }};
+    border-color: {{ block.settings.hover_border_color }};
+    gap: {{ block.settings.icon_gap | plus: 5 }}px;
+  }
+
+  .vab-{{ block.id }}:active {
+    transform: scale(0.97);
+  }
+
+  .vab-{{ block.id }} .vab-icon {
+    width: {{ block.settings.icon_size }}px;
+    height: {{ block.settings.icon_size }}px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .vab-{{ block.id }}:hover .vab-icon {
+    transform: translateX(4px);
+  }
+
+  {% if block.settings.full_width_mobile %}
+    @media (max-width: 767px) {
+      .vab-{{ block.id }} {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  {% endif %}
+{%- endstyle -%}
+
+{%- liquid
+  if btn_url != blank
+    assign tag = 'a'
+  else
+    assign tag = 'span'
+  endif
+-%}
+
+<{{ tag }}
+  {% if btn_url != blank %}
+    href="{{ btn_url }}"
+    {% if block.settings.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+  {% endif %}
+  class="vab-{{ block.id }}"
+  {{ block.shopify_attributes }}
+>
+  {{- btn_label -}}
+
+  {%- if block.settings.show_icon -%}
+    {%- case block.settings.icon_style -%}
+      {%- when 'arrow' -%}
+        <svg class="vab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      {%- when 'chevron' -%}
+        <svg class="vab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      {%- when 'long-arrow' -%}
+        <svg class="vab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14M15 6l6 6-6 6"/>
+        </svg>
+      {%- when 'plus' -%}
+        <svg class="vab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+    {%- endcase -%}
+  {%- endif -%}
+
+</{{ tag }}>
+
+{% schema %}
+{
+  "name": "View All Button",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Button Text",
+      "default": "View All"
+    },
+    {
+      "type": "url",
+      "id": "url",
+      "label": "Button Link"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_new_tab",
+      "label": "Open in new tab",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font Size",
+      "min": 11,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font Weight",
+      "options": [
+        { "value": "400", "label": "Regular (400)" },
+        { "value": "500", "label": "Medium (500)" },
+        { "value": "600", "label": "Semibold (600)" },
+        { "value": "700", "label": "Bold (700)" }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "select",
+      "id": "text_transform",
+      "label": "Text Transform",
+      "options": [
+        { "value": "none",       "label": "None" },
+        { "value": "uppercase",  "label": "UPPERCASE" },
+        { "value": "capitalize", "label": "Capitalize" },
+        { "value": "lowercase",  "label": "lowercase" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "label": "Letter Spacing",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "default": 2,
+      "info": "Value is multiplied by 0.01em. e.g. 5 = 0.05em"
+    },
+    {
+      "type": "header",
+      "content": "Size & Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_v",
+      "label": "Padding Vertical",
+      "min": 4,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding_h",
+      "label": "Padding Horizontal",
+      "min": 8,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width_mobile",
+      "label": "Full Width on Mobile",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "hover_text_color",
+      "label": "Hover Text Color",
+      "default": "#555555"
+    },
+    {
+      "type": "color",
+      "id": "hover_bg_color",
+      "label": "Hover Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Border"
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "label": "Border Width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "hover_border_color",
+      "label": "Hover Border Color",
+      "default": "#555555"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border Radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Icon"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show Icon",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "icon_style",
+      "label": "Icon Style",
+      "options": [
+        { "value": "arrow",      "label": "Arrow →" },
+        { "value": "chevron",    "label": "Chevron ›" },
+        { "value": "long-arrow", "label": "Long Arrow ⟶" },
+        { "value": "plus",       "label": "Plus +" }
+      ],
+      "default": "arrow"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon Size",
+      "min": 12,
+      "max": 28,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "icon_gap",
+      "label": "Gap (text → icon)",
+      "min": 2,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    }
+  ],
+  "presets": [
+    {
+      "name": "View All Button"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,208 @@
+{%- liquid
+  assign tag         = block.settings.heading_tag
+  assign font_size   = block.settings.font_size
+  assign font_weight = block.settings.font_weight
+  assign color       = block.settings.text_color
+  assign align       = block.settings.text_align
+  assign line_h      = block.settings.line_height
+  assign letter_s    = block.settings.letter_spacing
+  assign transform   = block.settings.text_transform
+  assign font_style  = block.settings.font_style
+  assign margin_t    = block.settings.margin_top
+  assign margin_b    = block.settings.margin_bottom
+-%}
+
+{%- style -%}
+  #block-{{ block.id }} .cat-title {
+    font-size: {{ font_size }}px;
+    font-weight: {{ font_weight }};
+    color: {{ color }};
+    text-align: {{ align }};
+    line-height: {{ line_h }};
+    letter-spacing: {{ letter_s }}em;
+    text-transform: {{ transform }};
+    font-style: {{ font_style }};
+    margin-top: {{ margin_t }}px;
+    margin-bottom: {{ margin_b }}px;
+    padding: 0;
+    transition: color 0.2s ease;
+  }
+
+  {%- if block.settings.font_family != 'inherit' -%}
+    #block-{{ block.id }} .cat-title {
+      font-family: {{ block.settings.font_family }}, sans-serif;
+    }
+  {%- endif -%}
+{%- endstyle -%}
+
+<div id="block-{{ block.id }}" class="cat-title-block" {{ block.shopify_attributes }}>
+  {%- if block.settings.title != blank -%}
+    <{{ tag }} class="cat-title">{{ block.settings.title }}</{{ tag }}>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Category Title",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title Text",
+      "default": "Living Room"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Tag",
+      "info": "Choose the semantic heading level",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" },
+        { "value": "h4", "label": "H4" },
+        { "value": "h5", "label": "H5" },
+        { "value": "p",  "label": "Paragraph" }
+      ],
+      "default": "p"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "font_family",
+      "label": "Font Family",
+      "info": "Inherits theme font by default",
+      "options": [
+        { "value": "inherit",     "label": "Theme Default" },
+        { "value": "serif",       "label": "Serif" },
+        { "value": "sans-serif",  "label": "Sans-serif" },
+        { "value": "monospace",   "label": "Monospace" },
+        { "value": "Georgia",     "label": "Georgia" },
+        { "value": "Garamond",    "label": "Garamond" },
+        { "value": "Helvetica",   "label": "Helvetica" },
+        { "value": "Arial",       "label": "Arial" },
+        { "value": "Verdana",     "label": "Verdana" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font Size",
+      "min": 10,
+      "max": 72,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font Weight",
+      "options": [
+        { "value": "300", "label": "Light (300)" },
+        { "value": "400", "label": "Regular (400)" },
+        { "value": "500", "label": "Medium (500)" },
+        { "value": "600", "label": "Semi-Bold (600)" },
+        { "value": "700", "label": "Bold (700)" },
+        { "value": "800", "label": "Extra Bold (800)" },
+        { "value": "900", "label": "Black (900)" }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "select",
+      "id": "font_style",
+      "label": "Font Style",
+      "options": [
+        { "value": "normal", "label": "Normal" },
+        { "value": "italic", "label": "Italic" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "header",
+      "content": "Color & Alignment"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "text_alignment",
+      "id": "text_align",
+      "label": "Text Alignment",
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Spacing & Sizing"
+    },
+    {
+      "type": "range",
+      "id": "line_height",
+      "label": "Line Height",
+      "min": 1,
+      "max": 3,
+      "step": 0.1,
+      "default": 1.4
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "label": "Letter Spacing",
+      "min": -0.1,
+      "max": 0.5,
+      "step": 0.1,
+      "unit": "em",
+      "default": 0
+    },
+    {
+      "type": "select",
+      "id": "text_transform",
+      "label": "Text Transform",
+      "options": [
+        { "value": "none",       "label": "None" },
+        { "value": "uppercase",  "label": "UPPERCASE" },
+        { "value": "lowercase",  "label": "lowercase" },
+        { "value": "capitalize", "label": "Capitalize" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "label": "Margin Top",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "label": "Margin Bottom",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category Title"
+    }
+  ]
+}
+{% endschema %}
