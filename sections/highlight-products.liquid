@@ -1,0 +1,197 @@
+{%- style -%}
+  .highlight-product {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+
+  .highlight-product__inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .highlight-product__layout {
+    display: grid;
+    grid-template-columns: 52% 1fr;
+    gap: {{ section.settings.column_gap }}px;
+    align-items: center;
+  }
+
+  .highlight-product__layout--right {
+    grid-template-columns: 1fr 52%;
+  }
+
+  .highlight-product__layout--right .highlight-product__image-col {
+    order: 2;
+  }
+
+  .highlight-product__layout--right .highlight-product__info-col {
+    order: 1;
+  }
+
+  .highlight-product__info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .highlight-product__placeholder {
+    padding: 3rem;
+    text-align: center;
+    border: 2px dashed rgba(0,0,0,0.15);
+    border-radius: 12px;
+    color: rgba(0,0,0,0.4);
+  }
+
+  @media (max-width: 768px) {
+    .highlight-product__layout,
+    .highlight-product__layout--right {
+      grid-template-columns: 1fr;
+    }
+
+    .highlight-product__layout--right .highlight-product__image-col,
+    .highlight-product__layout--right .highlight-product__info-col {
+      order: unset;
+    }
+
+    .highlight-product__inner {
+      padding: 0 1rem;
+    }
+  }
+{%- endstyle -%}
+
+{%- assign product = section.settings.product -%}
+
+<section class="highlight-product color-{{ section.settings.color_scheme }}">
+  <div class="highlight-product__inner">
+    {%- if product != blank -%}
+      <div class="highlight-product__layout highlight-product__layout--{{ section.settings.image_position }}">
+
+        <div class="highlight-product__image-col">
+          {%- content_for 'block', type: 'product-image', id: 'static-image' -%}
+        </div>
+
+        <div class="highlight-product__info-col">
+          {%- content_for 'block', type: 'product-title',       id: 'static-title'       -%}
+          {%- content_for 'block', type: 'reviews',             id: 'static-reviews'     -%}
+          {%- content_for 'block', type: 'price',               id: 'static-price'       -%}
+          {%- content_for 'block', type: 'product-description', id: 'static-description' -%}
+          {%- content_for 'block', type: 'divider',             id: 'static-divider'     -%}
+          {%- content_for 'block', type: 'features',            id: 'static-features'    -%}
+          {%- content_for 'block', type: 'stock',               id: 'static-stock'       -%}
+          {%- content_for 'block', type: 'add_to_cart',         id: 'static-cart'        -%}
+          {%- content_for 'block', type: 'custom_text',         id: 'static-custom'      -%}
+        </div>
+
+      </div>
+    {%- else -%}
+      <div class="highlight-product__placeholder">
+        <p>⚠️ Please select a product in the section settings.</p>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Highlight Product",
+  "blocks": [
+    { "type": "product-image" },
+    { "type": "product-title" },
+    { "type": "reviews" },
+    { "type": "price" },
+    { "type": "product-description" },
+    { "type": "divider" },
+    { "type": "features" },
+    { "type": "stock" },
+    { "type": "add_to_cart" },
+    { "type": "custom_text" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Product"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Select product"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        { "value": "left",  "label": "Image left"  },
+        { "value": "right", "label": "Image right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 16,
+      "max": 96,
+      "step": 8,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "Highlight Product",
+      "blocks": [
+        { "type": "product-image",       "id": "static-image",       "static": true },
+        { "type": "product-title",       "id": "static-title",       "static": true },
+        { "type": "reviews",             "id": "static-reviews",     "static": true },
+        { "type": "price",               "id": "static-price",       "static": true },
+        { "type": "product-description", "id": "static-description", "static": true },
+        { "type": "divider",             "id": "static-divider",     "static": true },
+        { "type": "features",            "id": "static-features",    "static": true },
+        { "type": "stock",               "id": "static-stock",       "static": true },
+        { "type": "add_to_cart",         "id": "static-cart",        "static": true },
+        { "type": "custom_text",         "id": "static-custom",      "static": true }
+      ]
+    }
+  ]
+}
+{% endschema %}

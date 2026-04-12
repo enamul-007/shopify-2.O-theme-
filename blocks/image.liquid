@@ -1,0 +1,379 @@
+{%- style -%}
+  {% comment %} ── Wrapper ── {% endcomment %}
+  .bs-image-block[data-block-id="{{ block.id }}"] {
+    display: block;
+    width: 100%;
+  }
+
+  {% comment %} ── Aspect ratio container ── {% endcomment %}
+  .bs-image-block[data-block-id="{{ block.id }}"] .img-block__wrap {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: {{ block.settings.border_radius }}px;
+
+    {% if block.settings.border_enable %}
+      border: {{ block.settings.border_width }}px solid {{ block.settings.border_color }};
+    {% endif %}
+
+    {% if block.settings.shadow != 'none' %}
+      {% case block.settings.shadow %}
+        {% when 'sm' %}
+          box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+        {% when 'md' %}
+          box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+        {% when 'lg' %}
+          box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.08);
+        {% when 'xl' %}
+          box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.1);
+      {% endcase %}
+    {% endif %}
+
+    {% comment %} Aspect ratio {% endcomment %}
+    {% case block.settings.aspect_ratio %}
+      {% when 'auto' %}
+        aspect-ratio: auto;
+      {% when '1/1' %}
+        aspect-ratio: 1 / 1;
+      {% when '4/3' %}
+        aspect-ratio: 4 / 3;
+      {% when '3/4' %}
+        aspect-ratio: 3 / 4;
+      {% when '16/9' %}
+        aspect-ratio: 16 / 9;
+      {% when '9/16' %}
+        aspect-ratio: 9 / 16;
+      {% when '3/2' %}
+        aspect-ratio: 3 / 2;
+      {% when '2/3' %}
+        aspect-ratio: 2 / 3;
+      {% when 'custom' %}
+        aspect-ratio: {{ block.settings.custom_ratio_w }} / {{ block.settings.custom_ratio_h }};
+    {% endcase %}
+
+    {% if block.settings.aspect_ratio == 'auto' and block.settings.max_height > 0 %}
+      max-height: {{ block.settings.max_height }}px;
+    {% endif %}
+  }
+
+  {% comment %} ── Image ── {% endcomment %}
+  .bs-image-block[data-block-id="{{ block.id }}"] .img-block__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    {% case block.settings.object_fit %}
+      {% when 'cover'   %}object-fit: cover;
+      {% when 'contain' %}object-fit: contain;
+      {% when 'fill'    %}object-fit: fill;
+    {% endcase %}
+    object-position: {{ block.settings.focal_x }}% {{ block.settings.focal_y }}%;
+    transition: transform 0.7s ease;
+  }
+
+  {% if block.settings.hover_zoom and block.settings.link != blank %}
+    .bs-image-block[data-block-id="{{ block.id }}"] .img-block__wrap:hover .img-block__img {
+      transform: scale(1.05);
+    }
+  {% endif %}
+
+  {% comment %} ── Overlay ── {% endcomment %}
+  {% if block.settings.overlay_opacity > 0 %}
+    .bs-image-block[data-block-id="{{ block.id }}"] .img-block__overlay {
+      position: absolute;
+      inset: 0;
+      background-color: {{ block.settings.overlay_color }};
+      opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+      pointer-events: none;
+    }
+  {% endif %}
+
+  {% comment %} ── Caption ── {% endcomment %}
+  .bs-image-block[data-block-id="{{ block.id }}"] .img-block__caption {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: #6b7280;
+    text-align: {{ block.settings.caption_align }};
+    line-height: 1.5;
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign img_tag = 'div'
+  if block.settings.link != blank
+    assign img_tag = 'a'
+  endif
+-%}
+
+<div
+  class="bs-image-block"
+  data-block-id="{{ block.id }}"
+  {{ block.shopify_attributes }}
+>
+  <{{ img_tag }}
+    class="img-block__wrap"
+    {% if block.settings.link != blank %}
+      href="{{ block.settings.link }}"
+      {% if block.settings.open_in_new_tab %}
+        target="_blank"
+        rel="noopener noreferrer"
+      {% endif %}
+    {% endif %}
+  >
+
+    {% if block.settings.image != blank %}
+      {{
+        block.settings.image
+        | image_url: width: 1600
+        | image_tag:
+          class: 'img-block__img',
+          widths: '400,600,800,1000,1200,1600',
+          loading: 'lazy',
+          alt: block.settings.image.alt
+      }}
+    {% else %}
+      {{ 'image' | placeholder_svg_tag: 'img-block__img' }}
+    {% endif %}
+
+    {% if block.settings.overlay_opacity > 0 %}
+      <div class="img-block__overlay"></div>
+    {% endif %}
+
+  </{{ img_tag }}>
+
+  {% if block.settings.caption != blank %}
+    <p class="img-block__caption">{{ block.settings.caption }}</p>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Image",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "caption",
+      "label": "Caption (optional)"
+    },
+    {
+      "type": "select",
+      "id": "caption_align",
+      "label": "Caption Alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Aspect Ratio"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Aspect Ratio",
+      "options": [
+        { "value": "auto",   "label": "Auto (natural)" },
+        { "value": "1/1",    "label": "Square (1:1)" },
+        { "value": "4/3",    "label": "Landscape (4:3)" },
+        { "value": "3/4",    "label": "Portrait (3:4)" },
+        { "value": "16/9",   "label": "Widescreen (16:9)" },
+        { "value": "9/16",   "label": "Tall (9:16)" },
+        { "value": "3/2",    "label": "Photo (3:2)" },
+        { "value": "2/3",    "label": "Photo Portrait (2:3)" },
+        { "value": "custom", "label": "Custom" }
+      ],
+      "default": "4/3"
+    },
+    {
+      "type": "range",
+      "id": "custom_ratio_w",
+      "label": "Custom Ratio — Width",
+      "min": 1,
+      "max": 16,
+      "step": 1,
+      "default": 4,
+      "visible_if": "{{ block.settings.aspect_ratio == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "custom_ratio_h",
+      "label": "Custom Ratio — Height",
+      "min": 1,
+      "max": 16,
+      "step": 1,
+      "default": 3,
+      "visible_if": "{{ block.settings.aspect_ratio == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "max_height",
+      "label": "Max Height (Auto ratio only)",
+      "min": 0,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 0,
+      "info": "0 = no limit. Only applies when Aspect Ratio is set to Auto.",
+      "visible_if": "{{ block.settings.aspect_ratio == 'auto' }}"
+    },
+    {
+      "type": "header",
+      "content": "Image Fit & Position"
+    },
+    {
+      "type": "select",
+      "id": "object_fit",
+      "label": "Object Fit",
+      "options": [
+        { "value": "cover",   "label": "Cover (crop to fill)" },
+        { "value": "contain", "label": "Contain (show all)" },
+        { "value": "fill",    "label": "Fill (stretch)" }
+      ],
+      "default": "cover"
+    },
+    {
+      "type": "range",
+      "id": "focal_x",
+      "label": "Focal Point — Horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 50,
+      "info": "0% = left, 50% = center, 100% = right"
+    },
+    {
+      "type": "range",
+      "id": "focal_y",
+      "label": "Focal Point — Vertical",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 50,
+      "info": "0% = top, 50% = center, 100% = bottom"
+    },
+    {
+      "type": "header",
+      "content": "Border & Shape"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border Radius",
+      "min": 0,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "border_enable",
+      "label": "Show Border",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "label": "Border Width",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "unit": "px",
+      "default": 1,
+      "visible_if": "{{ block.settings.border_enable == true }}"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border Color",
+      "default": "#e5e7eb",
+      "visible_if": "{{ block.settings.border_enable == true }}"
+    },
+    {
+      "type": "header",
+      "content": "Shadow"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "Box Shadow",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "sm",   "label": "Small" },
+        { "value": "md",   "label": "Medium" },
+        { "value": "lg",   "label": "Large" },
+        { "value": "xl",   "label": "Extra Large" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay Opacity",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 0,
+      "info": "0 = no overlay"
+    },
+    {
+      "type": "header",
+      "content": "Link & Interaction"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link (optional)"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "Open in new tab",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "hover_zoom",
+      "label": "Zoom on hover",
+      "default": true,
+      "info": "Only applies when a link is set"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image",
+      "settings": {
+        "aspect_ratio": "4/3",
+        "object_fit": "cover",
+        "border_radius": 12,
+        "shadow": "md"
+      }
+    }
+  ]
+}
+{% endschema %}

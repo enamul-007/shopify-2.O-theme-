@@ -1,0 +1,118 @@
+{%- assign product = section.settings.product -%}
+
+{%- style -%}
+  #block-{{ block.id }} {
+    padding-top: {{ block.settings.padding_top }}px;
+    padding-bottom: {{ block.settings.padding_bottom }}px;
+  }
+
+  #block-{{ block.id }} .hp-price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  #block-{{ block.id }} .hp-price__current {
+    font-size: {{ block.settings.price_size }}px;
+    font-weight: 600;
+    color: {{ block.settings.price_color }};
+    line-height: 1;
+  }
+
+  #block-{{ block.id }} .hp-price__compare {
+    font-size: {{ block.settings.price_size | times: 0.55 | round }}px;
+    text-decoration: line-through;
+    opacity: 0.45;
+  }
+
+  #block-{{ block.id }} .hp-price__badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: #FEF3C7;
+    color: #92400E;
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+{%- endstyle -%}
+
+<div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+  {%- if product != blank -%}
+    <div class="hp-price">
+      <span class="hp-price__current">{{ product.price | money }}</span>
+
+      {%- if block.settings.show_compare_price and product.compare_at_price > product.price -%}
+        <span class="hp-price__compare">{{ product.compare_at_price | money }}</span>
+
+        {%- if block.settings.show_save_badge -%}
+          {%- assign discount = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price | round -%}
+          <span class="hp-price__badge">Save {{ discount }}%</span>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  {%- else -%}
+    <div class="hp-price">
+      <span class="hp-price__current">$00.00</span>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Price",
+  "settings": [
+    {
+      "type": "range",
+      "id": "price_size",
+      "label": "Price font size",
+      "min": 20,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "color",
+      "id": "price_color",
+      "label": "Price color",
+      "default": "#111111"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_compare_price",
+      "label": "Show original (compare) price",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_save_badge",
+      "label": "Show \"Save X%\" badge",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Space above",
+      "min": 0,
+      "max": 32,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Space below",
+      "min": 0,
+      "max": 32,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    { "name": "Price" }
+  ]
+}
+{% endschema %}

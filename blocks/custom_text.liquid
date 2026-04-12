@@ -1,0 +1,86 @@
+{%- style -%}
+  #block-{{ block.id }} {
+    padding-top: {{ block.settings.padding_top }}px;
+    padding-bottom: {{ block.settings.padding_bottom }}px;
+    text-align: {{ block.settings.text_alignment }};
+  }
+
+  #block-{{ block.id }} .hp-custom-text__content {
+    font-size: {{ block.settings.text_size }}px;
+    line-height: 1.7;
+    color: {{ block.settings.text_color }};
+  }
+
+  #block-{{ block.id }} .hp-custom-text__content p { margin: 0 0 0.5em; }
+  #block-{{ block.id }} .hp-custom-text__content p:last-child { margin-bottom: 0; }
+  #block-{{ block.id }} .hp-custom-text__content a { color: inherit; text-decoration: underline; }
+{%- endstyle -%}
+
+{%- if block.settings.content != blank -%}
+  <div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+    <div class="hp-custom-text__content">
+      {{ block.settings.content }}
+    </div>
+  </div>
+{%- else -%}
+  <div id="block-{{ block.id }}" style="display:none;" {{ block.shopify_attributes }}></div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Custom text",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "content",
+      "label": "Content",
+      "default": "<p>Add custom text here — perfect for trust messages, guarantees, or short notes.</p>"
+    },
+    {
+      "type": "text_alignment",
+      "id": "text_alignment",
+      "label": "Alignment",
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text size",
+      "min": 11,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#555555"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Space above",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Space below",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    { "name": "Custom text" }
+  ]
+}
+{% endschema %}

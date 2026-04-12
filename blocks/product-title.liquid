@@ -1,0 +1,101 @@
+{%- assign product = section.settings.product -%}
+
+{%- style -%}
+  #block-{{ block.id }} {
+    padding-bottom: {{ block.settings.padding_bottom }}px;
+  }
+
+  #block-{{ block.id }} .hp-title__category {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 8px;
+  }
+
+  #block-{{ block.id }} .hp-title__heading {
+    font-size: {{ block.settings.heading_size }}px;
+    font-weight: {{ block.settings.heading_weight }};
+    line-height: 1.2;
+    margin: 0;
+    color: {{ block.settings.heading_color }};
+  }
+
+  @media (max-width: 768px) {
+    #block-{{ block.id }} .hp-title__heading {
+      font-size: {{ block.settings.heading_size | times: 0.8 | round }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+  {%- if product != blank -%}
+
+    {%- if block.settings.show_category and product.collections.first != blank -%}
+      <span class="hp-title__category">{{ product.collections.first.title }}</span>
+    {%- endif -%}
+
+    <h2 class="hp-title__heading">{{ product.title }}</h2>
+
+  {%- else -%}
+    <h2 class="hp-title__heading">Product title</h2>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Title",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_category",
+      "label": "Show collection name above title",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Title size",
+      "min": 22,
+      "max": 54,
+      "step": 2,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "select",
+      "id": "heading_weight",
+      "label": "Title weight",
+      "options": [
+        { "value": "300", "label": "Light"    },
+        { "value": "400", "label": "Regular"  },
+        { "value": "500", "label": "Medium"   },
+        { "value": "600", "label": "Semibold" },
+        { "value": "700", "label": "Bold"     }
+      ],
+      "default": "600"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Title color",
+      "default": "#111111"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Space below",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    { "name": "Title" }
+  ]
+}
+{% endschema %}

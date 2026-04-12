@@ -1,0 +1,145 @@
+{%- assign product = section.settings.product -%}
+
+{%- style -%}
+  #block-{{ block.id }} {
+    padding-bottom: {{ block.settings.padding_bottom }}px;
+  }
+
+  #block-{{ block.id }} .hp-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 14px;
+    border-radius: 8px;
+  }
+
+  #block-{{ block.id }} .hp-stock__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  #block-{{ block.id }} .hp-stock--in {
+    background: #DCFCE7;
+    color: #15803D;
+  }
+  #block-{{ block.id }} .hp-stock--in .hp-stock__dot { background: #16A34A; }
+
+  #block-{{ block.id }} .hp-stock--low {
+    background: #FEF9C3;
+    color: #854D0E;
+  }
+  #block-{{ block.id }} .hp-stock--low .hp-stock__dot { background: #CA8A04; }
+
+  #block-{{ block.id }} .hp-stock--out {
+    background: #FEE2E2;
+    color: #991B1B;
+  }
+  #block-{{ block.id }} .hp-stock--out .hp-stock__dot { background: #DC2626; }
+{%- endstyle -%}
+
+{%- if block.settings.show_stock -%}
+  <div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+    {%- if product != blank -%}
+      {%- assign inventory = product.variants.first.inventory_quantity -%}
+      {%- assign threshold = block.settings.low_stock_threshold -%}
+
+      {%- if product.available -%}
+        {%- if inventory > 0 and inventory <= threshold -%}
+          <div class="hp-stock hp-stock--low">
+            <span class="hp-stock__dot"></span>
+            <span>
+              {%- if block.settings.show_quantity -%}
+                Only {{ inventory }} left
+              {%- else -%}
+                {{ block.settings.low_stock_text }}
+              {%- endif -%}
+            </span>
+          </div>
+        {%- else -%}
+          <div class="hp-stock hp-stock--in">
+            <span class="hp-stock__dot"></span>
+            <span>{{ block.settings.in_stock_text }}</span>
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        <div class="hp-stock hp-stock--out">
+          <span class="hp-stock__dot"></span>
+          <span>{{ block.settings.out_of_stock_text }}</span>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      <div class="hp-stock hp-stock--in">
+        <span class="hp-stock__dot"></span>
+        <span>In stock</span>
+      </div>
+    {%- endif -%}
+  </div>
+{%- else -%}
+  <div id="block-{{ block.id }}" style="display:none;" {{ block.shopify_attributes }}></div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Stock status",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_stock",
+      "label": "Show stock status",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "low_stock_threshold",
+      "label": "Low stock threshold",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "default": 5,
+      "info": "Show low stock warning when inventory is at or below this number"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quantity",
+      "label": "Show exact quantity when low",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "in_stock_text",
+      "label": "In stock message",
+      "default": "In stock — ready to ship"
+    },
+    {
+      "type": "text",
+      "id": "low_stock_text",
+      "label": "Low stock message",
+      "default": "Low stock — order soon",
+      "info": "Only shown if \"Show exact quantity\" is off"
+    },
+    {
+      "type": "text",
+      "id": "out_of_stock_text",
+      "label": "Out of stock message",
+      "default": "Out of stock"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Space below",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    { "name": "Stock status" }
+  ]
+}
+{% endschema %}

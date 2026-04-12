@@ -1,0 +1,272 @@
+{%- assign product = section.settings.product -%}
+
+{%- style -%}
+  #block-{{ block.id }} .hp-cart {
+    display: flex;
+    flex-direction: {% if block.settings.btn_layout == 'row' %}row{% else %}column{% endif %};
+    gap: 10px;
+    padding-top: {{ block.settings.padding_top }}px;
+  }
+
+  #block-{{ block.id }} .hp-cart__primary,
+  #block-{{ block.id }} .hp-cart__secondary {
+    display: block;
+    width: 100%;
+    padding: 15px 24px;
+    border-radius: {{ block.settings.btn_radius }}px;
+    font-size: {{ block.settings.btn_font_size }}px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+    line-height: 1;
+    border: none;
+  }
+
+  #block-{{ block.id }} .hp-cart__primary {
+    background: {{ block.settings.primary_bg }};
+    color: {{ block.settings.primary_color }};
+    {%- if block.settings.btn_layout == 'row' -%}flex: 1.6;{%- endif -%}
+  }
+
+  #block-{{ block.id }} .hp-cart__primary:hover:not(:disabled) {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+
+  #block-{{ block.id }} .hp-cart__primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  #block-{{ block.id }} .hp-cart__secondary {
+    background: transparent;
+    color: {{ block.settings.secondary_color }};
+    border: 1.5px solid {{ block.settings.secondary_border }};
+    {%- if block.settings.btn_layout == 'row' -%}flex: 1;{%- endif -%}
+  }
+
+  #block-{{ block.id }} .hp-cart__secondary:hover {
+    background: rgba(0,0,0,0.04);
+    transform: translateY(-1px);
+  }
+
+  #block-{{ block.id }} .hp-cart__qty {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1.5px solid rgba(0,0,0,0.15);
+    border-radius: {{ block.settings.btn_radius }}px;
+    overflow: hidden;
+    width: fit-content;
+    margin-bottom: 10px;
+  }
+
+  #block-{{ block.id }} .hp-cart__qty button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+
+  #block-{{ block.id }} .hp-cart__qty button:hover { background: rgba(0,0,0,0.06); }
+
+  #block-{{ block.id }} .hp-cart__qty input {
+    width: 44px;
+    height: 40px;
+    border: none;
+    border-left: 1.5px solid rgba(0,0,0,0.12);
+    border-right: 1.5px solid rgba(0,0,0,0.12);
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    -moz-appearance: textfield;
+  }
+
+  #block-{{ block.id }} .hp-cart__qty input::-webkit-outer-spin-button,
+  #block-{{ block.id }} .hp-cart__qty input::-webkit-inner-spin-button { -webkit-appearance: none; }
+{%- endstyle -%}
+
+<div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+  {%- if product != blank -%}
+
+    {%- if block.settings.show_quantity_selector and product.available -%}
+      <div class="hp-cart__qty" id="hp-qty-{{ block.id }}">
+        <button type="button" onclick="var i=document.getElementById('hp-qty-input-{{ block.id }}');if(i.value>1)i.value=parseInt(i.value)-1;" aria-label="Decrease quantity">−</button>
+        <input type="number" id="hp-qty-input-{{ block.id }}" name="quantity" value="1" min="1" aria-label="Quantity">
+        <button type="button" onclick="var i=document.getElementById('hp-qty-input-{{ block.id }}');i.value=parseInt(i.value)+1;" aria-label="Increase quantity">+</button>
+      </div>
+    {%- endif -%}
+
+    <div class="hp-cart">
+      {%- if product.available -%}
+        <form method="post" action="/cart/add">
+          <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+          {%- if block.settings.show_quantity_selector -%}
+            <input type="hidden" name="quantity" id="hp-qty-hidden-{{ block.id }}" value="1">
+          {%- else -%}
+            <input type="hidden" name="quantity" value="1">
+          {%- endif -%}
+          <button type="submit" class="hp-cart__primary">
+            {{ block.settings.primary_btn_text }}
+          </button>
+        </form>
+      {%- else -%}
+        <button class="hp-cart__primary" disabled>{{ block.settings.sold_out_text }}</button>
+      {%- endif -%}
+
+      {%- if block.settings.show_secondary_btn -%}
+        <a href="{{ product.url }}" class="hp-cart__secondary">
+          {{ block.settings.secondary_btn_text }}
+        </a>
+      {%- endif -%}
+    </div>
+
+  {%- else -%}
+    <div class="hp-cart">
+      <button class="hp-cart__primary" disabled>{{ block.settings.primary_btn_text }}</button>
+    </div>
+  {%- endif -%}
+
+  {%- if block.settings.show_quantity_selector -%}
+    <script>
+      (function() {
+        var qtyInput  = document.getElementById('hp-qty-input-{{ block.id }}');
+        var hiddenQty = document.getElementById('hp-qty-hidden-{{ block.id }}');
+        if (qtyInput && hiddenQty) {
+          qtyInput.addEventListener('input', function() {
+            hiddenQty.value = qtyInput.value;
+          });
+        }
+      })();
+    </script>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Add to cart",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Buttons"
+    },
+    {
+      "type": "text",
+      "id": "primary_btn_text",
+      "label": "Add to cart text",
+      "default": "Add to Cart"
+    },
+    {
+      "type": "text",
+      "id": "sold_out_text",
+      "label": "Sold out text",
+      "default": "Sold Out"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_btn",
+      "label": "Show secondary button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "secondary_btn_text",
+      "label": "Secondary button text",
+      "default": "View Details"
+    },
+    {
+      "type": "select",
+      "id": "btn_layout",
+      "label": "Button layout",
+      "options": [
+        { "value": "column", "label": "Stacked (full width)" },
+        { "value": "row",    "label": "Side by side"         }
+      ],
+      "default": "row"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quantity_selector",
+      "label": "Show quantity selector",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Primary button style"
+    },
+    {
+      "type": "color",
+      "id": "primary_bg",
+      "label": "Background",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Secondary button style"
+    },
+    {
+      "type": "color",
+      "id": "secondary_color",
+      "label": "Text color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "secondary_border",
+      "label": "Border color",
+      "default": "#111111"
+    },
+    {
+      "type": "header",
+      "content": "Sizing"
+    },
+    {
+      "type": "range",
+      "id": "btn_radius",
+      "label": "Corner radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "btn_font_size",
+      "label": "Font size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Space above",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 8
+    }
+  ],
+  "presets": [
+    { "name": "Add to cart" }
+  ]
+}
+{% endschema %}

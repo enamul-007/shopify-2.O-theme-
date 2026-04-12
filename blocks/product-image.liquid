@@ -1,0 +1,267 @@
+{%- assign product = section.settings.product -%}
+
+{%- style -%}
+  #block-{{ block.id }} .hp-image__wrapper {
+    position: relative;
+    border-radius: {{ block.settings.border_radius }}px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.04);
+  }
+
+  #block-{{ block.id }} .hp-image__wrapper::before {
+    content: '';
+    display: block;
+    padding-bottom: {%- case block.settings.aspect_ratio -%}
+      {%- when '1:1'  -%}100%
+      {%- when '4:3'  -%}75%
+      {%- when '3:2'  -%}66.66%
+      {%- when '16:9' -%}56.25%
+      {%- when 'natural' -%}0%
+    {%- endcase -%};
+  }
+
+  {%- if block.settings.aspect_ratio == 'natural' -%}
+    #block-{{ block.id }} .hp-image__wrapper::before { display: none; }
+    #block-{{ block.id }} .hp-image__img { position: relative; width: 100%; height: auto; display: block; }
+  {%- else -%}
+    #block-{{ block.id }} .hp-image__img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: {{ block.settings.image_fit }};
+      object-position: center;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+  {%- endif -%}
+
+  {%- if block.settings.hover_zoom -%}
+    #block-{{ block.id }} .hp-image__wrapper:hover .hp-image__img {
+      transform: scale(1.04);
+    }
+  {%- endif -%}
+
+  #block-{{ block.id }} .hp-image__badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+    background: {{ block.settings.badge_bg }};
+    color: {{ block.settings.badge_text }};
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 13px;
+    border-radius: 99px;
+    line-height: 1;
+  }
+
+  #block-{{ block.id }} .hp-image__thumbs {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  #block-{{ block.id }} .hp-image__thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: {{ block.settings.border_radius | divided_by: 2 }}px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  #block-{{ block.id }} .hp-image__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  #block-{{ block.id }} .hp-image__thumb.is-active {
+    border-color: currentColor;
+  }
+{%- endstyle -%}
+
+<div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+  {%- if product != blank -%}
+    <div class="hp-image__wrapper">
+
+      {%- comment -%} Badge {%- endcomment -%}
+      {%- if block.settings.show_badge -%}
+        {%- if product.compare_at_price > product.price -%}
+          {%- assign discount = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price | round -%}
+          <div class="hp-image__badge">–{{ discount }}% off</div>
+        {%- elsif product.tags contains 'new' -%}
+          <div class="hp-image__badge">New</div>
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- comment -%} Main image {%- endcomment -%}
+      {%- if product.featured_image -%}
+        <img
+          id="hp-main-img-{{ block.id }}"
+          class="hp-image__img"
+          src="{{ product.featured_image | image_url: width: 900 }}"
+          srcset="
+            {{ product.featured_image | image_url: width: 500 }} 500w,
+            {{ product.featured_image | image_url: width: 900 }} 900w,
+            {{ product.featured_image | image_url: width: 1200 }} 1200w
+          "
+          sizes="(max-width: 768px) 100vw, 52vw"
+          alt="{{ product.featured_image.alt | escape }}"
+          loading="lazy"
+          width="{{ product.featured_image.width }}"
+          height="{{ product.featured_image.height }}"
+        >
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'hp-image__img' }}
+      {%- endif -%}
+
+    </div>
+
+    {%- comment -%} Thumbnails {%- endcomment -%}
+    {%- if block.settings.show_thumbnails and product.images.size > 1 -%}
+      <div class="hp-image__thumbs">
+        {%- assign thumb_limit = block.settings.thumbnail_count -%}
+        {%- for image in product.images limit: thumb_limit -%}
+          <div
+            class="hp-image__thumb{% if forloop.first %} is-active{% endif %}"
+            data-src="{{ image | image_url: width: 900 }}"
+            data-srcset="{{ image | image_url: width: 500 }} 500w, {{ image | image_url: width: 900 }} 900w"
+          >
+            <img
+              src="{{ image | image_url: width: 120 }}"
+              alt="{{ image.alt | escape }}"
+              loading="lazy"
+              width="60"
+              height="60"
+            >
+          </div>
+        {%- endfor -%}
+      </div>
+
+      <script>
+        (function() {
+          var blockEl = document.getElementById('block-{{ block.id }}');
+          if (!blockEl) return;
+          var mainImg = blockEl.querySelector('#hp-main-img-{{ block.id }}');
+          var thumbs  = blockEl.querySelectorAll('.hp-image__thumb');
+          thumbs.forEach(function(thumb) {
+            thumb.addEventListener('click', function() {
+              thumbs.forEach(function(t) { t.classList.remove('is-active'); });
+              thumb.classList.add('is-active');
+              if (mainImg) {
+                mainImg.src    = thumb.dataset.src;
+                mainImg.srcset = thumb.dataset.srcset;
+              }
+            });
+          });
+        })();
+      </script>
+    {%- endif -%}
+
+  {%- else -%}
+    <div class="hp-image__wrapper">
+      {{ 'product-1' | placeholder_svg_tag: 'hp-image__img' }}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Image",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Image display"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Aspect ratio",
+      "options": [
+        { "value": "1:1",     "label": "Square (1:1)"     },
+        { "value": "4:3",     "label": "Landscape (4:3)"  },
+        { "value": "3:2",     "label": "Standard (3:2)"   },
+        { "value": "16:9",    "label": "Wide (16:9)"      },
+        { "value": "natural", "label": "Natural (auto)"   }
+      ],
+      "default": "3:2"
+    },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Image fit",
+      "options": [
+        { "value": "cover",   "label": "Cover (crop to fill)" },
+        { "value": "contain", "label": "Contain (show full)"  }
+      ],
+      "default": "cover"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Corner radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "hover_zoom",
+      "label": "Zoom on hover",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Badge"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badge",
+      "label": "Show sale / new badge",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "badge_bg",
+      "label": "Badge background",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "badge_text",
+      "label": "Badge text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Thumbnails"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_thumbnails",
+      "label": "Show thumbnails",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "thumbnail_count",
+      "label": "Max thumbnails",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "presets": [
+    { "name": "Image" }
+  ]
+}
+{% endschema %}

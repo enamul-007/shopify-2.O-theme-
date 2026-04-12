@@ -1,0 +1,74 @@
+{%- style -%}
+  #block-{{ block.id }} {
+    padding-top: {{ block.settings.margin_top }}px;
+    padding-bottom: {{ block.settings.margin_bottom }}px;
+  }
+
+  #block-{{ block.id }} hr {
+    border: none;
+    border-top: {{ block.settings.thickness }}px solid {{ block.settings.divider_color }};
+    opacity: {{ block.settings.opacity | divided_by: 100.0 }};
+    margin: 0;
+  }
+{%- endstyle -%}
+
+<div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+  <hr>
+</div>
+
+{% schema %}
+{
+  "name": "Divider",
+  "settings": [
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Color",
+      "default": "#111111"
+    },
+    {
+      "type": "range",
+      "id": "opacity",
+      "label": "Opacity",
+      "min": 5,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "thickness",
+      "label": "Thickness",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "label": "Space above",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "label": "Space below",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 8
+    }
+  ],
+  "presets": [
+    { "name": "Divider" }
+  ]
+}
+{% endschema %}

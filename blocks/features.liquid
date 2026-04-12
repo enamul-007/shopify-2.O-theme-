@@ -1,0 +1,261 @@
+{%- style -%}
+  #block-{{ block.id }} {
+    padding-top: {{ block.settings.padding_top }}px;
+    padding-bottom: {{ block.settings.padding_bottom }}px;
+  }
+
+  #block-{{ block.id }} .hp-features__grid {
+    display: grid;
+    grid-template-columns: repeat({{ block.settings.columns }}, 1fr);
+    gap: 10px;
+  }
+
+  #block-{{ block.id }} .hp-features__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: {{ block.settings.text_size }}px;
+    line-height: 1.5;
+    color: {{ block.settings.text_color }};
+  }
+
+  #block-{{ block.id }} .hp-features__icon {
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    {%- if block.settings.icon_style == 'check' -%}
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: {{ block.settings.icon_bg }};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: {{ block.settings.icon_color }};
+    {%- elsif block.settings.icon_style == 'emoji' -%}
+    {%- endif -%}
+  }
+
+  @media (max-width: 480px) {
+    #block-{{ block.id }} .hp-features__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+{%- endstyle -%}
+
+{%- assign has_features = false -%}
+{%- if block.settings.feature_1 != blank or block.settings.feature_2 != blank or block.settings.feature_3 != blank or block.settings.feature_4 != blank -%}
+  {%- assign has_features = true -%}
+{%- endif -%}
+
+{%- if has_features -%}
+  <div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+    <div class="hp-features__grid">
+
+      {%- if block.settings.feature_1 != blank -%}
+        <div class="hp-features__item">
+          <span class="hp-features__icon">
+            {%- if block.settings.icon_style == 'check' -%}✓
+            {%- elsif block.settings.icon_style == 'emoji' -%}{{ block.settings.feature_1_icon }}
+            {%- endif -%}
+          </span>
+          <span>{{ block.settings.feature_1 }}</span>
+        </div>
+      {%- endif -%}
+
+      {%- if block.settings.feature_2 != blank -%}
+        <div class="hp-features__item">
+          <span class="hp-features__icon">
+            {%- if block.settings.icon_style == 'check' -%}✓
+            {%- elsif block.settings.icon_style == 'emoji' -%}{{ block.settings.feature_2_icon }}
+            {%- endif -%}
+          </span>
+          <span>{{ block.settings.feature_2 }}</span>
+        </div>
+      {%- endif -%}
+
+      {%- if block.settings.feature_3 != blank -%}
+        <div class="hp-features__item">
+          <span class="hp-features__icon">
+            {%- if block.settings.icon_style == 'check' -%}✓
+            {%- elsif block.settings.icon_style == 'emoji' -%}{{ block.settings.feature_3_icon }}
+            {%- endif -%}
+          </span>
+          <span>{{ block.settings.feature_3 }}</span>
+        </div>
+      {%- endif -%}
+
+      {%- if block.settings.feature_4 != blank -%}
+        <div class="hp-features__item">
+          <span class="hp-features__icon">
+            {%- if block.settings.icon_style == 'check' -%}✓
+            {%- elsif block.settings.icon_style == 'emoji' -%}{{ block.settings.feature_4_icon }}
+            {%- endif -%}
+          </span>
+          <span>{{ block.settings.feature_4 }}</span>
+        </div>
+      {%- endif -%}
+
+    </div>
+  </div>
+{%- else -%}
+  <div id="block-{{ block.id }}" style="display:none;" {{ block.shopify_attributes }}></div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Features",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Feature 1"
+    },
+    {
+      "type": "text",
+      "id": "feature_1",
+      "label": "Feature text",
+      "placeholder": "e.g. Free shipping"
+    },
+    {
+      "type": "text",
+      "id": "feature_1_icon",
+      "label": "Emoji icon",
+      "default": "🚚"
+    },
+    {
+      "type": "header",
+      "content": "Feature 2"
+    },
+    {
+      "type": "text",
+      "id": "feature_2",
+      "label": "Feature text",
+      "placeholder": "e.g. 30-day returns"
+    },
+    {
+      "type": "text",
+      "id": "feature_2_icon",
+      "label": "Emoji icon",
+      "default": "↩️"
+    },
+    {
+      "type": "header",
+      "content": "Feature 3"
+    },
+    {
+      "type": "text",
+      "id": "feature_3",
+      "label": "Feature text",
+      "placeholder": "e.g. Premium quality"
+    },
+    {
+      "type": "text",
+      "id": "feature_3_icon",
+      "label": "Emoji icon",
+      "default": "⭐"
+    },
+    {
+      "type": "header",
+      "content": "Feature 4"
+    },
+    {
+      "type": "text",
+      "id": "feature_4",
+      "label": "Feature text",
+      "placeholder": "e.g. Secure payment"
+    },
+    {
+      "type": "text",
+      "id": "feature_4_icon",
+      "label": "Emoji icon",
+      "default": "🔒"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "select",
+      "id": "icon_style",
+      "label": "Icon style",
+      "options": [
+        { "value": "check", "label": "Check circle"  },
+        { "value": "emoji", "label": "Emoji"         },
+        { "value": "none",  "label": "No icon"       }
+      ],
+      "default": "emoji"
+    },
+    {
+      "type": "color",
+      "id": "icon_bg",
+      "label": "Check icon background",
+      "default": "#DCFCE7",
+      "info": "Only used when icon style is \"Check circle\""
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Check icon color",
+      "default": "#15803D"
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Columns",
+      "options": [
+        { "value": "1", "label": "1 column" },
+        { "value": "2", "label": "2 columns" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text size",
+      "min": 11,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#555555"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Space above",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Space below",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    }
+  ],
+  "presets": [
+    {
+      "name": "Features",
+      "settings": {
+        "feature_1": "Free shipping",
+        "feature_2": "30-day returns",
+        "feature_3": "Premium quality",
+        "feature_4": "Secure payment"
+      }
+    }
+  ]
+}
+{% endschema %}

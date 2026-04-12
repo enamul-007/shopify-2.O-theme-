@@ -1,0 +1,107 @@
+{%- style -%}
+  #block-{{ block.id }} {
+    padding-bottom: {{ block.settings.padding_bottom }}px;
+  }
+
+  #block-{{ block.id }} .hp-reviews {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  #block-{{ block.id }} .hp-reviews__stars {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+  }
+
+  #block-{{ block.id }} .hp-reviews__star {
+    font-size: 15px;
+    line-height: 1;
+    color: {{ block.settings.star_color }};
+  }
+
+  #block-{{ block.id }} .hp-reviews__star--empty {
+    opacity: 0.25;
+  }
+
+  #block-{{ block.id }} .hp-reviews__value {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  #block-{{ block.id }} .hp-reviews__count {
+    font-size: 13px;
+    opacity: 0.55;
+  }
+{%- endstyle -%}
+
+{%- if block.settings.show_reviews -%}
+  <div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+    <div class="hp-reviews">
+      <div class="hp-reviews__stars">
+        {%- assign rating_floor = block.settings.rating_value | floor -%}
+        {%- for i in (1..5) -%}
+          {%- if i <= rating_floor -%}
+            <span class="hp-reviews__star">★</span>
+          {%- else -%}
+            <span class="hp-reviews__star hp-reviews__star--empty">★</span>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+      <span class="hp-reviews__value">{{ block.settings.rating_value }}</span>
+      <span class="hp-reviews__count">({{ block.settings.review_count }} reviews)</span>
+    </div>
+  </div>
+{%- else -%}
+  <div id="block-{{ block.id }}" style="display:none;" {{ block.shopify_attributes }}></div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Reviews",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_reviews",
+      "label": "Show reviews",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "rating_value",
+      "label": "Rating (stars)",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "number",
+      "id": "review_count",
+      "label": "Review count",
+      "default": 128
+    },
+    {
+      "type": "color",
+      "id": "star_color",
+      "label": "Star color",
+      "default": "#D4922A"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Space below",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    { "name": "Reviews" }
+  ]
+}
+{% endschema %}

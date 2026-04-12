@@ -1,0 +1,89 @@
+{%- assign product = section.settings.product -%}
+
+{%- style -%}
+  #block-{{ block.id }} {
+    padding-bottom: {{ block.settings.padding_bottom }}px;
+  }
+
+  #block-{{ block.id }} .hp-desc__text {
+    font-size: {{ block.settings.text_size }}px;
+    line-height: {{ block.settings.line_height }};
+    color: {{ block.settings.text_color }};
+    margin: 0;
+  }
+{%- endstyle -%}
+
+{%- if block.settings.show_description -%}
+  <div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
+    {%- if product != blank and product.description != blank -%}
+      <p class="hp-desc__text">
+        {{ product.description | strip_html | truncate: block.settings.description_length }}
+      </p>
+    {%- elsif product == blank -%}
+      <p class="hp-desc__text">Product description will appear here. Select a product to display its description.</p>
+    {%- endif -%}
+  </div>
+{%- else -%}
+  <div id="block-{{ block.id }}" style="display:none;" {{ block.shopify_attributes }}></div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Description",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show description",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "description_length",
+      "label": "Max characters",
+      "min": 50,
+      "max": 400,
+      "step": 10,
+      "default": 180
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "line_height",
+      "label": "Line height",
+      "min": 1.3,
+      "max": 2.0,
+      "step": 0.1,
+      "default": 1.7
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#555555"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Space below",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    { "name": "Description" }
+  ]
+}
+{% endschema %}
