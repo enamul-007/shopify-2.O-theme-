@@ -1,0 +1,64 @@
+{% comment %}
+  ============================================================
+  blocks/testimonial-rating.liquid
+  — 1–5 star rating block inside testimonial-card.
+  ============================================================
+{% endcomment %}
+
+{% assign rating = block.settings.rating | round %}
+
+<div
+  class="ts-stars"
+  aria-label="{{ rating }} out of 5 stars"
+  {{ block.shopify_attributes }}
+>
+  {% for i in (1..5) %}
+    {% if i <= rating %}
+      <svg class="ts-star ts-star--fill" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M10 1l2.4 6.9H20l-5.8 4.2 2.2 6.9L10 14.8l-6.4 4.2 2.2-6.9L0 7.9h7.6z"/>
+      </svg>
+    {% else %}
+      <svg class="ts-star ts-star--empty" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M10 1l2.4 6.9H20l-5.8 4.2 2.2 6.9L10 14.8l-6.4 4.2 2.2-6.9L0 7.9h7.6z"/>
+      </svg>
+    {% endif %}
+  {% endfor %}
+</div>
+
+{% stylesheet %}
+  .ts-stars {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  .ts-star {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  .ts-star--fill  { fill: #EF9F27; }
+  .ts-star--empty { fill: #d9d9d9; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Star Rating",
+  "settings": [
+    {
+      "type": "range",
+      "id": "rating",
+      "label": "Star rating",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "default": 5
+    }
+  ],
+  "presets": [
+    { "name": "Star Rating" },
+    { "name": "5 Stars", "settings": { "rating": 5 } },
+    { "name": "4 Stars", "settings": { "rating": 4 } }
+  ]
+}
+{% endschema %}

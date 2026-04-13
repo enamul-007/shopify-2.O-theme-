@@ -1,0 +1,46 @@
+{% comment %}
+  ============================================================
+  blocks/testimonial-review.liquid
+  — Review quote text + decorative divider line.
+  ============================================================
+{% endcomment %}
+
+{% if block.settings.review != blank %}
+  <p class="ts-review" {{ block.shopify_attributes }}>
+    {{ block.settings.review }}
+  </p>
+  <div class="ts-hr" aria-hidden="true"></div>
+{% endif %}
+
+{% stylesheet %}
+  .ts-review {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.8;
+    margin: 0 0 24px;
+    min-height: 80px;
+  }
+  .ts-hr {
+    width: 36px;
+    height: 1.5px;
+    background: var(--accent, #d9735a);
+    margin: 0 auto 18px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Review Text",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "review",
+      "label": "Review / quote",
+      "default": "This completely transformed how our team works. Dead-end leads disappeared and we are closing deals faster than ever with incredible efficiency."
+    }
+  ],
+  "presets": [
+    { "name": "Review Text" }
+  ]
+}
+{% endschema %}

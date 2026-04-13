@@ -1,0 +1,176 @@
+{%- style -%}
+  #block-{{ block.id }} .logo-block {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    opacity: {{ block.settings.opacity | divided_by: 100.0 }};
+    transition: opacity 0.25s ease;
+    cursor: default;
+    text-decoration: none;
+  }
+
+  #block-{{ block.id }} .logo-block:hover {
+    opacity: 1;
+  }
+
+  #block-{{ block.id }} .logo-block__img {
+    display: block;
+    height: {{ block.settings.logo_height }}px;
+    width: auto;
+    max-width: {{ block.settings.logo_max_width }}px;
+    object-fit: contain;
+    {%- if block.settings.grayscale -%}
+      filter: grayscale(100%);
+      transition: filter 0.25s ease;
+    {%- endif -%}
+  }
+
+  {%- if block.settings.grayscale -%}
+    #block-{{ block.id }} .logo-block:hover .logo-block__img {
+      filter: grayscale(0%);
+    }
+  {%- endif -%}
+
+  #block-{{ block.id }} .logo-block__text {
+    white-space: nowrap;
+    color: {{ block.settings.text_color }};
+    line-height: 1;
+    {%- case block.settings.logo_style -%}
+      {%- when 'sans' -%}
+        font-size: {{ block.settings.text_size }}px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      {%- when 'serif' -%}
+        font-size: {{ block.settings.text_size }}px;
+        font-weight: 400;
+        font-family: Georgia, 'Times New Roman', serif;
+        letter-spacing: -0.01em;
+      {%- when 'caps' -%}
+        font-size: {{ block.settings.text_size | minus: 2 }}px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      {%- when 'light' -%}
+        font-size: {{ block.settings.text_size | plus: 2 }}px;
+        font-weight: 300;
+        letter-spacing: 0.04em;
+    {%- endcase -%}
+  }
+{%- endstyle -%}
+
+<div id="block-{{ block.id }}" class="logo-block" {{ block.shopify_attributes }}>
+  {%- if block.settings.logo_image != blank -%}
+    <img
+      class="logo-block__img"
+      src="{{ block.settings.logo_image | image_url: width: 400 }}"
+      alt="{{ block.settings.logo_image.alt | default: block.settings.logo_text | escape }}"
+      loading="lazy"
+      width="{{ block.settings.logo_image.width }}"
+      height="{{ block.settings.logo_image.height }}"
+    >
+  {%- elsif block.settings.logo_text != blank -%}
+    <span class="logo-block__text">{{ block.settings.logo_text }}</span>
+  {%- else -%}
+    <span class="logo-block__text" style="opacity:0.25;">Logo</span>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Logo",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Image logo"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_image",
+      "label": "Logo image",
+      "info": "If uploaded, this takes priority over text logo below"
+    },
+    {
+      "type": "range",
+      "id": "logo_height",
+      "label": "Image height",
+      "min": 12,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "logo_max_width",
+      "label": "Image max width",
+      "min": 40,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "default": 140
+    },
+    {
+      "type": "checkbox",
+      "id": "grayscale",
+      "label": "Grayscale (color on hover)",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Text logo"
+    },
+    {
+      "type": "text",
+      "id": "logo_text",
+      "label": "Logo text",
+      "placeholder": "e.g. BRAND",
+      "info": "Used when no image is uploaded"
+    },
+    {
+      "type": "select",
+      "id": "logo_style",
+      "label": "Text style",
+      "options": [
+        { "value": "sans",  "label": "Sans-serif bold" },
+        { "value": "serif", "label": "Serif elegant"   },
+        { "value": "caps",  "label": "All caps spaced" },
+        { "value": "light", "label": "Light thin"      }
+      ],
+      "default": "caps"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text size",
+      "min": 10,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#111111"
+    },
+    {
+      "type": "header",
+      "content": "Visibility"
+    },
+    {
+      "type": "range",
+      "id": "opacity",
+      "label": "Default opacity",
+      "min": 20,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "default": 50
+    }
+  ],
+  "presets": [
+    { "name": "Logo" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,72 @@
+{% comment %}
+  Block: testimonial-card.liquid
+  FIX: "blocks" now uses @theme so nested theme blocks work correctly
+{% endcomment %}
+
+<div class="ts-slide" {{ block.shopify_attributes }}>
+  <div class="ts-card">
+    {% content_for 'blocks' %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .ts-card {
+    background: #fafafa;
+    border: 1.5px solid #e8e8e8;
+    border-radius: 14px;
+    padding: 36px 32px 28px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+    box-shadow: 0 2px 16px rgba(0,0,0,.06);
+    transition: box-shadow .2s;
+  }
+
+  .ts-card:hover {
+    box-shadow: 0 6px 28px rgba(0,0,0,.1);
+  }
+
+  @media (max-width: 600px) {
+    .ts-card { padding: 28px 20px 24px; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Testimonial Card",
+  "blocks": [
+    { "type": "@theme" }
+  ],
+  "presets": [
+    {
+      "name": "Testimonial Card",
+      "blocks": [
+        {
+          "type": "image",
+          "settings": { "width": 64, "border_radius": 64, "margin_bottom": 12 }
+        },
+        {
+          "type": "rating",
+          "settings": { "rating": 5 }
+        },
+        {
+          "type": "testimonial-review",
+          "settings": {
+            "review": "This completely transformed how our team works. Dead-end leads disappeared and we are closing deals faster than ever."
+          }
+        },
+        {
+          "type": "testimonial-author",
+          "settings": {
+            "name": "Sarah Rahman",
+            "role": "CEO — NextGen SaaS"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -68,7 +68,7 @@
       <div class="highlight-product__layout highlight-product__layout--{{ section.settings.image_position }}">
 
         <div class="highlight-product__image-col">
-          {%- content_for 'block', type: 'product-image', id: 'static-image' -%}
+          {%- content_for 'block', type: '_product_image', id: 'static-image' -%}
         </div>
 
         <div class="highlight-product__info-col">
@@ -96,7 +96,7 @@
 {
   "name": "Highlight Product",
   "blocks": [
-    { "type": "product-image" },
+    { "type": "_product_image" },
     { "type": "product-title" },
     { "type": "reviews" },
     { "type": "price" },
@@ -180,7 +180,7 @@
     {
       "name": "Highlight Product",
       "blocks": [
-        { "type": "product-image",       "id": "static-image",       "static": true },
+        { "type": "_product_image",       "id": "static-image",       "static": true },
         { "type": "product-title",       "id": "static-title",       "static": true },
         { "type": "reviews",             "id": "static-reviews",     "static": true },
         { "type": "price",               "id": "static-price",       "static": true },

@@ -1,0 +1,227 @@
+{%- assign _icon_colors = '#534AB7,#0F6E56,#993C1D,#185FA5,#854F0B,#A32D2D,#3B6D11' | split: ',' -%}
+{%- assign _icon_bgs    = '#EEEDFE,#E1F5EE,#FAECE7,#E6F1FB,#FAEEDA,#FCEBEB,#EAF3DE' | split: ',' -%}
+{%- assign _ci          = block.settings.color_preset | minus: 1 -%}
+{%- assign _stroke      = _icon_colors[_ci] -%}
+{%- assign _bg          = _icon_bgs[_ci] -%}
+{%- if block.settings.use_custom_colors -%}
+  {%- assign _stroke = block.settings.icon_color -%}
+  {%- assign _bg     = block.settings.icon_bg -%}
+{%- endif -%}
+
+{%- style -%}
+  #block-{{ block.id }} .icon-block {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  #block-{{ block.id }} .icon-block__circle {
+    width: {{ block.settings.circle_size }}px;
+    height: {{ block.settings.circle_size }}px;
+    border-radius: 50%;
+    background: {{ _bg }};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  #block-{{ block.id }} .icon-block__svg {
+    width: {{ block.settings.icon_size }}px;
+    height: {{ block.settings.icon_size }}px;
+    fill: none;
+    stroke: {{ _stroke }};
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  #block-{{ block.id }} .icon-block__emoji {
+    font-size: {{ block.settings.icon_size }}px;
+    line-height: 1;
+    display: block;
+  }
+
+  #block-{{ block.id }} .icon-block__img {
+    width: {{ block.settings.icon_size }}px;
+    height: {{ block.settings.icon_size }}px;
+    object-fit: contain;
+    display: block;
+  }
+{%- endstyle -%}
+
+<div id="block-{{ block.id }}" class="icon-block" {{ block.shopify_attributes }}>
+  {%- if block.settings.icon_type == 'svg' -%}
+    {%- assign _show_circle = block.settings.show_circle -%}
+    {%- if _show_circle -%}<div class="icon-block__circle">{%- endif -%}
+      <svg class="icon-block__svg" viewBox="0 0 24 24">
+        {%- case block.settings.icon_svg -%}
+          {%- when 'shield'    -%}<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          {%- when 'truck'     -%}<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+          {%- when 'refresh'   -%}<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          {%- when 'heart'     -%}<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+          {%- when 'star'      -%}<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          {%- when 'clock'     -%}<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          {%- when 'check'     -%}<polyline points="20 6 9 17 4 12"/>
+          {%- when 'headphone' -%}<path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/>
+          {%- when 'gift'      -%}<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/>
+          {%- when 'box'       -%}<path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+          {%- when 'zap'       -%}<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          {%- when 'leaf'      -%}<path d="M17 8C8 10 5.9 16.17 3.82 22M9.5 9.07A5 5 0 0122 8c0 4-4 7-8 7"/>
+          {%- when 'tag'       -%}<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+          {%- when 'award'     -%}<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+          {%- when 'globe'     -%}<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        {%- endcase -%}
+      </svg>
+    {%- if _show_circle -%}</div>{%- endif -%}
+
+  {%- elsif block.settings.icon_type == 'emoji' and block.settings.icon_emoji != blank -%}
+    <span class="icon-block__emoji">{{ block.settings.icon_emoji }}</span>
+
+  {%- elsif block.settings.icon_type == 'image' and block.settings.icon_image != blank -%}
+    {%- if block.settings.show_circle -%}<div class="icon-block__circle">{%- endif -%}
+      <img
+        class="icon-block__img"
+        src="{{ block.settings.icon_image | image_url: width: 120 }}"
+        alt="{{ block.settings.icon_image.alt | escape }}"
+        loading="lazy"
+        width="{{ block.settings.icon_size }}"
+        height="{{ block.settings.icon_size }}"
+      >
+    {%- if block.settings.show_circle -%}</div>{%- endif -%}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Icon",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Icon type"
+    },
+    {
+      "type": "select",
+      "id": "icon_type",
+      "label": "Type",
+      "options": [
+        { "value": "svg",   "label": "SVG icon (built-in)" },
+        { "value": "emoji", "label": "Emoji"               },
+        { "value": "image", "label": "Custom image"        }
+      ],
+      "default": "svg"
+    },
+    {
+      "type": "select",
+      "id": "icon_svg",
+      "label": "SVG icon",
+      "options": [
+        { "value": "shield",    "label": "Shield"    },
+        { "value": "truck",     "label": "Truck"     },
+        { "value": "refresh",   "label": "Refresh"   },
+        { "value": "heart",     "label": "Heart"     },
+        { "value": "star",      "label": "Star"      },
+        { "value": "clock",     "label": "Clock"     },
+        { "value": "check",     "label": "Check"     },
+        { "value": "headphone", "label": "Headphone" },
+        { "value": "gift",      "label": "Gift"      },
+        { "value": "box",       "label": "Box"       },
+        { "value": "zap",       "label": "Zap"       },
+        { "value": "leaf",      "label": "Leaf"      },
+        { "value": "tag",       "label": "Tag"       },
+        { "value": "award",     "label": "Award"     },
+        { "value": "globe",     "label": "Globe"     }
+      ],
+      "default": "check",
+      "info": "Only used when type is SVG"
+    },
+    {
+      "type": "text",
+      "id": "icon_emoji",
+      "label": "Emoji",
+      "placeholder": "e.g. 🚚",
+      "info": "Only used when type is Emoji"
+    },
+    {
+      "type": "image_picker",
+      "id": "icon_image",
+      "label": "Custom image",
+      "info": "Only used when type is Custom image"
+    },
+    {
+      "type": "header",
+      "content": "Size"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_circle",
+      "label": "Show circle background",
+      "default": true,
+      "info": "Not available for Emoji type"
+    },
+    {
+      "type": "range",
+      "id": "circle_size",
+      "label": "Circle size",
+      "min": 24,
+      "max": 64,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon size",
+      "min": 10,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_preset",
+      "label": "Color preset",
+      "options": [
+        { "value": "1", "label": "Purple" },
+        { "value": "2", "label": "Teal"   },
+        { "value": "3", "label": "Coral"  },
+        { "value": "4", "label": "Blue"   },
+        { "value": "5", "label": "Amber"  },
+        { "value": "6", "label": "Red"    },
+        { "value": "7", "label": "Green"  }
+      ],
+      "default": "1"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_custom_colors",
+      "label": "Use custom colors",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon stroke color",
+      "default": "#534AB7"
+    },
+    {
+      "type": "color",
+      "id": "icon_bg",
+      "label": "Circle background",
+      "default": "#EEEDFE"
+    }
+  ],
+  "presets": [
+    { "name": "Icon" }
+  ]
+}
+{% endschema %}

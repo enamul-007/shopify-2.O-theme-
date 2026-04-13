@@ -1,0 +1,130 @@
+{%- style -%}
+  #block-{{ block.id }} .mq-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  #block-{{ block.id }} .mq-badge__pill {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.6;
+    padding: 3px 10px;
+    border-radius: {{ block.settings.badge_radius }}px;
+    background: {{ block.settings.badge_bg }};
+    color: {{ block.settings.badge_text_color }};
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  #block-{{ block.id }} .mq-badge__text {
+    font-size: {{ block.settings.text_size }}px;
+    font-weight: {{ block.settings.text_weight }};
+    color: {{ block.settings.text_color }};
+    white-space: nowrap;
+    line-height: 1;
+  }
+{%- endstyle -%}
+
+{%- if block.settings.text != blank or block.settings.badge != blank -%}
+  <div id="block-{{ block.id }}" class="mq-badge" {{ block.shopify_attributes }}>
+    {%- if block.settings.badge != blank -%}
+      <span class="mq-badge__pill">{{ block.settings.badge }}</span>
+    {%- endif -%}
+    {%- if block.settings.text != blank -%}
+      <span class="mq-badge__text">{{ block.settings.text }}</span>
+    {%- endif -%}
+  </div>
+{%- else -%}
+  <div id="block-{{ block.id }}" style="display:none" {{ block.shopify_attributes }}></div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Badge",
+  "settings": [
+    {
+      "type": "text",
+      "id": "badge",
+      "label": "Badge label",
+      "placeholder": "e.g. SALE, NEW, HOT",
+      "default": "NEW"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Text",
+      "placeholder": "e.g. Summer Collection is live"
+    },
+    {
+      "type": "header",
+      "content": "Badge style"
+    },
+    {
+      "type": "color",
+      "id": "badge_bg",
+      "label": "Badge background",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "badge_text_color",
+      "label": "Badge text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "badge_radius",
+      "label": "Badge corner radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Text style"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "select",
+      "id": "text_weight",
+      "label": "Font weight",
+      "options": [
+        { "value": "300", "label": "Light"   },
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium"  }
+      ],
+      "default": "400"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#333333"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Badge",
+      "settings": {
+        "badge": "SALE",
+        "text": "Up to 40% off today"
+      }
+    }
+  ]
+}
+{% endschema %}

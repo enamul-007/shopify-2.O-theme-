@@ -1,0 +1,369 @@
+{%- style -%}
+  #shopify-section-{{ section.id }} .mq-section {
+    background: {{ section.settings.bg_color }};
+    padding: {{ section.settings.padding_v }}px 0;
+    overflow: hidden;
+    position: relative;
+    {%- if section.settings.border_top -%}border-top: 1px solid {{ section.settings.border_color }};{%- endif -%}
+    {%- if section.settings.border_bottom -%}border-bottom: 1px solid {{ section.settings.border_color }};{%- endif -%}
+  }
+
+  #shopify-section-{{ section.id }} .mq-heading {
+    text-align: center;
+    font-size: {{ section.settings.heading_size }}px;
+    font-weight: 400;
+    color: {{ section.settings.heading_color }};
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: {{ section.settings.heading_gap }}px;
+    opacity: 0.55;
+  }
+
+  #shopify-section-{{ section.id }} .mq-track-wrap {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+  }
+
+  {%- if section.settings.show_fade -%}
+    #shopify-section-{{ section.id }} .mq-track-wrap::before,
+    #shopify-section-{{ section.id }} .mq-track-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: {{ section.settings.fade_width }}px;
+      z-index: 3;
+      pointer-events: none;
+    }
+    #shopify-section-{{ section.id }} .mq-track-wrap::before {
+      left: 0;
+      background: linear-gradient(to right, {{ section.settings.bg_color }}, transparent);
+    }
+    #shopify-section-{{ section.id }} .mq-track-wrap::after {
+      right: 0;
+      background: linear-gradient(to left, {{ section.settings.bg_color }}, transparent);
+    }
+  {%- endif -%}
+
+  #shopify-section-{{ section.id }} .mq-track {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    gap: {{ section.settings.item_gap }}px;
+    will-change: transform;
+  }
+
+  #shopify-section-{{ section.id }} .mq-track.is-ready {
+    animation: mq-scroll-{{ section.id }} {{ section.settings.speed }}s linear infinite;
+    {%- if section.settings.direction == 'right' -%}animation-direction: reverse;{%- endif -%}
+  }
+
+  {%- if section.settings.pause_on_hover -%}
+    #shopify-section-{{ section.id }} .mq-track-wrap:hover .mq-track {
+      animation-play-state: paused;
+    }
+  {%- endif -%}
+
+  @keyframes mq-scroll-{{ section.id }} {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  #shopify-section-{{ section.id }} .mq-sep {
+    flex-shrink: 0;
+    font-size: {{ section.settings.sep_size }}px;
+    color: {{ section.settings.sep_color }};
+    opacity: {{ section.settings.sep_opacity | divided_by: 100.0 }};
+    line-height: 1;
+    user-select: none;
+    display: flex;
+    align-items: center;
+  }
+{%- endstyle -%}
+
+<div class="mq-section">
+
+  {%- if section.settings.heading != blank -%}
+    <p class="mq-heading">{{ section.settings.heading }}</p>
+  {%- endif -%}
+
+  <div class="mq-track-wrap">
+    <div class="mq-track" id="mq-track-{{ section.id }}">
+      {%- content_for 'blocks' -%}
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  var sectionId  = '{{ section.id }}';
+  var sepChar    = '{{ section.settings.separator }}';
+  var sepSize    = '{{ section.settings.sep_size }}px';
+  var sepColor   = '{{ section.settings.sep_color }}';
+  var sepOpacity = {{ section.settings.sep_opacity | divided_by: 100.0 }};
+
+  var sepMap = {
+    'dot':     '\u00B7',
+    'bullet':  '\u2022',
+    'dash':    '\u2014',
+    'slash':   '/',
+    'star':    '\u2726',
+    'diamond': '\u25C6',
+    'pipe':    '|'
+  };
+
+  function createSep() {
+    if (sepChar === 'none') return null;
+
+    var s = document.createElement('span');
+    s.className    = 'mq-sep';
+    s.setAttribute('aria-hidden', 'true');
+    s.style.fontSize  = sepSize;
+    s.style.color     = sepColor;
+    s.style.opacity   = sepOpacity;
+    s.style.flexShrink = '0';
+    s.style.lineHeight = '1';
+    s.style.userSelect = 'none';
+    s.style.display    = 'flex';
+    s.style.alignItems = 'center';
+
+    if (sepChar === 'line') {
+      var line = document.createElement('span');
+      line.style.cssText = 'display:inline-block;width:1px;height:16px;background:currentColor;opacity:0.2;vertical-align:middle;';
+      s.appendChild(line);
+    } else {
+      s.textContent = sepMap[sepChar] || '';
+    }
+
+    return s;
+  }
+
+  function init() {
+    var track = document.getElementById('mq-track-' + sectionId);
+    if (!track) return;
+
+    var children = Array.from(track.children);
+    if (children.length === 0) return;
+
+    var fragment = document.createDocumentFragment();
+
+    children.forEach(function(child, i) {
+      var sep = createSep();
+      if (sep) track.insertBefore(sep, child.nextSibling || null);
+    });
+
+    var allNodes = Array.from(track.childNodes);
+    allNodes.forEach(function(node) {
+      fragment.appendChild(node.cloneNode(true));
+    });
+
+    track.appendChild(fragment);
+
+    track.classList.add('is-ready');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Marquee",
+  "blocks": [
+    { "type": "@theme" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "placeholder": "As featured in"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size",
+      "min": 10,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#111111"
+    },
+    {
+      "type": "range",
+      "id": "heading_gap",
+      "label": "Gap below heading",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Scroll"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Speed",
+      "min": 10,
+      "max": 80,
+      "step": 10,
+      "unit": "s",
+      "default": 30,
+      "info": "Lower = faster"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "Direction",
+      "options": [
+        { "value": "left",  "label": "Left"  },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Pause on hover",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "item_gap",
+      "label": "Gap between items",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Separator"
+    },
+    {
+      "type": "select",
+      "id": "separator",
+      "label": "Separator style",
+      "options": [
+        { "value": "none",    "label": "None"      },
+        { "value": "dot",     "label": "Dot  ·"   },
+        { "value": "bullet",  "label": "Bullet  •" },
+        { "value": "dash",    "label": "Dash  —"   },
+        { "value": "slash",   "label": "Slash  /"  },
+        { "value": "star",    "label": "Star  ✦"   },
+        { "value": "diamond", "label": "Diamond ◆" },
+        { "value": "pipe",    "label": "Pipe  |"   },
+        { "value": "line",    "label": "Line"      }
+      ],
+      "default": "dot"
+    },
+    {
+      "type": "color",
+      "id": "sep_color",
+      "label": "Separator color",
+      "default": "#999999"
+    },
+    {
+      "type": "range",
+      "id": "sep_size",
+      "label": "Separator size",
+      "min": 10,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "sep_opacity",
+      "label": "Separator opacity",
+      "min": 10,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Fade Edges"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_fade",
+      "label": "Fade edges",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "fade_width",
+      "label": "Fade width",
+      "min": 40,
+      "max": 200,
+      "step": 20,
+      "unit": "px",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "checkbox",
+      "id": "border_top",
+      "label": "Border top",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "border_bottom",
+      "label": "Border bottom",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border color",
+      "default": "#e8e5df"
+    },
+    {
+      "type": "range",
+      "id": "padding_v",
+      "label": "Padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "presets": [
+    { "name": "Marquee" }
+  ]
+}
+{% endschema %}
