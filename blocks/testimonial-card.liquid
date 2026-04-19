@@ -1,42 +1,194 @@
-{% comment %}
-  Block: testimonial-card.liquid
-  FIX: "blocks" now uses @theme so nested theme blocks work correctly
-{% endcomment %}
-
 <div class="ts-slide" {{ block.shopify_attributes }}>
-  <div class="ts-card">
+  <div
+    class="ts-card"
+    style="
+      --ts-card-bg: {{ block.settings.card_bg }};
+      --ts-border-width: {{ block.settings.border_width }}px;
+      --ts-border-color: {{ block.settings.border_color }};
+      --ts-border-radius: {{ block.settings.border_radius }}px;
+      --ts-padding: {{ block.settings.padding }}px;
+      --ts-avatar-size: {{ block.settings.avatar_size }}px;
+      --ts-avatar-border: {{ block.settings.avatar_border_color }};
+      --ts-review-color: {{ block.settings.review_color }};
+      --ts-review-size: {{ block.settings.review_size }}px;
+      --ts-shadow: {{ block.settings.show_shadow | ternary: '0 2px 16px rgba(0,0,0,.07)', 'none' }};
+    "
+  >
     {% content_for 'blocks' %}
   </div>
 </div>
 
 {% stylesheet %}
   .ts-card {
-    background: #fafafa;
-    border: 1.5px solid #e8e8e8;
-    border-radius: 14px;
-    padding: 36px 32px 28px;
+    background: var(--ts-card-bg);
+    border: var(--ts-border-width) solid var(--ts-border-color);
+    border-radius: var(--ts-border-radius);
+    padding: var(--ts-padding);
+    box-shadow: var(--ts-shadow);
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
     box-sizing: border-box;
-    box-shadow: 0 2px 16px rgba(0,0,0,.06);
-    transition: box-shadow .2s;
+    display: grid;
+    grid-template-areas:
+      "avatar author"
+      "stars  stars"
+      "review review";
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 0;
+    transition: box-shadow .25s ease, transform .25s ease;
   }
 
   .ts-card:hover {
-    box-shadow: 0 6px 28px rgba(0,0,0,.1);
+    box-shadow: 0 8px 32px rgba(0,0,0,.09) !important;
+    transform: translateY(-2px);
+  }
+
+  .ts-card > *:nth-child(1) {
+    grid-area: avatar;
+    margin-right: 10px !important;
+    margin-bottom: 18px;
+    width: var(--ts-avatar-size) !important;
+    height: var(--ts-avatar-size) !important;
+    min-width: var(--ts-avatar-size);
+    border-radius: 50% !important;
+    object-fit: cover;
+    border: 2px solid var(--ts-avatar-border);
+    overflow: hidden;
+    display: block;
+  }
+
+  .ts-card > *:nth-child(2) {
+    grid-area: author;
+    margin-bottom: 18px;
+    align-self: center;
+    line-height: 1.35;
+  }
+
+  .ts-card > *:nth-child(3) {
+    grid-area: stars;
+    margin-bottom: 14px;
+  }
+
+  .ts-card > *:nth-child(4) {
+    grid-area: review;
+    font-size: var(--ts-review-size);
+    color: var(--ts-review-color);
+    line-height: 1.75;
+    letter-spacing: .01em;
   }
 
   @media (max-width: 600px) {
-    .ts-card { padding: 28px 20px 24px; }
+    .ts-card { padding: 20px 18px !important; }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
   "name": "Testimonial Card",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Color Scheme"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Card Style"
+    },
+    {
+      "type": "color",
+      "id": "card_bg",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "label": "Border width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border color",
+      "default": "#ebebeb"
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "label": "Card padding",
+      "min": 12,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "checkbox",
+      "id": "show_shadow",
+      "label": "Show shadow",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Avatar"
+    },
+    {
+      "type": "range",
+      "id": "avatar_size",
+      "label": "Avatar size",
+      "min": 32,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 46
+    },
+    {
+      "type": "color",
+      "id": "avatar_border_color",
+      "label": "Avatar border color",
+      "default": "#f0f0f0"
+    },
+    {
+      "type": "header",
+      "content": "Review Text"
+    },
+    {
+      "type": "color",
+      "id": "review_color",
+      "label": "Review text color",
+      "default": "#555555"
+    },
+    {
+      "type": "range",
+      "id": "review_size",
+      "label": "Review font size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    }
+  ],
   "blocks": [
     { "type": "@theme" }
   ],
@@ -46,7 +198,20 @@
       "blocks": [
         {
           "type": "image",
-          "settings": { "width": 64, "border_radius": 64, "margin_bottom": 12 }
+          "settings": {
+            "aspect_ratio": "1/1",
+            "border_radius": 64,
+            "object_fit": "cover",
+            "shadow": "none"
+          }
+        },
+        {
+          "type": "testimonial-author",
+          "settings": {
+            "name": "Sarah Rahman",
+            "role": "Marketing Director",
+            "company": "NextGen SaaS"
+          }
         },
         {
           "type": "rating",
@@ -55,14 +220,7 @@
         {
           "type": "testimonial-review",
           "settings": {
-            "review": "This completely transformed how our team works. Dead-end leads disappeared and we are closing deals faster than ever."
-          }
-        },
-        {
-          "type": "testimonial-author",
-          "settings": {
-            "name": "Sarah Rahman",
-            "role": "CEO — NextGen SaaS"
+            "review": "Absolutely amazing quality. I was skeptical at first but after receiving my order I was completely blown away."
           }
         }
       ]

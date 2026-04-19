@@ -1,22 +1,68 @@
 {%- style -%}
-  #shopify-section-{{ section.id }} .header-section {
-    background-color: {{ section.settings.color_scheme.settings.background }};
-    color: {{ section.settings.color_scheme.settings.text }};
-    border-bottom: {{ section.settings.border_thickness }}px solid {{ section.settings.border_color }};
-    padding: {{ section.settings.padding_v }}px {{ section.settings.padding_h }}px;
-    {% if section.settings.sticky_header %}
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    {% endif %}
-    {% if section.settings.header_shadow %}
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    {% endif %}
-    transition: box-shadow 0.3s ease;
+  :root {
+    --header-bg: {{ section.settings.color_scheme.settings.background }};
+    --header-text: {{ section.settings.color_scheme.settings.text }};
+    --header-button: {{ section.settings.color_scheme.settings.button }};
+    --header-button-label: {{ section.settings.color_scheme.settings.button_label }};
+    --header-border: {{ section.settings.border_color }};
+    --nav-hover: {{ section.settings.nav_hover_color }};
   }
+
+  /* Page Background Transparency */
+  .page-bg-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .home-page-bg { background-color: {{ section.settings.home_bg_color }}; opacity: {{ section.settings.home_bg_opacity | times: 0.01 }}; }
+  .product-page-bg { background-color: {{ section.settings.product_bg_color }}; opacity: {{ section.settings.product_bg_opacity | times: 0.01 }}; }
+  .collection-page-bg { background-color: {{ section.settings.collection_bg_color }}; opacity: {{ section.settings.collection_bg_opacity | times: 0.01 }}; }
+
+  #shopify-section-{{ section.id }} .header-section {
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    border-bottom: {{ section.settings.border_thickness }}px solid var(--header-border);
+    padding: {{ section.settings.padding_v }}px {{ section.settings.padding_h }}px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    position: relative;
+    width: 100%;
+    z-index: 1000;
+  }
+
+  /* Sticky Header Types */
+  #shopify-section-{{ section.id }} .header-section.is-sticky {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    animation: slideDown 0.3s ease;
+  }
+
+  #shopify-section-{{ section.id }} .header-section.is-hidden {
+    transform: translateY(-100%);
+  }
+
+  @keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+  }
+
+  {% if section.settings.header_shadow %}
+  #shopify-section-{{ section.id }} .header-section.is-sticky {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  {% endif %}
 
   #shopify-section-{{ section.id }} .navbar {
     padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   #shopify-section-{{ section.id }} .container-fluid {
@@ -24,56 +70,81 @@
     align-items: center;
     gap: 16px;
     flex-wrap: nowrap;
+    max-width: {% if section.settings.page_width == 'narrow' %}1000px{% elsif section.settings.page_width == 'wide' %}1400px{% else %}1200px{% endif %};
+    margin: 0 auto;
+    width: 100%;
   }
 
+  /* Logo & Shop Name */
   #shopify-section-{{ section.id }} .navbar-brand {
-    color: {{ section.settings.color_scheme.settings.text }};
+    color: var(--header-text);
     font-size: {{ section.settings.logo_font_size }}px;
     font-weight: 700;
     text-decoration: none;
     display: flex;
     align-items: center;
+    gap: 12px;
     padding: 0;
     flex-shrink: 0;
-    {% if section.settings.logo_position == 'center' %}
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-    {% elsif section.settings.logo_position == 'right' %}
-      order: 3;
-      margin-left: auto;
-    {% endif %}
+    z-index: 2;
   }
+
+  {% if section.settings.logo_position == 'center' %}
+  #shopify-section-{{ section.id }} .navbar-brand {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  {% elsif section.settings.logo_position == 'right' %}
+  #shopify-section-{{ section.id }} .navbar-brand {
+    order: 3;
+    margin-left: auto;
+  }
+  #shopify-section-{{ section.id }} .header-icons {
+    order: 1;
+    margin-left: 0;
+    margin-right: auto;
+  }
+  #shopify-section-{{ section.id }} .navbar-toggler {
+    order: 2;
+  }
+  {% endif %}
 
   #shopify-section-{{ section.id }} .navbar-brand img {
     height: {{ section.settings.logo_height }}px;
     width: auto;
     display: block;
+    object-fit: contain;
+  }
+
+  #shopify-section-{{ section.id }} .brand-name {
+    display: {% if section.settings.show_brand_name %}inline{% else %}none{% endif %};
+    white-space: nowrap;
   }
 
   #shopify-section-{{ section.id }} .navbar-collapse {
-    display: flex !important;
+    display: flex;
     align-items: center;
     flex-grow: 1;
   }
 
+  /* Navigation */
   #shopify-section-{{ section.id }} .navbar-nav {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: {{ section.settings.nav_gap }}px;
     flex-grow: 1;
-    {% if section.settings.nav_position == 'left' %}
-      justify-content: flex-start;
-    {% elsif section.settings.nav_position == 'center' %}
-      justify-content: center;
-    {% elsif section.settings.nav_position == 'right' %}
-      justify-content: flex-end;
-    {% endif %}
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    {% if section.settings.nav_position == 'left' %}justify-content: flex-start;
+    {% elsif section.settings.nav_position == 'center' %}justify-content: center;
+    {% elsif section.settings.nav_position == 'right' %}justify-content: flex-end;{% endif %}
   }
 
   #shopify-section-{{ section.id }} .navbar-nav .nav-link {
-    color: {{ section.settings.color_scheme.settings.text }};
+    color: var(--header-text);
     font-size: {{ section.settings.nav_font_size }}px;
     font-weight: {{ section.settings.nav_font_weight }};
     padding: 8px 4px;
@@ -82,10 +153,14 @@
     white-space: nowrap;
     letter-spacing: {{ section.settings.nav_letter_spacing }}px;
     text-transform: {{ section.settings.nav_text_transform }};
+    display: flex;
+    align-items: center;
+    cursor: pointer;
   }
 
-  #shopify-section-{{ section.id }} .navbar-nav .nav-link:hover {
-    color: {{ section.settings.nav_hover_color }};
+  #shopify-section-{{ section.id }} .navbar-nav .nav-link:hover,
+  #shopify-section-{{ section.id }} .navbar-nav .nav-link.active {
+    color: var(--nav-hover);
   }
 
   #shopify-section-{{ section.id }} .nav-item {
@@ -93,66 +168,110 @@
     list-style: none;
   }
 
-  {% comment %} ── Dropdown ── {% endcomment %}
+  .dropdown-arrow {
+    margin-left: 4px;
+    transition: transform 0.2s ease;
+  }
+
+  .nav-item.is-open .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+
+  /* Dropdown Menu */
   #shopify-section-{{ section.id }} .dropdown-menu {
     display: none;
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    background-color: {{ section.settings.color_scheme.settings.background }};
-    border: 1px solid {{ section.settings.color_scheme.settings.shadow }};
+    background-color: var(--header-bg);
+    border: 1px solid var(--header-border);
     border-radius: 8px;
     padding: 8px 0;
-    min-width: 180px;
+    min-width: 200px;
     z-index: 999;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    list-style: none;
+    margin: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
   }
 
   #shopify-section-{{ section.id }} .dropdown-menu.is-open {
     display: block;
+    opacity: 1;
+    transform: translateY(0);
   }
 
   #shopify-section-{{ section.id }} .dropdown-item {
-    color: {{ section.settings.color_scheme.settings.text }};
-    padding: 8px 16px;
+    color: var(--header-text);
+    padding: 10px 16px;
     display: block;
     text-decoration: none;
     font-size: {{ section.settings.nav_font_size | minus: 1 }}px;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease;
+    border-left: 3px solid transparent;
   }
 
-  #shopify-section-{{ section.id }} .dropdown-item:hover {
-    background-color: {{ section.settings.color_scheme.settings.button }};
-    color: {{ section.settings.color_scheme.settings.button_label }};
+  #shopify-section-{{ section.id }} .dropdown-item:hover,
+  #shopify-section-{{ section.id }} .dropdown-item:focus {
+    background-color: var(--header-button);
+    color: var(--header-button-label);
+    border-left-color: var(--nav-hover);
   }
 
-  {% comment %} ── Mega Menu ── {% endcomment %}
+  /* Mega Menu */
   #shopify-section-{{ section.id }} .mega-submenu {
     display: none;
     position: absolute;
     top: calc(100% + 8px);
     left: 50%;
-    transform: translateX(-50%);
-    background-color: {{ section.settings.color_scheme.settings.background }};
-    border-top: 2px solid {{ section.settings.color_scheme.settings.button }};
-    border-radius: 8px;
-    padding: 2rem;
-    min-width: 600px;
+    transform: translateX(-50%) translateY(-10px);
+    background-color: var(--header-bg);
+    border-top: 3px solid var(--header-button);
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 700px;
+    max-width: 90vw;
     z-index: 999;
     box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
   }
 
   #shopify-section-{{ section.id }} .mega-submenu.is-open {
     display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  #shopify-section-{{ section.id }} .mega-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 24px;
+  }
+
+  #shopify-section-{{ section.id }} .mega-column {
+    padding: 0 8px;
+  }
+
+  #shopify-section-{{ section.id }} .mega-heading {
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--header-border);
   }
 
   #shopify-section-{{ section.id }} .mega-heading a {
-    color: {{ section.settings.color_scheme.settings.text }};
-    font-weight: 600;
+    color: var(--header-text);
+    font-weight: 700;
     font-size: 14px;
     text-decoration: none;
     display: block;
-    margin-bottom: 8px;
+    transition: color 0.2s;
+  }
+
+  #shopify-section-{{ section.id }} .mega-heading a:hover {
+    color: var(--nav-hover);
   }
 
   #shopify-section-{{ section.id }} .mega-submenu ul {
@@ -161,102 +280,394 @@
     margin: 0;
   }
 
+  #shopify-section-{{ section.id }} .mega-submenu ul li {
+    margin: 6px 0;
+  }
+
   #shopify-section-{{ section.id }} .mega-submenu ul li a {
-    color: {{ section.settings.color_scheme.settings.text }};
+    color: var(--header-text);
     font-size: 13px;
     text-decoration: none;
     display: block;
     padding: 4px 0;
-    opacity: 0.75;
-    transition: opacity 0.2s;
+    opacity: 0.8;
+    transition: all 0.2s;
+    position: relative;
+    padding-left: 0;
+  }
+
+  #shopify-section-{{ section.id }} .mega-submenu ul li a::before {
+    content: '›';
+    position: absolute;
+    left: -12px;
+    opacity: 0;
+    transition: all 0.2s;
+    color: var(--nav-hover);
   }
 
   #shopify-section-{{ section.id }} .mega-submenu ul li a:hover {
     opacity: 1;
-    color: {{ section.settings.nav_hover_color }};
+    color: var(--nav-hover);
+    padding-left: 12px;
   }
 
-  {% comment %} ── Icons ── {% endcomment %}
+  #shopify-section-{{ section.id }} .mega-submenu ul li a:hover::before {
+    opacity: 1;
+    left: 0;
+  }
+
+  /* Header Icons */
   #shopify-section-{{ section.id }} .header-icons {
     display: flex;
     align-items: center;
     gap: {{ section.settings.icon_gap }}px;
     flex-shrink: 0;
     margin-left: auto;
+    list-style: none;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0;
+    z-index: 2;
   }
 
+  {% if section.settings.icons_position == 'left' %}
+  #shopify-section-{{ section.id }} .header-icons {
+    order: -1;
+    margin-left: 0;
+    margin-right: 16px;
+  }
+  {% endif %}
+
+  {% if section.settings.icons_row_position == 'bottom' %}
+  #shopify-section-{{ section.id }} .header-icons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  {% endif %}
+
   #shopify-section-{{ section.id }} .header-icons a,
-  #shopify-section-{{ section.id }} .header-icons span {
-    color: {{ section.settings.color_scheme.settings.text }};
+  #shopify-section-{{ section.id }} .header-icons span,
+  #shopify-section-{{ section.id }} .header-icons li,
+  #shopify-section-{{ section.id }} .header-icons button {
+    color: var(--header-text);
     display: flex;
     align-items: center;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, transform 0.2s;
     text-decoration: none;
+    gap: 4px;
+    list-style: none;
+    background: none;
+    border: none;
+    padding: 4px;
+    font-size: inherit;
   }
 
   #shopify-section-{{ section.id }} .header-icons a:hover,
-  #shopify-section-{{ section.id }} .header-icons span:hover {
+  #shopify-section-{{ section.id }} .header-icons button:hover {
     opacity: 0.7;
+    transform: scale(1.1);
   }
 
   #shopify-section-{{ section.id }} .header-icons svg {
-    fill: {{ section.settings.color_scheme.settings.text }};
+    fill: currentColor;
     width: {{ section.settings.icon_size }}px;
     height: {{ section.settings.icon_size }}px;
+    display: block;
   }
 
   #shopify-section-{{ section.id }} .cart-count {
-    font-size: 12px;
-    font-weight: 600;
-    margin-left: 3px;
-    color: {{ section.settings.color_scheme.settings.text }};
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--header-button-label);
+    background: var(--header-button);
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    position: absolute;
+    top: -4px;
+    right: -4px;
   }
 
+  #shopify-section-{{ section.id }} .cart-wrapper {
+    position: relative;
+  }
+
+  /* Custom Select Styling */
+  .custom-select-wrapper {
+    position: relative;
+  }
+
+  .custom-select-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid var(--header-border);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+
+  .custom-select-trigger:hover {
+    background: rgba(0,0,0,0.05);
+  }
+
+  .custom-options {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: var(--header-bg);
+    border: 1px solid var(--header-border);
+    border-radius: 8px;
+    min-width: 140px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .custom-options.is-open {
+    display: block;
+  }
+
+  .custom-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .custom-option:hover {
+    background: var(--header-button);
+    color: var(--header-button-label);
+  }
+
+  .custom-option:first-child { border-radius: 8px 8px 0 0; }
+  .custom-option:last-child { border-radius: 0 0 8px 8px; }
+
+  /* Hamburger Menu */
   #shopify-section-{{ section.id }} .navbar-toggler {
-    border: 1px solid {{ section.settings.color_scheme.settings.text }};
-    padding: 6px 10px;
+    border: 1px solid var(--header-text);
+    padding: 8px;
     background: none;
     border-radius: 6px;
     cursor: pointer;
     display: none;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 1001;
   }
 
-  #shopify-section-{{ section.id }} .toggler-line {
+  #shopify-section-{{ section.id }} .navbar-toggler.is-active .toggler-line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+
+  #shopify-section-{{ section.id }} .navbar-toggler.is-active .toggler-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  #shopify-section-{{ section.id }} .navbar-toggler.is-active .toggler-line:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
+
+  .toggler-line {
     display: block;
-    width: 20px;
+    width: 22px;
     height: 2px;
-    background: {{ section.settings.color_scheme.settings.text }};
-    margin: 4px 0;
+    background: var(--header-text);
     border-radius: 2px;
+    transition: all 0.3s ease;
   }
 
+  /* Search Modal */
+  .search-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .search-modal.is-open {
+    display: flex;
+    opacity: 1;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 100px;
+  }
+
+  .search-modal-content {
+    background: var(--header-bg);
+    width: 90%;
+    max-width: 700px;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+  }
+
+  .search-modal.is-open .search-modal-content {
+    transform: translateY(0);
+  }
+
+  .search-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .search-input-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 14px 20px;
+    border: 2px solid var(--header-border);
+    border-radius: 8px;
+    font-size: 16px;
+    background: transparent;
+    color: var(--header-text);
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--nav-hover);
+  }
+
+  .search-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--header-text);
+    padding: 0 8px;
+    line-height: 1;
+    transition: transform 0.2s;
+  }
+
+  .search-close:hover {
+    transform: rotate(90deg);
+  }
+
+  .search-results {
+    max-height: 400px;
+    overflow-y: auto;
+    border-top: 1px solid var(--header-border);
+    padding-top: 16px;
+  }
+
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .search-result-item:hover {
+    background: rgba(0,0,0,0.05);
+  }
+
+  .search-result-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--header-border);
+  }
+
+  .search-result-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+  }
+
+  .search-result-info p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.7;
+  }
+
+  /* Mobile Responsive */
   @media (max-width: 991px) {
-    #shopify-section-{{ section.id }} .navbar-toggler { display: block; }
+    #shopify-section-{{ section.id }} .navbar-toggler {
+      display: flex;
+    }
+
     #shopify-section-{{ section.id }} .navbar-brand {
       position: static !important;
       transform: none !important;
       order: 0 !important;
       margin-left: 0 !important;
     }
+
     #shopify-section-{{ section.id }} .navbar-collapse {
-      display: none !important;
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: var(--header-bg);
       flex-direction: column;
       align-items: flex-start;
-      width: 100%;
-      padding: 16px 0;
+      padding: 80px 24px 24px;
+      z-index: 999;
+      overflow-y: auto;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
     }
-    #shopify-section-{{ section.id }} .navbar-collapse.open {
-      display: flex !important;
+
+    #shopify-section-{{ section.id }} .navbar-collapse.is-open {
+      display: flex;
+      transform: translateX(0);
     }
+
     #shopify-section-{{ section.id }} .navbar-nav {
       flex-direction: column;
       align-items: flex-start;
       width: 100%;
       gap: 0;
     }
-    #shopify-section-{{ section.id }} .nav-item { width: 100%; }
-    #shopify-section-{{ section.id }} .nav-link { padding: 10px 0 !important; width: 100%; display: block; }
+
+    #shopify-section-{{ section.id }} .nav-item {
+      width: 100%;
+      border-bottom: 1px solid var(--header-border);
+    }
+
+    #shopify-section-{{ section.id }} .nav-link {
+      padding: 16px 0 !important;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 16px;
+    }
+
+    #shopify-section-{{ section.id }} .dropdown-arrow {
+      transition: transform 0.3s ease;
+    }
+
     #shopify-section-{{ section.id }} .dropdown-menu,
     #shopify-section-{{ section.id }} .mega-submenu {
       position: static;
@@ -264,118 +675,242 @@
       min-width: 100%;
       box-shadow: none;
       border: none;
-      border-left: 2px solid {{ section.settings.color_scheme.settings.button }};
+      border-left: 3px solid var(--header-button);
       border-radius: 0;
-      padding: 8px 16px;
-      top: auto;
+      padding: 0 0 16px 16px;
+      margin: 0;
+      display: none;
+      opacity: 1;
+      background: transparent;
     }
-    #shopify-section-{{ section.id }} .header-icons { margin-left: auto; }
-    #shopify-section-{{ section.id }} .container-fluid { flex-wrap: wrap; }
+
+    #shopify-section-{{ section.id }} .mega-submenu {
+      min-width: 100%;
+      padding: 16px;
+    }
+
+    #shopify-section-{{ section.id }} .mega-inner {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    #shopify-section-{{ section.id }} .mega-heading {
+      font-size: 15px;
+    }
+
+    #shopify-section-{{ section.id }} .header-icons {
+      margin-left: auto;
+    }
+
+    #shopify-section-{{ section.id }} .container-fluid {
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    /* Mobile overlay */
+    .mobile-menu-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 998;
+    }
+
+    .mobile-menu-overlay.is-open {
+      display: block;
+    }
+  }
+
+  /* Product Card Transitions */
+  .product-card {
+    transition: {% if section.settings.product_transition == 'smooth' %}all 0.3s ease{% elsif section.settings.product_transition == 'instant' %}none{% else %}all 0.5s ease{% endif %};
+  }
+
+  .product-card:hover {
+    {% if section.settings.product_transition == 'lift' %}transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15);{% endif %}
+  }
+
+  /* Accessibility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--nav-hover);
+    outline-offset: 2px;
   }
 {%- endstyle -%}
 
-<div class="header-section">
-  <nav class="navbar">
+<!-- Page Background Overlay -->
+{% if template == 'index' %}
+  <div class="page-bg-overlay home-page-bg"></div>
+{% elsif template == 'product' %}
+  <div class="page-bg-overlay product-page-bg"></div>
+{% elsif template == 'collection' %}
+  <div class="page-bg-overlay collection-page-bg"></div>
+{% endif %}
+
+<div class="header-section" id="header-{{ section.id }}" data-sticky="{{ section.settings.sticky_header_type }}">
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
     <div class="container-fluid">
 
-      <a class="navbar-brand" href="{{ shop.url }}">
-        {% if section.settings.custom_logo != blank %}
-          <img src="{{ section.settings.custom_logo | image_url: height: section.settings.logo_height }}" alt="{{ shop.name }}" height="{{ section.settings.logo_height }}" width="auto">
-        {% elsif settings.logo != blank %}
-          <img src="{{ settings.logo | image_url: height: section.settings.logo_height }}" alt="{{ shop.name }}" height="{{ section.settings.logo_height }}" width="auto">
-        {% else %}
-          {{ shop.name }}
-        {% endif %}
-      </a>
-
-      <button class="navbar-toggler" id="toggler-{{ section.id }}" aria-label="Toggle menu">
+      <!-- Mobile Toggle -->
+      <button class="navbar-toggler" id="toggler-{{ section.id }}" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-{{ section.id }}">
         <span class="toggler-line"></span>
         <span class="toggler-line"></span>
         <span class="toggler-line"></span>
       </button>
 
+      <!-- Logo & Shop Name -->
+      <a class="navbar-brand" href="{{ shop.url }}" aria-label="{{ shop.name }} - Home">
+        {% if section.settings.custom_logo != blank %}
+          <img src="{{ section.settings.custom_logo | image_url: height: section.settings.logo_height }}" 
+               srcset="{{ section.settings.custom_logo | image_url: height: section.settings.logo_height }} 1x, {{ section.settings.custom_logo | image_url: height: section.settings.logo_height | times: 2 }} 2x"
+               alt="{{ shop.name }}" 
+               loading="lazy"
+               width="{{ section.settings.logo_height }}"
+               height="{{ section.settings.logo_height }}">
+        {% elsif settings.logo != blank %}
+          <img src="{{ settings.logo | image_url: height: section.settings.logo_height }}" 
+               srcset="{{ settings.logo | image_url: height: section.settings.logo_height }} 1x, {{ settings.logo | image_url: height: section.settings.logo_height | times: 2 }} 2x"
+               alt="{{ shop.name }}" 
+               loading="lazy"
+               width="{{ section.settings.logo_height }}"
+               height="{{ section.settings.logo_height }}">
+        {% endif %}
+        <span class="brand-name">{{ shop.name }}</span>
+      </a>
+
+      <!-- Navigation Menu -->
       <div class="navbar-collapse" id="nav-{{ section.id }}">
         <ul class="navbar-nav">
           {% for link in section.settings.menu.links %}
-            <li class="nav-item">
-              <a
-                class="nav-link"
-                href="{{ link.url }}"
-                {% if link.links.size > 0 %}aria-haspopup="true"{% endif %}
-              >
+            <li class="nav-item" data-has-dropdown="{% if link.links.size > 0 %}true{% else %}false{% endif %}">
+              <a class="nav-link" href="{{ link.url }}" {% if link.links.size > 0 %}aria-haspopup="true" aria-expanded="false"{% endif %}>
                 {{ link.title }}
                 {% if link.links.size > 0 %}
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-left:4px;vertical-align:middle">
+                  <svg class="dropdown-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                     <polyline points="6 9 12 15 18 9"/>
                   </svg>
                 {% endif %}
               </a>
 
               {% if link.links.size > 0 %}
-                {% if section.settings.mega_menu %}
-                  <div class="mega-submenu">
+                {% if section.settings.mega_menu and link.links.size > 2 %}
+                  <div class="mega-submenu" role="menu">
                     <div class="mega-inner">
-                      <div class="row">
-                        {% for child in link.links %}
-                          <div class="col-md-3">
-                            <h4 class="mega-heading">
-                              <a href="{{ child.url }}">{{ child.title }}</a>
-                            </h4>
-                            {% if child.links.size > 0 %}
-                              <ul>
-                                {% for grandChild in child.links %}
-                                  <li><a href="{{ grandChild.url }}">{{ grandChild.title }}</a></li>
-                                {% endfor %}
-                              </ul>
-                            {% endif %}
-                          </div>
-                        {% endfor %}
-                      </div>
+                      {% for child in link.links %}
+                        <div class="mega-column">
+                          <h4 class="mega-heading">
+                            <a href="{{ child.url }}" role="menuitem">{{ child.title }}</a>
+                          </h4>
+                          {% if child.links.size > 0 %}
+                            <ul>
+                              {% for grandChild in child.links %}
+                                <li><a href="{{ grandChild.url }}" role="menuitem">{{ grandChild.title }}</a></li>
+                              {% endfor %}
+                            </ul>
+                          {% endif %}
+                        </div>
+                      {% endfor %}
                     </div>
                   </div>
                 {% else %}
-                  <ul class="dropdown-menu">
+                  <ul class="dropdown-menu" role="menu">
                     {% for child in link.links %}
-                      <li><a class="dropdown-item" href="{{ child.url }}">{{ child.title }}</a></li>
+                      <li><a class="dropdown-item" href="{{ child.url }}" role="menuitem">{{ child.title }}</a></li>
                     {% endfor %}
                   </ul>
                 {% endif %}
               {% endif %}
-
             </li>
           {% endfor %}
         </ul>
       </div>
 
+      <!-- Header Icons -->
       <div class="header-icons">
+        
+        <!-- Search -->
         {% if section.settings.show_search %}
-          <span data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop" aria-label="Search">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <button type="button" class="search-trigger" aria-label="Open search" data-search-trigger>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
             </svg>
-          </span>
+          </button>
         {% endif %}
 
+        <!-- Language Selector -->
+        {% if section.settings.show_language %}
+          <div class="custom-select-wrapper" data-select-type="language">
+            <button class="custom-select-trigger" aria-label="Select language" aria-expanded="false">
+              {% if section.settings.show_flags %}<span>🌐</span>{% endif %}
+              <span class="selected-text">EN</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="custom-options" role="listbox">
+              {% assign languages = section.settings.languages | split: ',' %}
+              {% for lang in languages %}
+                <div class="custom-option" role="option" data-value="{{ lang | strip | handleize }}">
+                  {{ lang | strip }}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Country/Region Selector -->
+        {% if section.settings.show_localization %}
+          <div class="custom-select-wrapper" data-select-type="country">
+            <button class="custom-select-trigger" aria-label="Select country" aria-expanded="false">
+              {% if section.settings.show_flags %}<span>📍</span>{% endif %}
+              <span class="selected-text">US</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="custom-options" role="listbox">
+              <div class="custom-option" role="option" data-value="us">🇺🇸 United States</div>
+              <div class="custom-option" role="option" data-value="ca">🇨🇦 Canada</div>
+              <div class="custom-option" role="option" data-value="bd">🇧🇩 Bangladesh</div>
+              <div class="custom-option" role="option" data-value="uk">🇬🇧 United Kingdom</div>
+              <div class="custom-option" role="option" data-value="au">🇦🇺 Australia</div>
+              <div class="custom-option" role="option" data-value="in">🇮🇳 India</div>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Account -->
         {% if section.settings.show_account and shop.customer_accounts_enabled %}
           <a href="{{ routes.account_url }}" aria-label="Account">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true">
               <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
             </svg>
           </a>
         {% endif %}
 
+        <!-- Cart -->
         {% if section.settings.show_cart %}
-          <a
-            href="{% if settings.cart_type == 'drawer' %}#offcanvasRight{% else %}{{ routes.cart_url }}{% endif %}"
-            {% if settings.cart_type == 'drawer' %}data-bs-toggle="offcanvas" aria-controls="offcanvasRight"{% endif %}
-            aria-label="Cart"
-            style="position:relative;"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <a href="{{ routes.cart_url }}" class="cart-wrapper" {% if settings.cart_type == 'drawer' %}data-cart-drawer-trigger{% endif %} aria-label="Cart - {{ cart.item_count }} items">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true">
               <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
             </svg>
             {% if cart.item_count > 0 %}
-              <span class="cart-count">({{ cart.item_count }})</span>
+              <span class="cart-count" data-cart-count>{{ cart.item_count }}</span>
             {% endif %}
           </a>
         {% endif %}
@@ -385,107 +920,456 @@
   </nav>
 </div>
 
-{% comment %} ── Search Offcanvas ── {% endcomment %}
-<div class="offcanvas offcanvas-top" tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel">
-  <div class="offcanvas-body">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <predictive-search>
-          <form action="{{ routes.search_url }}" method="get" role="search">
-            <div class="form-field d-flex align-items-center">
-              <input type="search" name="q" id="Search-{{ section.id }}" value="{{ search.terms | escape }}" placeholder="{{ section.settings.search_placeholder }}" class="form-control" aria-label="Search">
-              <button type="button" class="btn-close text-reset mx-2" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-            </div>
-            <input type="hidden" name="options[prefix]" value="last">
-          </form>
-          <div id="predictive-search-{{ section.id }}" tabindex="-1"></div>
-        </predictive-search>
+<!-- Mobile Menu Overlay -->
+<div class="mobile-menu-overlay" id="mobile-overlay-{{ section.id }}"></div>
+
+<!-- Search Modal -->
+<div class="search-modal" id="search-modal-{{ section.id }}" role="dialog" aria-modal="true" aria-label="Search">
+  <div class="search-modal-content">
+    <div class="search-header">
+      <div class="search-input-wrapper">
+        <input type="search" 
+               class="search-input" 
+               placeholder="{{ section.settings.search_placeholder }}" 
+               aria-label="Search products"
+               autocomplete="off"
+               data-search-input>
       </div>
+      <button type="button" class="search-close" aria-label="Close search">×</button>
+    </div>
+    <div class="search-results" data-search-results>
+      <!-- Results populated by JS -->
     </div>
   </div>
 </div>
 
 <script>
 (function() {
+  'use strict';
+  
   const sectionId = '{{ section.id }}';
-  const section   = document.getElementById('shopify-section-' + sectionId);
+  const section = document.getElementById('shopify-section-' + sectionId);
   if (!section) return;
 
-  // ── Mobile toggler ──
+  // Elements
+  const header = section.querySelector('.header-section');
   const toggler = document.getElementById('toggler-' + sectionId);
-  const nav     = document.getElementById('nav-' + sectionId);
+  const nav = document.getElementById('nav-' + sectionId);
+  const mobileOverlay = document.getElementById('mobile-overlay-' + sectionId);
+  const searchModal = document.getElementById('search-modal-' + sectionId);
+  const searchTrigger = section.querySelector('[data-search-trigger]');
+  const searchClose = searchModal?.querySelector('.search-close');
+  const searchInput = searchModal?.querySelector('[data-search-input]');
+  
+  let lastScrollTop = 0;
+  let ticking = false;
+  const stickyType = header?.dataset.sticky || 'never';
+
+  // =====================
+  // Mobile Menu Toggle
+  // =====================
   if (toggler && nav) {
     toggler.addEventListener('click', function() {
-      nav.classList.toggle('open');
+      const isOpen = nav.classList.toggle('is-open');
+      toggler.classList.toggle('is-active', isOpen);
+      toggler.setAttribute('aria-expanded', isOpen);
+      mobileOverlay?.classList.toggle('is-open', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    });
+
+    // Close on overlay click
+    mobileOverlay?.addEventListener('click', closeMobileMenu);
+    
+    // Close on escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeMobileMenu();
+        closeSearchModal();
+        closeAllDropdowns();
+      }
     });
   }
 
-  // ── Desktop: JS hover with delay so gap doesn't close menu ──
-  if (window.innerWidth > 991) {
-    const navItems = section.querySelectorAll('.nav-item');
+  function closeMobileMenu() {
+    nav?.classList.remove('is-open');
+    toggler?.classList.remove('is-active');
+    toggler?.setAttribute('aria-expanded', 'false');
+    mobileOverlay?.classList.remove('is-open');
+    document.body.style.overflow = '';
+  }
 
-    navItems.forEach(function(item) {
+  // =====================
+  // Dropdown Menus (Desktop)
+  // =====================
+  const navItems = section.querySelectorAll('.nav-item[data-has-dropdown="true"]');
+  
+  // Only for desktop
+  function initDesktopDropdowns() {
+    if (window.innerWidth <= 991) return;
+    
+    navItems.forEach(item => {
+      const link = item.querySelector('.nav-link');
       const submenu = item.querySelector('.dropdown-menu, .mega-submenu');
       if (!submenu) return;
 
-      let closeTimer = null;
+      let closeTimer;
 
-      function openMenu() {
+      function open() {
         clearTimeout(closeTimer);
-        // close all other open menus first
-        navItems.forEach(function(other) {
+        // Close others
+        navItems.forEach(other => {
           if (other !== item) {
-            const otherSub = other.querySelector('.dropdown-menu, .mega-submenu');
-            if (otherSub) otherSub.classList.remove('is-open');
+            other.classList.remove('is-open');
+            other.querySelector('.nav-link')?.setAttribute('aria-expanded', 'false');
+            other.querySelector('.dropdown-menu, .mega-submenu')?.classList.remove('is-open');
           }
         });
+        
+        item.classList.add('is-open');
+        link.setAttribute('aria-expanded', 'true');
         submenu.classList.add('is-open');
       }
 
-      function closeMenu() {
-        // 150ms delay — enough time to move mouse into submenu
-        closeTimer = setTimeout(function() {
+      function close() {
+        closeTimer = setTimeout(() => {
+          item.classList.remove('is-open');
+          link.setAttribute('aria-expanded', 'false');
           submenu.classList.remove('is-open');
         }, 150);
       }
 
-      // Hover on nav-item (includes the link)
-      item.addEventListener('mouseenter', openMenu);
-      item.addEventListener('mouseleave', closeMenu);
-
-      // When mouse enters submenu itself, cancel close
-      submenu.addEventListener('mouseenter', function() {
-        clearTimeout(closeTimer);
-      });
-      submenu.addEventListener('mouseleave', closeMenu);
+      item.addEventListener('mouseenter', open);
+      item.addEventListener('mouseleave', close);
+      submenu.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+      submenu.addEventListener('mouseleave', close);
     });
+  }
 
-    // Close all menus when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!section.contains(e.target)) {
-        section.querySelectorAll('.dropdown-menu.is-open, .mega-submenu.is-open').forEach(function(m) {
-          m.classList.remove('is-open');
+  // Mobile: Click to toggle
+  function initMobileDropdowns() {
+    if (window.innerWidth > 991) return;
+    
+    navItems.forEach(item => {
+      const link = item.querySelector('.nav-link');
+      if (!link) return;
+      
+      // Remove href to prevent navigation on parent links with children
+      if (link.getAttribute('aria-haspopup')) {
+        const originalHref = link.getAttribute('href');
+        link.dataset.href = originalHref;
+        
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const submenu = item.querySelector('.dropdown-menu, .mega-submenu');
+          const isOpen = item.classList.toggle('is-open');
+          
+          link.setAttribute('aria-expanded', isOpen);
+          submenu?.classList.toggle('is-open', isOpen);
+          
+          // If opening, close siblings
+          if (isOpen) {
+            navItems.forEach(sibling => {
+              if (sibling !== item && sibling.classList.contains('is-open')) {
+                sibling.classList.remove('is-open');
+                sibling.querySelector('.nav-link')?.setAttribute('aria-expanded', 'false');
+                sibling.querySelector('.dropdown-menu, .mega-submenu')?.classList.remove('is-open');
+              }
+            });
+          }
         });
       }
     });
   }
 
-  // ── Mobile: click to toggle submenu ──
-  if (window.innerWidth <= 991) {
-    section.querySelectorAll('.nav-link[aria-haspopup]').forEach(function(link) {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const submenu = this.parentElement.querySelector('.dropdown-menu, .mega-submenu');
-        if (submenu) submenu.classList.toggle('is-open');
+  // =====================
+  // Sticky Header Logic
+  // =====================
+  function handleStickyHeader() {
+    if (stickyType === 'never') return;
+    
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (stickyType === 'always') {
+      if (scrollTop > 1) {
+        header.classList.add('is-sticky');
+      } else {
+        header.classList.remove('is-sticky');
+      }
+    } else if (stickyType === 'scroll_up') {
+      if (scrollTop > lastScrollTop && scrollTop > 100) {
+        // Scrolling down
+        header.classList.add('is-hidden');
+        header.classList.remove('is-sticky');
+      } else {
+        // Scrolling up
+        header.classList.remove('is-hidden');
+        if (scrollTop > 1) {
+          header.classList.add('is-sticky');
+        } else {
+          header.classList.remove('is-sticky');
+        }
+      }
+    }
+    
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+  }
+
+  // Throttled scroll listener
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(function() {
+        handleStickyHeader();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  // =====================
+  // Search Modal
+  // =====================
+  function openSearchModal() {
+    searchModal?.classList.add('is-open');
+    searchInput?.focus();
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSearchModal() {
+    searchModal?.classList.remove('is-open');
+    document.body.style.overflow = '';
+    if (searchInput) searchInput.value = '';
+  }
+
+  searchTrigger?.addEventListener('click', openSearchModal);
+  searchClose?.addEventListener('click', closeSearchModal);
+  
+  // Close on backdrop click
+  searchModal?.addEventListener('click', function(e) {
+    if (e.target === searchModal) closeSearchModal();
+  });
+
+  // Predictive Search
+  let searchTimeout;
+  searchInput?.addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    const query = e.target.value.trim();
+    
+    if (query.length < 2) {
+      clearSearchResults();
+      return;
+    }
+    
+    searchTimeout = setTimeout(() => performSearch(query), 300);
+  });
+
+  async function performSearch(query) {
+    try {
+      const response = await fetch(`/search/suggest.json?q=${encodeURIComponent(query)}&resources[type]=product,article,page&resources[limit]=6`);
+      const data = await response.json();
+      renderSearchResults(data.resources.results);
+    } catch (error) {
+      console.error('Search error:', error);
+    }
+  }
+
+  function renderSearchResults(results) {
+    const container = searchModal?.querySelector('[data-search-results]');
+    if (!container) return;
+    
+    let html = '';
+    
+    // Products
+    if (results.products?.length) {
+      html += '<div style="margin-bottom: 16px;"><h3 style="font-size: 12px; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px;">Products</h3>';
+      results.products.forEach(product => {
+        html += `
+          <a href="${product.url}" class="search-result-item">
+            <img src="${product.image || ''}" alt="${product.title}" class="search-result-image" onerror="this.style.display='none'">
+            <div class="search-result-info">
+              <h4>${product.title}</h4>
+              <p>$${product.price}</p>
+            </div>
+          </a>
+        `;
+      });
+      html += '</div>';
+    }
+    
+    // Pages
+    if (results.pages?.length) {
+      html += '<div style="margin-bottom: 16px;"><h3 style="font-size: 12px; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px;">Pages</h3>';
+      results.pages.forEach(page => {
+        html += `<a href="${page.url}" class="search-result-item"><div class="search-result-info"><h4>${page.title}</h4></div></a>`;
+      });
+      html += '</div>';
+    }
+    
+    if (!html) {
+      html = '<p style="text-align: center; padding: 24px; opacity: 0.6;">No results found</p>';
+    }
+    
+    container.innerHTML = html;
+  }
+
+  function clearSearchResults() {
+    const container = searchModal?.querySelector('[data-search-results]');
+    if (container) container.innerHTML = '';
+  }
+
+  // =====================
+  // Custom Select (Language/Country)
+  // =====================
+  const customSelects = section.querySelectorAll('.custom-select-wrapper');
+  
+  customSelects.forEach(wrapper => {
+    const trigger = wrapper.querySelector('.custom-select-trigger');
+    const options = wrapper.querySelector('.custom-options');
+    const selectedText = trigger?.querySelector('.selected-text');
+    const type = wrapper.dataset.selectType;
+    
+    // Load saved preference
+    const saved = localStorage.getItem(`header_${type}`);
+    if (saved && selectedText) {
+      selectedText.textContent = saved.toUpperCase();
+    }
+    
+    trigger?.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const isOpen = options.classList.toggle('is-open');
+      trigger.setAttribute('aria-expanded', isOpen);
+      
+      // Close others
+      customSelects.forEach(other => {
+        if (other !== wrapper) {
+          other.querySelector('.custom-options')?.classList.remove('is-open');
+          other.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
+        }
       });
     });
+    
+    // Option selection
+    wrapper.querySelectorAll('.custom-option').forEach(option => {
+      option.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const value = this.dataset.value;
+        const text = this.textContent.trim();
+        
+        if (selectedText) {
+          selectedText.textContent = text.split(' ')[0].toUpperCase(); // Get flag or code
+        }
+        
+        // Save to localStorage
+        localStorage.setItem(`header_${type}`, value);
+        
+        // Close dropdown
+        options.classList.remove('is-open');
+        trigger.setAttribute('aria-expanded', 'false');
+        
+        // Dispatch event for other scripts
+        window.dispatchEvent(new CustomEvent('localizationChanged', { 
+          detail: { type: type, value: value, text: text } 
+        }));
+        
+        // Optional: Reload page with locale parameter
+        // window.location.href = `?${type}=${value}`;
+      });
+    });
+  });
+
+  // Close dropdowns on outside click
+  function closeAllDropdowns() {
+    customSelects.forEach(wrapper => {
+      wrapper.querySelector('.custom-options')?.classList.remove('is-open');
+      wrapper.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
+    });
   }
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.custom-select-wrapper')) {
+      closeAllDropdowns();
+    }
+    
+    // Close desktop menus on outside click
+    if (window.innerWidth > 991 && !e.target.closest('.nav-item')) {
+      navItems.forEach(item => {
+        item.classList.remove('is-open');
+        item.querySelector('.nav-link')?.setAttribute('aria-expanded', 'false');
+        item.querySelector('.dropdown-menu, .mega-submenu')?.classList.remove('is-open');
+      });
+    }
+  });
+
+  // =====================
+  // Cart Count Update
+  // =====================
+  function updateCartCount() {
+    fetch('/cart.js')
+      .then(res => res.json())
+      .then(cart => {
+        const countElements = section.querySelectorAll('[data-cart-count]');
+        countElements.forEach(el => {
+          el.textContent = cart.item_count;
+          el.style.display = cart.item_count > 0 ? 'block' : 'none';
+        });
+      })
+      .catch(console.error);
+  }
+
+  // Listen for cart updates
+  document.addEventListener('cart:updated', updateCartCount);
+  
+  // Auto-open cart drawer setting
+  {% if section.settings.auto_open_cart_drawer %}
+  document.addEventListener('product:added', function() {
+    setTimeout(() => {
+      const cartDrawer = document.querySelector('[data-cart-drawer]') || 
+                         document.querySelector('cart-drawer');
+      if (cartDrawer && cartDrawer.open) cartDrawer.open();
+    }, 100);
+  });
+  {% endif %}
+
+  // =====================
+  // Initialization
+  // =====================
+  function init() {
+    initDesktopDropdowns();
+    initMobileDropdowns();
+    
+    // Handle resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        if (window.innerWidth > 991) {
+          closeMobileMenu();
+          initDesktopDropdowns();
+        } else {
+          initMobileDropdowns();
+        }
+      }, 250);
+    });
+  }
+
+  // Run on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  
+  // Expose update function for external calls
+  window.HeaderSection = window.HeaderSection || {};
+  window.HeaderSection[sectionId] = {
+    updateCart: updateCartCount,
+    closeMobileMenu: closeMobileMenu
+  };
 })();
 </script>
 
 {% schema %}
 {
-  "name": "Header",
+  "name": "Advanced Header Pro",
   "settings": [
     {
       "type": "header",
@@ -516,8 +1400,8 @@
     {
       "type": "checkbox",
       "id": "header_shadow",
-      "label": "Show Shadow",
-      "default": false
+      "label": "Show Shadow on Sticky",
+      "default": true
     },
     {
       "type": "header",
@@ -545,17 +1429,22 @@
     },
     {
       "type": "header",
-      "content": "Sticky Header"
+      "content": "Header Behavior"
     },
     {
-      "type": "checkbox",
-      "id": "sticky_header",
+      "type": "select",
+      "id": "sticky_header_type",
       "label": "Sticky Header",
-      "default": false
+      "options": [
+        { "value": "never", "label": "Never" },
+        { "value": "always", "label": "Always Sticky" },
+        { "value": "scroll_up", "label": "Show on Scroll Up" }
+      ],
+      "default": "always"
     },
     {
       "type": "header",
-      "content": "Logo"
+      "content": "Logo Settings"
     },
     {
       "type": "image_picker",
@@ -586,12 +1475,18 @@
     {
       "type": "range",
       "id": "logo_font_size",
-      "label": "Logo Text Size (if no image)",
+      "label": "Logo Text Size",
       "min": 12,
       "max": 36,
       "step": 1,
       "unit": "px",
       "default": 20
+    },
+    {
+      "type": "checkbox",
+      "id": "show_brand_name",
+      "label": "Show Shop Name With Logo",
+      "default": false
     },
     {
       "type": "header",
@@ -675,12 +1570,12 @@
     {
       "type": "checkbox",
       "id": "mega_menu",
-      "label": "Enable Mega Menu",
-      "default": false
+      "label": "Enable Mega Menu (for 3+ columns)",
+      "default": true
     },
     {
       "type": "header",
-      "content": "Icons"
+      "content": "Icons & Actions"
     },
     {
       "type": "checkbox",
@@ -721,6 +1616,26 @@
       "default": 16
     },
     {
+      "type": "select",
+      "id": "icons_position",
+      "label": "Icons Position",
+      "options": [
+        { "value": "right", "label": "Right" },
+        { "value": "left", "label": "Left" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "select",
+      "id": "icons_row_position",
+      "label": "Icons Layout",
+      "options": [
+        { "value": "top", "label": "Row (Horizontal)" },
+        { "value": "bottom", "label": "Column (Vertical)" }
+      ],
+      "default": "top"
+    },
+    {
       "type": "header",
       "content": "Search"
     },
@@ -728,7 +1643,128 @@
       "type": "text",
       "id": "search_placeholder",
       "label": "Search Placeholder",
-      "default": "Search products..."
+      "default": "Search products, articles..."
+    },
+    {
+      "type": "header",
+      "content": "Localization"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_localization",
+      "label": "Show Country/Region Selector",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_language",
+      "label": "Show Language Selector",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_flags",
+      "label": "Show Flag Icons",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "languages",
+      "label": "Languages (comma separated)",
+      "default": "English, Bangla, Spanish, French"
+    },
+    {
+      "type": "header",
+      "content": "Page Layout"
+    },
+    {
+      "type": "select",
+      "id": "page_width",
+      "label": "Page Width",
+      "options": [
+        { "value": "narrow", "label": "Narrow (1000px)" },
+        { "value": "normal", "label": "Normal (1200px)" },
+        { "value": "wide", "label": "Wide (1400px)" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "header",
+      "content": "Product Settings"
+    },
+    {
+      "type": "select",
+      "id": "product_transition",
+      "label": "Product Card Transition",
+      "options": [
+        { "value": "instant", "label": "Instant" },
+        { "value": "smooth", "label": "Smooth" },
+        { "value": "lift", "label": "Lift on Hover" }
+      ],
+      "default": "lift"
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_open_cart_drawer",
+      "label": "Auto-Open Cart Drawer on Add to Cart",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Background Transparency"
+    },
+    {
+      "type": "color",
+      "id": "home_bg_color",
+      "label": "Home Page Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "home_bg_opacity",
+      "label": "Home Page Opacity",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "color",
+      "id": "product_bg_color",
+      "label": "Product Page Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "product_bg_opacity",
+      "label": "Product Page Opacity",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "color",
+      "id": "collection_bg_color",
+      "label": "Collection Page Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "collection_bg_opacity",
+      "label": "Collection Page Opacity",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "default": 100
+    }
+  ],
+  "presets": [
+    {
+      "name": "Advanced Header Pro"
     }
   ]
 }

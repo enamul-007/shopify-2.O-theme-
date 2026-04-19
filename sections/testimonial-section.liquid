@@ -1,7 +1,5 @@
 {% comment %}
-  sections/testimonial.liquid
-  FIX: Robust JS — uses querySelectorAll('.ts-slide') instead of
-       direct children check, handles all edge cases.
+  sections/testimonial.liquid — Final Fixed Version
 {% endcomment %}
 
 <section
@@ -13,15 +11,10 @@
 
     <div class="ts-header" id="tsHeader-{{ section.id }}"></div>
 
-    <div class="ts-slider-wrap">
+    <div class="ts-slider-wrap" id="tsWrap-{{ section.id }}">
       <div class="ts-track" id="tsTrack-{{ section.id }}"></div>
     </div>
 
-    {{- '' -}}
-    {%- comment -%}
-      Hidden source: blocks render here first.
-      JS sorts them: .ts-slide → track, everything else → header.
-    {%- endcomment -%}
     <div
       class="ts-blocks-source"
       id="tsSource-{{ section.id }}"
@@ -59,10 +52,6 @@
     --ts-accent: {{ section.settings.accent_color }};
   }
 
-  /* ── Hidden source — must be visually hidden but NOT display:none ──
-     display:none prevents nested content_for blocks from rendering
-     correctly in some Shopify versions.
-  */
   #ts-{{ section.id }} .ts-blocks-source {
     position: absolute;
     width: 1px;
@@ -71,40 +60,104 @@
     clip: rect(0 0 0 0);
     clip-path: inset(50%);
     white-space: nowrap;
+    pointer-events: none;
   }
 
-  #ts-{{ section.id }} .ts-inner       { max-width: 680px; margin: 0 auto; position: relative; }
-  #ts-{{ section.id }} .ts-header      { text-align: center; margin-bottom: 40px; }
-  #ts-{{ section.id }} .ts-slider-wrap { overflow: hidden; width: 100%; }
+  #ts-{{ section.id }} .ts-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  #ts-{{ section.id }} .ts-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  #ts-{{ section.id }} .ts-slider-wrap {
+    overflow: hidden;
+    width: 100%;
+    display: block;
+  }
+
   #ts-{{ section.id }} .ts-track {
     display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
     transition: transform 0.48s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform;
   }
+
   #ts-{{ section.id }} .ts-slide {
-    min-width: 100%;
+    flex: 0 0 100%;
     display: flex;
     justify-content: center;
     padding: 0 4px;
     box-sizing: border-box;
-    /* Make sure moved slides are visible */
+    position: static !important;
     visibility: visible !important;
     clip: auto !important;
     clip-path: none !important;
-    position: static !important;
-    width: auto !important;
-    height: auto !important;
     white-space: normal !important;
+    overflow: visible !important;
+    height: auto !important;
   }
 
-  /* ── Nav ── */
-  #ts-{{ section.id }} .ts-nav   { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 32px; }
-  #ts-{{ section.id }} .ts-arr   { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #e0e0e0; background: #fff; cursor: pointer; color: #888; display: flex; align-items: center; justify-content: center; transition: border-color .15s, color .15s, box-shadow .15s; flex-shrink: 0; }
-  #ts-{{ section.id }} .ts-arr:hover:not(:disabled) { border-color: var(--ts-accent); color: var(--ts-accent); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
-  #ts-{{ section.id }} .ts-arr:disabled { opacity: .3; cursor: default; }
-  #ts-{{ section.id }} .ts-dots  { display: flex; gap: 10px; align-items: center; }
-  #ts-{{ section.id }} .ts-dot   { width: 9px; height: 9px; border-radius: 50%; background: #d9d9d9; cursor: pointer; border: none; padding: 0; transition: background .2s, transform .2s; }
-  #ts-{{ section.id }} .ts-dot--active { background: var(--ts-accent); transform: scale(1.25); }
+  #ts-{{ section.id }} .ts-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  #ts-{{ section.id }} .ts-arr {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    cursor: pointer;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color .15s, color .15s, box-shadow .15s;
+    flex-shrink: 0;
+  }
+
+  #ts-{{ section.id }} .ts-arr:hover:not(:disabled) {
+    border-color: var(--ts-accent);
+    color: var(--ts-accent);
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  }
+
+  #ts-{{ section.id }} .ts-arr:disabled {
+    opacity: .3;
+    cursor: default;
+  }
+
+  #ts-{{ section.id }} .ts-dots {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  #ts-{{ section.id }} .ts-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #d9d9d9;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    transition: background .2s, transform .2s;
+  }
+
+  #ts-{{ section.id }} .ts-dot--active {
+    background: var(--ts-accent);
+    transform: scale(1.25);
+  }
 
   @media (max-width: 600px) {
     #ts-{{ section.id }} { padding-inline: 16px; }
@@ -124,32 +177,27 @@
 
   if (!source || !track || !header) return;
 
-  /* ── FIX 1: Use querySelectorAll to reliably find .ts-slide
-       regardless of nesting or wrapper differences in theme blocks ── */
   var slideEls = Array.from(source.querySelectorAll('.ts-slide'));
 
-  /* ── FIX 2: Move NON-slide direct children to header ── */
   Array.from(source.children).forEach(function (el) {
     if (!el.classList.contains('ts-slide') && !el.querySelector('.ts-slide')) {
       header.appendChild(el);
     }
   });
 
-  /* ── FIX 3: Move .ts-slide elements into the track ── */
   slideEls.forEach(function (el) {
     track.appendChild(el);
   });
 
   var total = slideEls.length;
+  var cur   = 0;
+  var dots  = [];
+
+  if (total === 0) return;
 
   if (total <= 1) {
     if (navEl) navEl.style.display = 'none';
   }
-
-  if (total === 0) return;
-
-  var cur  = 0;
-  var dots = [];
 
   function buildDots() {
     dotsEl.innerHTML = '';
@@ -172,18 +220,17 @@
   function go(n) {
     cur = Math.max(0, Math.min(n, total - 1));
     track.style.transform = 'translateX(-' + (cur * 100) + '%)';
-    if (prevBtn) prevBtn.disabled = cur === 0;
-    if (nextBtn) nextBtn.disabled = cur === total - 1;
+    if (prevBtn) prevBtn.disabled = (cur === 0);
+    if (nextBtn) nextBtn.disabled = (cur === total - 1);
     dots.forEach(function (d, i) {
       d.classList.toggle('ts-dot--active', i === cur);
       d.setAttribute('aria-selected', i === cur ? 'true' : 'false');
     });
   }
 
-  if (prevBtn) prevBtn.addEventListener('click', function () { if (cur > 0) go(cur - 1); });
-  if (nextBtn) nextBtn.addEventListener('click', function () { if (cur < total - 1) go(cur + 1); });
+  if (prevBtn) prevBtn.addEventListener('click', function () { go(cur - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', function () { go(cur + 1); });
 
-  /* ── Touch / swipe support ── */
   var touchStartX = 0;
   track.addEventListener('touchstart', function (e) {
     touchStartX = e.changedTouches[0].screenX;
@@ -191,18 +238,16 @@
   track.addEventListener('touchend', function (e) {
     var diff = touchStartX - e.changedTouches[0].screenX;
     if (Math.abs(diff) > 40) {
-      if (diff > 0 && cur < total - 1) go(cur + 1);
-      if (diff < 0 && cur > 0)         go(cur - 1);
+      if (diff > 0) go(cur + 1);
+      else          go(cur - 1);
     }
   }, { passive: true });
 
-  /* ── Keyboard support ── */
   document.getElementById('ts-' + id).addEventListener('keydown', function (e) {
     if (e.key === 'ArrowLeft')  go(cur - 1);
     if (e.key === 'ArrowRight') go(cur + 1);
   });
 
-  /* ── Auto-play ── */
   {% if section.settings.autoplay %}
   var autoInterval = setInterval(function () {
     go(cur < total - 1 ? cur + 1 : 0);
@@ -304,44 +349,44 @@
         },
         {
           "type": "divider",
-          "settings": { "width": "60px", "spacing": 16 }
+          "settings": { "opacity": 10, "thickness": 1, "margin_top": 8, "margin_bottom": 8 }
         },
-        {
-          "type": "testimonial-card",
-          "blocks": [
-            { "type": "image",               "settings": { "width": 64, "border_radius": 100, "margin_bottom": 12 } },
-            { "type": "rating",              "settings": { "rating": 5 } },
-            { "type": "testimonial-review",  "settings": { "review": "This completely transformed how our team works. Dead-end leads disappeared and we are closing deals faster than ever." } },
-            { "type": "testimonial-author",  "settings": { "name": "Sarah Rahman", "role": "CEO — NextGen SaaS" } }
-          ]
-        },
-        {
-          "type": "testimonial-card",
-          "blocks": [
-            { "type": "image",               "settings": { "width": 64, "border_radius": 100, "margin_bottom": 12 } },
-            { "type": "rating",              "settings": { "rating": 4 } },
-            { "type": "testimonial-review",  "settings": { "review": "Ordered three times and each experience has been flawless. Fast shipping, beautiful packaging and quality that exceeds every claim." } },
-            { "type": "testimonial-author",  "settings": { "name": "Mohammad Hasan", "role": "CEO — DesignCo" } }
-          ]
-        },
-        {
-          "type": "testimonial-card",
-          "blocks": [
-            { "type": "image",               "settings": { "width": 64, "border_radius": 100, "margin_bottom": 12 } },
-            { "type": "rating",              "settings": { "rating": 5 } },
-            { "type": "testimonial-review",  "settings": { "review": "I bought this as a gift and my sister was absolutely blown away. The premium unboxing experience made it special." } },
-            { "type": "testimonial-author",  "settings": { "name": "Fatema Akter", "role": "CEO — BrandLab" } }
-          ]
-        },
-        {
-          "type": "testimonial-card",
-          "blocks": [
-            { "type": "image",               "settings": { "width": 64, "border_radius": 100, "margin_bottom": 12 } },
-            { "type": "rating",              "settings": { "rating": 5 } },
-            { "type": "testimonial-review",  "settings": { "review": "Five stars without any hesitation. Years of online shopping and this is genuinely one of the best purchases I have ever made." } },
-            { "type": "testimonial-author",  "settings": { "name": "Nadia Begum", "role": "CEO — VisionX" } }
-          ]
-        }
+         {
+  "type": "testimonial-card",
+  "blocks": [
+    { "type": "image",              "settings": { "aspect_ratio": "1/1", "border_radius": 64, "object_fit": "cover", "shadow": "none" } },
+    { "type": "testimonial-author", "settings": { "name": "Sarah Rahman",   "role": "Marketing Director" } },
+    { "type": "rating",             "settings": { "rating": 5 } },
+    { "type": "testimonial-review", "settings": { "review": "Absolutely amazing quality. I was skeptical at first but after receiving my order I was completely blown away." } }
+  ]
+},
+{
+  "type": "testimonial-card",
+  "blocks": [
+    { "type": "image",              "settings": { "aspect_ratio": "1/1", "border_radius": 64, "object_fit": "cover", "shadow": "none" } },
+    { "type": "testimonial-author", "settings": { "name": "Mohammad Hasan", "role": "Product Manager" } },
+    { "type": "rating",             "settings": { "rating": 4 } },
+    { "type": "testimonial-review", "settings": { "review": "Ordered three times and each experience has been flawless. Fast shipping, beautiful packaging and quality that exceeds every claim." } }
+  ]
+},
+{
+  "type": "testimonial-card",
+  "blocks": [
+    { "type": "image",              "settings": { "aspect_ratio": "1/1", "border_radius": 64, "object_fit": "cover", "shadow": "none" } },
+    { "type": "testimonial-author", "settings": { "name": "Fatema Akter",   "role": "Marketing Director" } },
+    { "type": "rating",             "settings": { "rating": 5 } },
+    { "type": "testimonial-review", "settings": { "review": "I bought this as a gift and my sister was absolutely blown away. The premium unboxing experience made it special." } }
+  ]
+},
+{
+  "type": "testimonial-card",
+  "blocks": [
+    { "type": "image",              "settings": { "aspect_ratio": "1/1", "border_radius": 64, "object_fit": "cover", "shadow": "none" } },
+    { "type": "testimonial-author", "settings": { "name": "Nadia Begum",    "role": "Sales Manager" } },
+    { "type": "rating",             "settings": { "rating": 5 } },
+    { "type": "testimonial-review", "settings": { "review": "Five stars without any hesitation. Years of online shopping and this is genuinely one of the best purchases I have ever made." } }
+  ]
+}
       ]
     }
   ]

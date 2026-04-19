@@ -1,0 +1,133 @@
+<section class="wcu-section color-{{ section.settings.color_scheme }} gradient" style="padding: {{ section.settings.section_padding }}px 0;">
+  <div class="wcu-container">
+
+    {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+      <div class="wcu-header">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="wcu-heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.subheading != blank -%}
+          <p class="wcu-subheading">{{ section.settings.subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="wcu-grid" style="--wcu-cols: {{ section.settings.columns }};">
+      {% content_for 'blocks' %}
+    </div>
+
+  </div>
+</section>
+
+{% stylesheet %}
+  .wcu-section {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .wcu-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .wcu-header {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+  .wcu-heading {
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 500;
+    margin: 0 0 12px;
+    line-height: 1.25;
+  }
+  .wcu-subheading {
+    font-size: 15px;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.7;
+    opacity: 0.7;
+  }
+  .wcu-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--wcu-cols, 4), 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 1024px) {
+    .wcu-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .wcu-grid { grid-template-columns: 1fr; gap: 16px; }
+    .wcu-header { margin-bottom: 32px; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Why Choose Us",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Why Choose Us"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "We're committed to providing an exceptional shopping experience"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns (desktop)",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "label": "Section padding",
+      "min": 24,
+      "max": 120,
+      "step": 8,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    }
+  ],
+  "blocks": [
+    { "type": "@theme" }
+  ],
+  "presets": [
+    {
+      "name": "Why Choose Us",
+      "blocks": [
+        { "type": "benefit-item" },
+        { "type": "benefit-item" },
+        { "type": "benefit-item" },
+        { "type": "benefit-item" }
+      ]
+    }
+  ]
+}
+{% endschema %}

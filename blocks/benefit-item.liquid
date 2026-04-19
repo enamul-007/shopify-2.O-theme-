@@ -1,0 +1,71 @@
+<div
+  id="block-{{ block.id }}"
+  class="bi-card color-{{ block.settings.card_color_scheme }} gradient"
+  {{ block.shopify_attributes }}
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .bi-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px 20px;
+    border-radius: 16px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Benefit Item",
+  "blocks": [
+    { "type": "@theme" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Card Style"
+    },
+    {
+      "type": "color_scheme",
+      "id": "card_color_scheme",
+      "label": "Card color scheme",
+      "default": "scheme-2"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Benefit Item",
+      "blocks": [
+        {
+          "type": "icon",
+          "settings": {
+            "icon_type": "svg",
+            "icon_svg": "check",
+            "show_circle": true,
+            "circle_size": 56,
+            "icon_size": 22,
+            "color_preset": "1"
+          }
+        },
+        {
+          "type": "heading",
+          "settings": {
+            "text": "<h3>Feature Title</h3>"
+          }
+        },
+        {
+          "type": "subheading",
+          "settings": {
+            "text": "Short description of this feature or benefit."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

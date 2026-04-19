@@ -1,69 +1,59 @@
-/*
-* ------------------------------------------------------------
-* IMPORTANT: The contents of this file are auto-generated.
-*
-* This file may be updated by the Shopify admin theme editor
-* or related systems. Please exercise caution as any changes
-* made to this file may be overwritten.
-* ------------------------------------------------------------
-*/
 {
   "name": "Footer group",
   "type": "footer",
   "sections": {
-    "sub-footer": {
-      "type": "sub-footer",
-      "settings": {
-        "title": "Subscribe to our emails",
-        "rte": "",
-        "bg_color": "#DDDDDD"
-      }
-    },
     "footer": {
       "type": "footer",
       "blocks": {
         "brand_info_4WLVPY": {
           "type": "brand_info",
           "settings": {
-            "rte": "<p>A details about your brand!<\/p>"
+            "show_social": true,
+            "social_facebook": "https://facebook.com/yourpage",
+            "social_instagram": "https://instagram.com/yourhandle",
+            "social_twitter": "https://twitter.com/yourhandle",
+            "social_youtube": "https://youtube.com/@yourchannel",
+            "rte": "<p>A details about your brand!</p>"
           }
         },
         "menu_QpTdMa": {
           "type": "menu",
           "settings": {
             "title": "Footer Menu",
-            "footer_menu": "footer"
+            "menu": "footer"
           }
         },
-        "menu_LKJfbJ": {
-          "type": "menu",
+        "contact_info": {
+          "type": "contact",
           "settings": {
-            "title": "Footer Menu",
-            "footer_menu": ""
+            "title": "Contact Us",
+            "show_location": true,
+            "location": "123 Main Street, Dhaka, Bangladesh",
+            "show_phone": true,
+            "phone": "+880 1700-000000",
+            "show_email": true,
+            "email": "info@yourshop.com",
+            "show_hours": true,
+            "hours": "Mon – Fri, 9am – 6pm"
           }
         },
-        "info_NpgedW": {
-          "type": "info",
+        "payment_methods": {
+          "type": "payment_methods",
           "settings": {
-            "title": "Footer Menu",
-            "html": "You can write your text here. This field also support html"
+            "title": "We Accept",
+            "show_shopify_payments": true
           }
         }
       },
       "block_order": [
         "brand_info_4WLVPY",
         "menu_QpTdMa",
-        "menu_LKJfbJ",
-        "info_NpgedW"
-      ],
-      "settings": {
-        "column": "4",
-        "copyright": "&copy; {{ shop.name }} | All rights reserved!"
-      }
+        "contact_info",
+        "payment_methods"
+      ]
     }
   },
   "order": [
-    "sub-footer",
     "footer"
   ]
 }
