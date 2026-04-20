@@ -1,0 +1,150 @@
+{% comment %}
+  blocks/product-media.liquid
+  Static theme block — product image gallery with thumbnail strip and sale badge.
+  Inherits CSS variables from the parent section via the cascade.
+{% endcomment %}
+
+<div
+  class="pt-media"
+  {{ block.shopify_attributes }}
+  style="order:{% if block.settings.media_position == 'right' %}2{% else %}1{% endif %};"
+>
+
+  {%- comment -%} Main featured image {%- endcomment -%}
+  <div
+    class="pt-featured-img pt-featured-img--{{ block.settings.image_ratio }}"
+    style="
+      position:relative;
+      overflow:hidden;
+      border-radius:{{ block.settings.border_radius }}px;
+      {% if block.settings.image_ratio == 'portrait'  %}aspect-ratio:4/5;{% endif %}
+      {% if block.settings.image_ratio == 'square'    %}aspect-ratio:1/1;{% endif %}
+      {% if block.settings.image_ratio == 'landscape' %}aspect-ratio:16/9;{% endif %}
+    "
+  >
+    {%- if product.images.size > 0 -%}
+    <img
+      id="pt-main-img-{{ section.id }}"
+      class="pt-main-img"
+      src="{{ product.images.first | image_url: width: 900 }}"
+      alt="{{ product.images.first.alt | escape | default: product.title }}"
+      width="900" height="900"
+      loading="eager"
+      style="width:100%; height:100%; object-fit:cover; transition:opacity 0.3s ease;"
+    >
+    {%- else -%}
+    {{ 'product-1' | placeholder_svg_tag: 'pt-main-img' }}
+    {%- endif -%}
+
+    {%- comment -%} Sale badge {%- endcomment -%}
+    {%- if block.settings.show_sale_badge and product.compare_at_price > product.price -%}
+    <div
+      class="pt-badge-sale"
+      style="
+        position:absolute; top:1rem; left:1rem;
+        background:var(--pt-badge-bg, #111);
+        color:var(--pt-badge-text, #fff);
+        padding:0.25rem 0.75rem;
+        border-radius:999px;
+        font-size:0.75rem;
+        font-weight:600;
+        z-index:1;
+      "
+    >
+      {{ block.settings.sale_badge_text | default: 'Sale' }}
+    </div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Thumbnail strip {%- endcomment -%}
+  {%- if block.settings.show_thumbnails and product.images.size > 1 -%}
+  <div
+    class="pt-thumbs"
+    role="tablist"
+    aria-label="Product images"
+    style="
+      display:flex;
+      {% if block.settings.thumbnail_position == 'left' %}flex-direction:column; order:-1; margin-right:0.75rem;{% else %}flex-direction:row; flex-wrap:wrap; margin-top:0.75rem;{% endif %}
+      gap:0.5rem;
+    "
+  >
+    {%- for image in product.images -%}
+    <button
+      type="button"
+      class="pt-thumb{% if forloop.first %} active{% endif %}"
+      data-src="{{ image | image_url: width: 900 }}"
+      data-section="{{ section.id }}"
+      role="tab"
+      aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+      aria-label="View image {{ forloop.index }} of {{ product.images.size }}"
+      style="
+        cursor:pointer; background:transparent; border:2px solid transparent;
+        border-radius:{{ block.settings.border_radius | divided_by: 2 }}px;
+        padding:0; transition:opacity 0.2s, transform 0.2s;
+        width:{{ block.settings.thumb_size }}px; height:{{ block.settings.thumb_size }}px;
+        overflow:hidden; flex-shrink:0;
+      "
+    >
+      <img
+        src="{{ image | image_url: width: 200 }}"
+        alt="{{ image.alt | escape | default: product.title }}"
+        width="200" height="200" loading="lazy"
+        style="width:100%; height:100%; object-fit:cover;"
+      >
+    </button>
+    {%- endfor -%}
+  </div>
+  {%- endif -%}
+
+</div>
+
+{% stylesheet %}
+.pt-thumb:hover { transform: scale(1.05); opacity:0.85; }
+.pt-thumb.active { border-color: var(--pt-accent, #b45309) !important; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Product Media",
+  "settings": [
+    { "type": "header", "content": "🖼️ Image" },
+    {
+      "type": "select", "id": "image_ratio", "label": "Image ratio",
+      "options": [
+        { "label": "Portrait 4:5",  "value": "portrait"   },
+        { "label": "Square 1:1",    "value": "square"     },
+        { "label": "Landscape 16:9","value": "landscape"  }
+      ],
+      "default": "portrait"
+    },
+    { "type": "range", "id": "border_radius", "label": "Corner radius (px)", "min": 0, "max": 24, "step": 2, "default": 8 },
+    { "type": "checkbox", "id": "show_sale_badge",  "label": "Show sale badge",  "default": true  },
+    { "type": "text",     "id": "sale_badge_text",  "label": "Sale badge text",  "default": "Sale" },
+
+    { "type": "header", "content": "🔲 Thumbnails" },
+    { "type": "checkbox", "id": "show_thumbnails", "label": "Show thumbnails", "default": true },
+    {
+      "type": "select", "id": "thumbnail_position", "label": "Thumbnail position",
+      "options": [
+        { "label": "Below image", "value": "below" },
+        { "label": "Left of image", "value": "left" }
+      ],
+      "default": "below"
+    },
+    { "type": "range", "id": "thumb_size", "label": "Thumbnail size (px)", "min": 48, "max": 120, "step": 4, "default": 72 },
+
+    { "type": "header", "content": "📐 Position" },
+    {
+      "type": "select", "id": "media_position", "label": "Column position",
+      "options": [
+        { "label": "Left",  "value": "left"  },
+        { "label": "Right", "value": "right" }
+      ],
+      "default": "left"
+    }
+  ],
+  "presets": [
+    { "name": "Product Media" }
+  ]
+}
+{% endschema %}

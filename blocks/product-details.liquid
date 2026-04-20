@@ -1,0 +1,92 @@
+{% comment %}
+  blocks/product-details.liquid
+  Container theme block — wraps the product info panel.
+  Child blocks (title, price, variants, etc.) are rendered via {% content_for 'blocks' %}.
+  This is a static block inside product-template.liquid, so it cannot be moved or deleted
+  by merchants — but its settings and child block settings ARE fully editable in the theme editor.
+{% endcomment %}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign form_id = 'pt-form-' | append: section.id
+-%}
+
+<div
+  class="pt-details"
+  {{ block.shopify_attributes }}
+  style="order:{% if block.settings.details_position == 'left' %}1{% else %}2{% endif %};"
+>
+  {% form 'product', product, id: form_id, class: 'pt-form', novalidate: 'novalidate' %}
+
+    <input
+      type="hidden"
+      name="id"
+      value="{{ current_variant.id }}"
+      id="pt-variant-id-{{ section.id }}"
+    >
+
+    {{ form | payment_terms }}
+
+    {%- comment -%}
+      All child blocks (title, price, variants, description, buy-buttons, accordion)
+      render here in the order set in the theme editor / JSON template.
+    {%- endcomment -%}
+    {% content_for 'blocks' %}
+
+  {% endform %}
+</div>
+
+{% schema %}
+{
+  "name": "Product Details",
+  "blocks": [
+    { "type": "product-title"        },
+    { "type": "product-price"        },
+    { "type": "price"                },
+    { "type": "product-variants"     },
+    { "type": "product-description"  },
+    { "type": "product-buy-buttons"  },
+    { "type": "product-accordion"    },
+    { "type": "add_to_cart"          },
+    { "type": "rating"               },
+    { "type": "stock"                },
+    { "type": "heading"              },
+    { "type": "subheading"           },
+    { "type": "divider"              },
+    { "type": "custom_text"          },
+    { "type": "image"                },
+    { "type": "button"               },
+    { "type": "features"             },
+    { "type": "icon"                 },
+    { "type": "reviews"              },
+    { "type": "vendor"               },
+    { "type": "@app"                 }
+  ],
+  "settings": [
+    { "type": "header", "content": "📐 Position" },
+    {
+      "type": "select", "id": "details_position", "label": "Column position",
+      "options": [
+        { "label": "Left",  "value": "left"  },
+        { "label": "Right", "value": "right" }
+      ],
+      "default": "right"
+    },
+    { "type": "header", "content": "🎨 Spacing" },
+    { "type": "range", "id": "block_gap", "label": "Gap between blocks (px)", "min": 8, "max": 48, "step": 4, "default": 20 }
+  ],
+  "presets": [
+    {
+      "name": "Product Details",
+      "blocks": [
+        { "type": "product-title",       "static": true, "id": "title-static"       },
+        { "type": "product-price",       "static": true, "id": "price-static"       },
+        { "type": "product-variants",    "static": true, "id": "variants-static"    },
+        { "type": "product-description", "static": true, "id": "description-static" },
+        { "type": "product-buy-buttons", "static": true, "id": "buttons-static"     },
+        { "type": "product-accordion",   "static": true, "id": "accordion-static"   }
+      ]
+    }
+  ]
+}
+{% endschema %}

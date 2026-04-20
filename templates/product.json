@@ -1,63 +1,130 @@
-/*
-* ------------------------------------------------------------
-* IMPORTANT: The contents of this file are auto-generated.
-*
-* This file may be updated by the Shopify admin theme editor
-* or related systems. Please exercise caution as any changes
-* made to this file may be overwritten.
-* ------------------------------------------------------------
-*/
 {
   "sections": {
     "main-product": {
       "type": "main-product",
       "blocks": {
-        "vendor": {
-          "type": "text",
+        "product-media-static": {
+          "type": "product-media",
+          "static": true,
           "settings": {
-            "text": "{{ product.vendor }}"
+            "image_ratio": "portrait",
+            "show_thumbnails": true,
+            "thumbnail_position": "below",
+            "thumb_size": 72,
+            "border_radius": 8,
+            "show_sale_badge": true,
+            "sale_badge_text": "Sale",
+            "media_position": "left"
           }
         },
-        "title": {
-          "type": "title",
+        "product-details-static": {
+          "type": "product-details",
+          "static": true,
           "settings": {
-          }
-        },
-        "price": {
-          "type": "price",
-          "settings": {
-          }
-        },
-        "variants": {
-          "type": "variants",
-          "settings": {
-            "variant_type": "pills"
-          }
-        },
-        "quantity_selector": {
-          "type": "quantity",
-          "settings": {
-          }
-        },
-        "buy_buttons": {
-          "type": "buy_buttons",
-          "settings": {
-            "enable_dynamic_button": true
-          }
+            "details_position": "right",
+            "block_gap": 20
+          },
+          "blocks": {
+            "title-static": {
+              "type": "product-title",
+              "static": true,
+              "settings": {
+                "show_vendor": false,
+                "title_size": 36,
+                "show_rating": true,
+                "reviews_label": "reviews"
+              }
+            },
+            "price-static": {
+              "type": "product-price",
+              "static": true,
+              "settings": {
+                "price_size": 28,
+                "show_savings": true,
+                "savings_label": "Save",
+                "show_tax_note": false,
+                "tax_note": "Tax included. Shipping calculated at checkout."
+              }
+            },
+            "variants-static": {
+              "type": "product-variants",
+              "static": true,
+              "settings": {
+                "variant_style": "pills"
+              }
+            },
+            "description-static": {
+              "type": "product-description",
+              "static": true,
+              "settings": {
+                "font_size": 15,
+                "collapsible": false,
+                "collapsed_lines": 4,
+                "label_more": "Read more",
+                "label_less": "Read less"
+              }
+            },
+            "buttons-static": {
+              "type": "product-buy-buttons",
+              "static": true,
+              "settings": {
+                "atc_label": "Add to Cart",
+                "btn_padding": 16,
+                "btn_font_size": 16,
+                "show_cart_icon": true,
+                "show_dynamic_btn": true,
+                "show_quantity": true,
+                "qty_label": "Quantity",
+                "show_sku": false,
+                "sku_label": "SKU",
+                "trust_layout": "vertical",
+                "benefit_1_icon": "shipping",
+                "benefit_1_text": "Free shipping over $150",
+                "benefit_2_icon": "return",
+                "benefit_2_text": "30-day returns",
+                "benefit_3_icon": "shield",
+                "benefit_3_text": "2-year warranty"
+              }
+            },
+            "accordion-static": {
+              "type": "product-accordion",
+              "static": true,
+              "settings": {
+                "heading": "Product details",
+                "content": "<p>Share details about this product here.<\/p>",
+                "heading_size": 15,
+                "content_size": 14,
+                "open_by_default": false
+              }
+            }
+          },
+          "block_order": []
         }
       },
-      "block_order": [
-        "vendor",
-        "title",
-        "price",
-        "variants",
-        "quantity_selector",
-        "buy_buttons"
-      ],
+      "block_order": [],
       "settings": {
+        "color_bg": "#ffffff",
+        "color_text": "#111111",
+        "color_secondary_text": "#6b7280",
+        "color_border": "#e5e7eb",
+        "color_btn_bg": "#111111",
+        "color_btn_text": "#ffffff",
+        "color_price": "#111111",
+        "color_accent": "#b45309",
+        "color_badge_bg": "#111111",
+        "color_badge_text": "#ffffff",
+        "layout": "media-left",
+        "max_width": 1400,
+        "column_gap": 48,
+        "padding_top": 32,
+        "padding_bottom": 80,
+        "show_breadcrumb": true,
+        "label_home": "Home",
+        "label_shop": "Shop",
+        "breadcrumb_sep": "/"
       }
     },
-    "recommended-product": {
+    "recommended-products": {
       "type": "recommended-products",
       "settings": {
         "limit": 4
@@ -65,13 +132,12 @@
     },
     "recently_viewed_DLHzrN": {
       "type": "recently-viewed",
-      "settings": {
-      }
+      "settings": {}
     }
   },
   "order": [
     "main-product",
-    "recommended-product",
+    "recommended-products",
     "recently_viewed_DLHzrN"
   ]
 }

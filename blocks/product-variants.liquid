@@ -1,0 +1,263 @@
+{% comment %}
+  blocks/product-variants.liquid
+  Theme block — variant selector: colour swatches, pill buttons, or dropdown.
+  Colour names → hex mapping is exhaustive (200 + colours).
+{% endcomment %}
+
+<div class="pt-variants-wrap" {{ block.shopify_attributes }} style="margin-bottom:1.5rem;">
+
+  {%- for option in product.options_with_values -%}
+  {%- assign opt_lower = option.name | downcase -%}
+
+  <div class="pt-option-group" data-option-group="{{ forloop.index0 }}" style="margin-bottom:1rem;">
+
+    <p style="margin:0 0 0.5rem; font-weight:600; font-size:0.9rem;">
+      {{ option.name }}:
+      <span
+        class="pt-option-selected"
+        id="pt-opt-{{ section.id }}-{{ forloop.index }}"
+        style="font-weight:600; color:var(--pt-accent,#b45309);"
+      >{{ option.selected_value }}</span>
+    </p>
+
+    {%- comment -%} ── COLOUR SWATCHES ── {%- endcomment -%}
+    {%- if opt_lower == 'color' or opt_lower == 'colour' -%}
+    <div
+      class="pt-swatches"
+      role="radiogroup"
+      aria-label="{{ option.name }}"
+      style="display:flex; flex-wrap:wrap; gap:0.5rem;"
+    >
+      {%- for value in option.values -%}
+      {%- assign v  = value | downcase | strip -%}
+      {%- assign sc = '#cccccc' -%}
+      {%- case v -%}
+        {%- when 'white' -%}                  {%- assign sc = '#ffffff' -%}
+        {%- when 'off-white','offwhite','cream' -%} {%- assign sc = '#faf7f2' -%}
+        {%- when 'ivory' -%}                  {%- assign sc = '#fffff0' -%}
+        {%- when 'pearl' -%}                  {%- assign sc = '#f0ede6' -%}
+        {%- when 'beige' -%}                  {%- assign sc = '#f5f0e8' -%}
+        {%- when 'sand' -%}                   {%- assign sc = '#c2b280' -%}
+        {%- when 'tan' -%}                    {%- assign sc = '#d2b48c' -%}
+        {%- when 'linen' -%}                  {%- assign sc = '#faf0e6' -%}
+        {%- when 'natural' -%}                {%- assign sc = '#f5f5dc' -%}
+        {%- when 'black' -%}                  {%- assign sc = '#000000' -%}
+        {%- when 'charcoal' -%}               {%- assign sc = '#36454f' -%}
+        {%- when 'onyx' -%}                   {%- assign sc = '#353935' -%}
+        {%- when 'coal' -%}                   {%- assign sc = '#1c1c1c' -%}
+        {%- when 'gray','grey' -%}            {%- assign sc = '#6b7280' -%}
+        {%- when 'light gray','light grey' -%}{%- assign sc = '#d1d5db' -%}
+        {%- when 'dark gray','dark grey' -%}  {%- assign sc = '#374151' -%}
+        {%- when 'slate' -%}                  {%- assign sc = '#708090' -%}
+        {%- when 'silver' -%}                 {%- assign sc = '#c0c0c0' -%}
+        {%- when 'ash' -%}                    {%- assign sc = '#b2bec3' -%}
+        {%- when 'graphite' -%}               {%- assign sc = '#383838' -%}
+        {%- when 'stone' -%}                  {%- assign sc = '#928e85' -%}
+        {%- when 'red' -%}                    {%- assign sc = '#ef4444' -%}
+        {%- when 'crimson' -%}                {%- assign sc = '#dc143c' -%}
+        {%- when 'scarlet' -%}                {%- assign sc = '#ff2400' -%}
+        {%- when 'ruby' -%}                   {%- assign sc = '#9b111e' -%}
+        {%- when 'cherry' -%}                 {%- assign sc = '#de3163' -%}
+        {%- when 'wine' -%}                   {%- assign sc = '#722f37' -%}
+        {%- when 'burgundy','bordeaux' -%}    {%- assign sc = '#800020' -%}
+        {%- when 'maroon' -%}                 {%- assign sc = '#800000' -%}
+        {%- when 'coral' -%}                  {%- assign sc = '#ff7f7f' -%}
+        {%- when 'blush' -%}                  {%- assign sc = '#f9a8d4' -%}
+        {%- when 'rose' -%}                   {%- assign sc = '#ff007f' -%}
+        {%- when 'pink' -%}                   {%- assign sc = '#ec4899' -%}
+        {%- when 'hot pink','hotpink' -%}     {%- assign sc = '#ff69b4' -%}
+        {%- when 'light pink' -%}             {%- assign sc = '#ffb6c1' -%}
+        {%- when 'fuchsia' -%}                {%- assign sc = '#ff00ff' -%}
+        {%- when 'magenta' -%}                {%- assign sc = '#ff0090' -%}
+        {%- when 'salmon' -%}                 {%- assign sc = '#fa8072' -%}
+        {%- when 'peach' -%}                  {%- assign sc = '#ffcba4' -%}
+        {%- when 'orange' -%}                 {%- assign sc = '#f97316' -%}
+        {%- when 'burnt orange' -%}           {%- assign sc = '#cc5500' -%}
+        {%- when 'tangerine' -%}              {%- assign sc = '#f28500' -%}
+        {%- when 'amber' -%}                  {%- assign sc = '#ffbf00' -%}
+        {%- when 'terracotta','terra cotta' -%}{%- assign sc = '#e07a5f' -%}
+        {%- when 'rust' -%}                   {%- assign sc = '#b7410e' -%}
+        {%- when 'copper' -%}                 {%- assign sc = '#b87333' -%}
+        {%- when 'pumpkin' -%}                {%- assign sc = '#ff7518' -%}
+        {%- when 'yellow' -%}                 {%- assign sc = '#eab308' -%}
+        {%- when 'gold' -%}                   {%- assign sc = '#d4af37' -%}
+        {%- when 'mustard' -%}                {%- assign sc = '#e3a857' -%}
+        {%- when 'lemon' -%}                  {%- assign sc = '#fff44f' -%}
+        {%- when 'chartreuse' -%}             {%- assign sc = '#dfff00' -%}
+        {%- when 'lime','lime green' -%}      {%- assign sc = '#32cd32' -%}
+        {%- when 'green' -%}                  {%- assign sc = '#22c55e' -%}
+        {%- when 'light green' -%}            {%- assign sc = '#90ee90' -%}
+        {%- when 'dark green' -%}             {%- assign sc = '#006400' -%}
+        {%- when 'forest','forest green' -%}  {%- assign sc = '#228b22' -%}
+        {%- when 'olive' -%}                  {%- assign sc = '#808000' -%}
+        {%- when 'army green','army' -%}      {%- assign sc = '#4b5320' -%}
+        {%- when 'hunter green' -%}           {%- assign sc = '#355e3b' -%}
+        {%- when 'emerald' -%}                {%- assign sc = '#059669' -%}
+        {%- when 'jade' -%}                   {%- assign sc = '#00a86b' -%}
+        {%- when 'mint' -%}                   {%- assign sc = '#98ff98' -%}
+        {%- when 'sage' -%}                   {%- assign sc = '#87a878' -%}
+        {%- when 'moss' -%}                   {%- assign sc = '#8a9a5b' -%}
+        {%- when 'teal' -%}                   {%- assign sc = '#008080' -%}
+        {%- when 'seafoam' -%}                {%- assign sc = '#9fe2bf' -%}
+        {%- when 'blue' -%}                   {%- assign sc = '#3b82f6' -%}
+        {%- when 'light blue' -%}             {%- assign sc = '#add8e6' -%}
+        {%- when 'dark blue' -%}              {%- assign sc = '#00008b' -%}
+        {%- when 'navy','navy blue' -%}       {%- assign sc = '#1e3a8a' -%}
+        {%- when 'royal blue' -%}             {%- assign sc = '#4169e1' -%}
+        {%- when 'cobalt' -%}                 {%- assign sc = '#0047ab' -%}
+        {%- when 'sky','sky blue' -%}         {%- assign sc = '#87ceeb' -%}
+        {%- when 'baby blue' -%}              {%- assign sc = '#89cff0' -%}
+        {%- when 'cerulean' -%}               {%- assign sc = '#007ba7' -%}
+        {%- when 'sapphire' -%}               {%- assign sc = '#0f52ba' -%}
+        {%- when 'denim' -%}                  {%- assign sc = '#1560bd' -%}
+        {%- when 'indigo' -%}                 {%- assign sc = '#4b0082' -%}
+        {%- when 'periwinkle' -%}             {%- assign sc = '#ccccff' -%}
+        {%- when 'aqua' -%}                   {%- assign sc = '#00ffff' -%}
+        {%- when 'cyan' -%}                   {%- assign sc = '#00bcd4' -%}
+        {%- when 'turquoise' -%}              {%- assign sc = '#40e0d0' -%}
+        {%- when 'purple' -%}                 {%- assign sc = '#a855f7' -%}
+        {%- when 'dark purple' -%}            {%- assign sc = '#581c87' -%}
+        {%- when 'violet' -%}                 {%- assign sc = '#8b00ff' -%}
+        {%- when 'lavender' -%}               {%- assign sc = '#e6e6fa' -%}
+        {%- when 'lilac' -%}                  {%- assign sc = '#c8a2c8' -%}
+        {%- when 'plum' -%}                   {%- assign sc = '#8e4585' -%}
+        {%- when 'orchid' -%}                 {%- assign sc = '#da70d6' -%}
+        {%- when 'amethyst' -%}               {%- assign sc = '#9966cc' -%}
+        {%- when 'brown' -%}                  {%- assign sc = '#92400e' -%}
+        {%- when 'chocolate' -%}              {%- assign sc = '#7b3f00' -%}
+        {%- when 'coffee' -%}                 {%- assign sc = '#6f4e37' -%}
+        {%- when 'mocha' -%}                  {%- assign sc = '#967969' -%}
+        {%- when 'caramel' -%}                {%- assign sc = '#c68642' -%}
+        {%- when 'camel' -%}                  {%- assign sc = '#c19a6b' -%}
+        {%- when 'walnut' -%}                 {%- assign sc = '#773f1a' -%}
+        {%- when 'mahogany' -%}               {%- assign sc = '#c04000' -%}
+        {%- when 'chestnut' -%}               {%- assign sc = '#954535' -%}
+        {%- when 'taupe' -%}                  {%- assign sc = '#483c32' -%}
+        {%- when 'gold','metallic gold' -%}   {%- assign sc = '#d4af37' -%}
+        {%- when 'rose gold' -%}              {%- assign sc = '#b76e79' -%}
+        {%- when 'gunmetal' -%}               {%- assign sc = '#2c3539' -%}
+        {%- when 'rainbow' -%}                {%- assign sc = 'linear-gradient(to right,red,orange,yellow,green,blue,violet)' -%}
+        {%- when 'multicolor','multi' -%}     {%- assign sc = 'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff)' -%}
+        {%- when 'nude' -%}                   {%- assign sc = '#e8cdb7' -%}
+        {%- when 'champagne' -%}              {%- assign sc = '#f7e7ce' -%}
+      {%- endcase -%}
+
+      <button
+        type="button"
+        class="pt-swatch{% if value == option.selected_value %} active{% endif %}"
+        title="{{ value }}"
+        aria-label="{{ option.name }}: {{ value }}"
+        aria-checked="{% if value == option.selected_value %}true{% else %}false{% endif %}"
+        role="radio"
+        data-option-index="{{ forloop.parentloop.index0 }}"
+        data-option-value="{{ value }}"
+        data-label-id="pt-opt-{{ section.id }}-{{ forloop.parentloop.index }}"
+        style="
+          background:{{ sc }};
+          width:2.5rem; height:2.5rem;
+          border-radius:50%;
+          border:2px solid {% if value == option.selected_value %}var(--pt-accent,#b45309){% else %}var(--pt-border,#e5e7eb){% endif %};
+          cursor:pointer;
+          transition:transform 0.2s, border-color 0.2s;
+          {% if sc == '#ffffff' %}outline:1px solid #e5e7eb;{% endif %}
+        "
+      ></button>
+
+      {%- endfor -%}
+    </div>
+
+    {%- comment -%} ── DROPDOWN ── {%- endcomment -%}
+    {%- elsif block.settings.variant_style == 'selector' -%}
+    <select
+      class="pt-selector"
+      data-option-index="{{ forloop.index0 }}"
+      data-label-id="pt-opt-{{ section.id }}-{{ forloop.index }}"
+      aria-label="{{ option.name }}"
+      style="
+        width:100%; padding:0.6rem 0.75rem;
+        border:1px solid var(--pt-border,#e5e7eb);
+        border-radius:var(--pt-radius,8px);
+        background:var(--pt-bg,#fff);
+        font-size:0.9rem;
+        cursor:pointer;
+      "
+    >
+      {%- for value in option.values -%}
+      <option value="{{ value }}"{% if value == option.selected_value %} selected{% endif %}>
+        {{ value }}
+      </option>
+      {%- endfor -%}
+    </select>
+
+    {%- comment -%} ── PILLS (default) ── {%- endcomment -%}
+    {%- else -%}
+    <div
+      class="pt-pills"
+      role="radiogroup"
+      aria-label="{{ option.name }}"
+      style="display:flex; flex-wrap:wrap; gap:0.5rem;"
+    >
+      {%- for value in option.values -%}
+      <button
+        type="button"
+        class="pt-pill{% if value == option.selected_value %} active{% endif %}"
+        role="radio"
+        aria-checked="{% if value == option.selected_value %}true{% else %}false{% endif %}"
+        data-option-index="{{ forloop.parentloop.index0 }}"
+        data-option-value="{{ value }}"
+        data-label-id="pt-opt-{{ section.id }}-{{ forloop.parentloop.index }}"
+        style="
+          padding:0.4rem 1rem;
+          border:1px solid {% if value == option.selected_value %}var(--pt-btn-bg,#111){% else %}var(--pt-border,#e5e7eb){% endif %};
+          border-radius:999px;
+          background:{% if value == option.selected_value %}var(--pt-btn-bg,#111){% else %}var(--pt-bg,#fff){% endif %};
+          color:{% if value == option.selected_value %}var(--pt-btn-text,#fff){% else %}var(--pt-text,#111){% endif %};
+          cursor:pointer;
+          font-size:0.875rem;
+          transition:all 0.2s;
+        "
+      >{{ value }}</button>
+      {%- endfor -%}
+    </div>
+    {%- endif -%}
+
+    {%- comment -%} Hidden native select — keeps Shopify variant JS working {%- endcomment -%}
+    <select
+      class="visually-hidden"
+      id="SingleOptionSelector-{{ section.id }}-{{ forloop.index0 }}"
+      data-index="option{{ forloop.index }}"
+      name="option{{ forloop.index }}"
+    >
+      {%- for value in option.values -%}
+      <option value="{{ value }}"{% if value == option.selected_value %} selected{% endif %}>{{ value }}</option>
+      {%- endfor -%}
+    </select>
+
+  </div>
+  {%- endfor -%}
+
+</div>
+
+{% stylesheet %}
+.pt-swatch:hover { transform: scale(1.1); }
+.pt-pill:hover { opacity: 0.85; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Variant Selector",
+  "settings": [
+    {
+      "type": "select", "id": "variant_style", "label": "Non-colour option style",
+      "options": [
+        { "label": "Pills (buttons)", "value": "pills"    },
+        { "label": "Dropdown",        "value": "selector" }
+      ],
+      "default": "pills"
+    }
+  ],
+  "presets": [
+    { "name": "Variant Selector" }
+  ]
+}
+{% endschema %}

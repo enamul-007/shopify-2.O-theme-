@@ -1,89 +1,92 @@
-{%- assign product = section.settings.product -%}
+{% comment %}
+  blocks/product-description.liquid
+  Theme block — product description with optional "Read more / Read less" collapse.
+{% endcomment %}
 
-{%- style -%}
-  #block-{{ block.id }} {
-    padding-bottom: {{ block.settings.padding_bottom }}px;
-  }
+{%- if product.description != blank -%}
+<div class="pt-description-wrap" {{ block.shopify_attributes }} style="margin-bottom:1rem;">
 
-  #block-{{ block.id }} .hp-desc__text {
-    font-size: {{ block.settings.text_size }}px;
-    line-height: {{ block.settings.line_height }};
-    color: {{ block.settings.text_color }};
-    margin: 0;
-  }
-{%- endstyle -%}
-
-{%- if block.settings.show_description -%}
-  <div id="block-{{ block.id }}" {{ block.shopify_attributes }}>
-    {%- if product != blank and product.description != blank -%}
-      <p class="hp-desc__text">
-        {{ product.description | strip_html | truncate: block.settings.description_length }}
-      </p>
-    {%- elsif product == blank -%}
-      <p class="hp-desc__text">Product description will appear here. Select a product to display its description.</p>
-    {%- endif -%}
+  <div
+    class="pt-desc rte{% if block.settings.collapsible %} pt-desc--collapsible{% endif %}"
+    id="pt-desc-{{ block.id }}"
+    style="
+      line-height:1.7;
+      font-size:{{ block.settings.font_size }}px;
+      {% if block.settings.collapsible %}
+        display:-webkit-box;
+        -webkit-line-clamp:{{ block.settings.collapsed_lines }};
+        -webkit-box-orient:vertical;
+        overflow:hidden;
+      {% endif %}
+    "
+  >
+    {{ product.description }}
   </div>
-{%- else -%}
-  <div id="block-{{ block.id }}" style="display:none;" {{ block.shopify_attributes }}></div>
+
+  {%- if block.settings.collapsible -%}
+  <button
+    type="button"
+    class="pt-read-more"
+    data-desc-id="pt-desc-{{ block.id }}"
+    data-label-more="{{ block.settings.label_more | default: 'Read more' }}"
+    data-label-less="{{ block.settings.label_less | default: 'Read less' }}"
+    style="
+      background:none; border:none;
+      color:var(--pt-accent,#b45309);
+      cursor:pointer;
+      font-size:0.875rem;
+      padding:0.4rem 0;
+      margin-top:0.25rem;
+      display:inline-flex; align-items:center; gap:0.3rem;
+    "
+  >
+    {{ block.settings.label_more | default: 'Read more' }}
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"
+      style="width:14px; height:14px;" class="pt-read-more-icon">
+      <polyline points="4 6 8 10 12 6"/>
+    </svg>
+  </button>
+  {%- endif -%}
+
+</div>
 {%- endif -%}
+
+{% javascript %}
+document.querySelectorAll('.pt-read-more').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var descId = btn.getAttribute('data-desc-id');
+    var desc   = document.getElementById(descId);
+    var icon   = btn.querySelector('.pt-read-more-icon');
+    var expanded = desc.classList.toggle('pt-desc--expanded');
+    if (expanded) {
+      desc.style.display = 'block';
+      desc.style.webkitLineClamp = 'unset';
+      desc.style.overflow = 'visible';
+      btn.childNodes[0].textContent = btn.getAttribute('data-label-less') + ' ';
+      if (icon) icon.style.transform = 'rotate(180deg)';
+    } else {
+      desc.style.display = '-webkit-box';
+      desc.style.webkitLineClamp = '';
+      desc.style.overflow = 'hidden';
+      btn.childNodes[0].textContent = btn.getAttribute('data-label-more') + ' ';
+      if (icon) icon.style.transform = '';
+    }
+  });
+});
+{% endjavascript %}
 
 {% schema %}
 {
-  "name": "Description",
+  "name": "Product Description",
   "settings": [
-    {
-      "type": "checkbox",
-      "id": "show_description",
-      "label": "Show description",
-      "default": true
-    },
-    {
-      "type": "range",
-      "id": "description_length",
-      "label": "Max characters",
-      "min": 50,
-      "max": 400,
-      "step": 10,
-      "default": 180
-    },
-    {
-      "type": "range",
-      "id": "text_size",
-      "label": "Text size",
-      "min": 12,
-      "max": 18,
-      "step": 1,
-      "unit": "px",
-      "default": 14
-    },
-    {
-      "type": "range",
-      "id": "line_height",
-      "label": "Line height",
-      "min": 1.3,
-      "max": 2.0,
-      "step": 0.1,
-      "default": 1.7
-    },
-    {
-      "type": "color",
-      "id": "text_color",
-      "label": "Text color",
-      "default": "#555555"
-    },
-    {
-      "type": "range",
-      "id": "padding_bottom",
-      "label": "Space below",
-      "min": 0,
-      "max": 40,
-      "step": 4,
-      "unit": "px",
-      "default": 16
-    }
+    { "type": "range",    "id": "font_size",       "label": "Font size (px)",           "min": 12, "max": 20, "step": 1, "default": 15 },
+    { "type": "checkbox", "id": "collapsible",      "label": "Collapse long description","default": false },
+    { "type": "range",    "id": "collapsed_lines",  "label": "Visible lines (collapsed)","min": 2, "max": 10, "step": 1, "default": 4 },
+    { "type": "text",     "id": "label_more",       "label": "Read more label",          "default": "Read more" },
+    { "type": "text",     "id": "label_less",       "label": "Read less label",          "default": "Read less" }
   ],
   "presets": [
-    { "name": "Description" }
+    { "name": "Product Description" }
   ]
 }
 {% endschema %}

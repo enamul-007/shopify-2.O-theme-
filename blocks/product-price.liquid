@@ -1,0 +1,78 @@
+{% comment %}
+  blocks/product-price.liquid
+  Theme block — price, compare-at price, savings badge, tax note.
+  IDs include section.id so multiple sections on the same page don't conflict.
+{% endcomment %}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign on_sale = false
+  if product.compare_at_price > product.price
+    assign on_sale = true
+  endif
+  assign disc = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price
+-%}
+
+<div class="pt-price-wrap" {{ block.shopify_attributes }} style="margin-bottom:1rem;">
+
+  <div style="display:flex; align-items:baseline; flex-wrap:wrap; gap:0.5rem;">
+
+    <span
+      class="pt-price"
+      id="pt-price-{{ section.id }}"
+      style="font-size:{{ block.settings.price_size }}px; font-weight:700; color:var(--pt-price,#111);"
+    >
+      {{ current_variant.price | money_with_currency }}
+    </span>
+
+    <span
+      class="pt-compare-price"
+      id="pt-compare-price-{{ section.id }}"
+      style="font-size:1rem; color:var(--pt-mid,#6b7280); text-decoration:line-through;{% unless on_sale %} display:none;{% endunless %}"
+    >
+      {{ product.compare_at_price | money_with_currency }}
+    </span>
+
+    {%- if block.settings.show_savings -%}
+    <span
+      class="pt-discount-badge"
+      id="pt-discount-badge-{{ section.id }}"
+      style="
+        background:var(--pt-accent,#b45309);
+        color:#fff;
+        padding:0.2rem 0.6rem;
+        border-radius:999px;
+        font-size:0.75rem;
+        font-weight:700;
+        {% unless on_sale %}display:none;{% endunless %}
+      "
+    >
+      {{ block.settings.savings_label | default: 'Save' }} {{ disc }}%
+    </span>
+    {%- endif -%}
+
+  </div>
+
+  {%- if block.settings.show_tax_note -%}
+  <p style="font-size:0.75rem; color:var(--pt-mid,#6b7280); margin:0.5rem 0 0;">
+    {{ block.settings.tax_note | default: 'Tax included. Shipping calculated at checkout.' }}
+  </p>
+  {%- endif -%}
+
+</div>
+
+{% schema %}
+{
+  "name": "Product Price",
+  "settings": [
+    { "type": "range",    "id": "price_size",    "label": "Price font size (px)", "min": 16, "max": 48, "step": 2, "default": 28 },
+    { "type": "checkbox", "id": "show_savings",  "label": "Show savings badge",   "default": true  },
+    { "type": "text",     "id": "savings_label", "label": "Savings prefix",       "default": "Save" },
+    { "type": "checkbox", "id": "show_tax_note", "label": "Show tax/shipping note","default": false  },
+    { "type": "text",     "id": "tax_note",      "label": "Tax note text",        "default": "Tax included. Shipping calculated at checkout." }
+  ],
+  "presets": [
+    { "name": "Product Price" }
+  ]
+}
+{% endschema %}

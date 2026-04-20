@@ -1,0 +1,77 @@
+{% comment %}
+  blocks/vendor.liquid
+  Theme block — displays the product vendor name with optional link.
+{% endcomment %}
+
+{%- if product.vendor != blank -%}
+<div class="pt-vendor-wrap" {{ block.shopify_attributes }} style="margin-bottom:{{ block.settings.margin_bottom }}px;">
+
+  {%- if block.settings.show_label -%}
+  <span style="font-size:{{ block.settings.font_size | minus: 1 }}px; color:var(--pt-mid, #6b7280); text-transform:uppercase; letter-spacing:0.08em; margin-right:0.35rem;">
+    {{ block.settings.label | default: 'Brand' }}:
+  </span>
+  {%- endif -%}
+
+  {%- if block.settings.link_to_vendor -%}
+    <a
+      href="/collections/vendors?q={{ product.vendor | url_encode }}"
+      style="
+        font-size:{{ block.settings.font_size }}px;
+        font-weight:{{ block.settings.font_weight }};
+        color:var(--pt-accent, #b45309);
+        text-decoration:none;
+        text-transform:{{ block.settings.text_transform }};
+      "
+    >
+      {{ product.vendor }}
+    </a>
+  {%- else -%}
+    <span
+      style="
+        font-size:{{ block.settings.font_size }}px;
+        font-weight:{{ block.settings.font_weight }};
+        color:var(--pt-mid, #6b7280);
+        text-transform:{{ block.settings.text_transform }};
+      "
+    >
+      {{ product.vendor }}
+    </span>
+  {%- endif -%}
+
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Vendor",
+  "settings": [
+    { "type": "checkbox", "id": "show_label",    "label": "Show label",          "default": false  },
+    { "type": "text",     "id": "label",          "label": "Label text",          "default": "Brand" },
+    { "type": "checkbox", "id": "link_to_vendor", "label": "Link to vendor page", "default": true   },
+    { "type": "range",    "id": "font_size",      "label": "Font size (px)",      "min": 11, "max": 20, "step": 1, "default": 13 },
+    {
+      "type": "select", "id": "font_weight", "label": "Font weight",
+      "options": [
+        { "label": "Regular",  "value": "400" },
+        { "label": "Medium",   "value": "500" },
+        { "label": "SemiBold", "value": "600" },
+        { "label": "Bold",     "value": "700" }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "select", "id": "text_transform", "label": "Text transform",
+      "options": [
+        { "label": "None",       "value": "none"       },
+        { "label": "Uppercase",  "value": "uppercase"  },
+        { "label": "Capitalize", "value": "capitalize" }
+      ],
+      "default": "uppercase"
+    },
+    { "type": "range", "id": "margin_bottom", "label": "Margin bottom (px)", "min": 0, "max": 32, "step": 4, "default": 8 }
+  ],
+  "presets": [
+    { "name": "Vendor" }
+  ]
+}
+{% endschema %}

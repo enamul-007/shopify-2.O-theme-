@@ -1,0 +1,262 @@
+{% comment %}
+  blocks/product-buy-buttons.liquid
+  Theme block — Add to Cart button + optional dynamic checkout button.
+  Also includes quantity stepper, trust icons strip, and SKU line —
+  all togglable via block settings so the merchant has one tidy block
+  rather than hunting across separate blocks.
+{% endcomment %}
+
+<div class="pt-buy-wrap" {{ block.shopify_attributes }} style="margin-bottom:1.25rem;">
+
+  {%- comment -%} ── QUANTITY STEPPER ── {%- endcomment -%}
+  {%- if block.settings.show_quantity -%}
+  <div class="pt-qty-wrap" style="margin-bottom:1rem;">
+    <label
+      for="pt-qty-{{ section.id }}"
+      style="display:block; margin-bottom:0.4rem; font-weight:600; font-size:0.875rem;"
+    >
+      {{ block.settings.qty_label | default: 'Quantity' }}
+    </label>
+    <div style="display:flex; align-items:center; gap:0.5rem; max-width:160px;">
+      <button
+        type="button"
+        class="pt-qty-btn pt-qty-minus"
+        aria-label="Decrease quantity"
+        style="
+          width:2.25rem; height:2.25rem;
+          border:1px solid var(--pt-border,#e5e7eb);
+          border-radius:var(--pt-radius,8px);
+          background:var(--pt-bg,#fff);
+          cursor:pointer;
+          display:flex; align-items:center; justify-content:center;
+        "
+      >
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"
+          style="width:14px;height:14px;"><line x1="3" y1="8" x2="13" y2="8"/></svg>
+      </button>
+      <input
+        type="number"
+        name="quantity"
+        id="pt-qty-{{ section.id }}"
+        value="1" min="1"
+        class="pt-qty-input"
+        aria-label="Quantity"
+        style="
+          width:56px; text-align:center;
+          padding:0.4rem;
+          border:1px solid var(--pt-border,#e5e7eb);
+          border-radius:var(--pt-radius,8px);
+          background:var(--pt-bg,#fff);
+          font-size:0.9rem;
+        "
+      >
+      <button
+        type="button"
+        class="pt-qty-btn pt-qty-plus"
+        aria-label="Increase quantity"
+        style="
+          width:2.25rem; height:2.25rem;
+          border:1px solid var(--pt-border,#e5e7eb);
+          border-radius:var(--pt-radius,8px);
+          background:var(--pt-bg,#fff);
+          cursor:pointer;
+          display:flex; align-items:center; justify-content:center;
+        "
+      >
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"
+          style="width:14px;height:14px;">
+          <line x1="8" y1="3" x2="8" y2="13"/>
+          <line x1="3" y1="8" x2="13" y2="8"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  {%- endif -%}
+
+  {%- comment -%} ── ADD TO CART ── {%- endcomment -%}
+  <button
+    type="submit"
+    name="add"
+    class="pt-btn-cart"
+    id="pt-add-{{ section.id }}"
+    style="
+      width:100%;
+      padding:{{ block.settings.btn_padding }}px 1.5rem;
+      background:var(--pt-btn-bg,#111);
+      color:var(--pt-btn-text,#fff);
+      border:none;
+      border-radius:var(--pt-radius,8px);
+      font-size:{{ block.settings.btn_font_size }}px;
+      font-weight:700;
+      cursor:pointer;
+      transition:opacity 0.2s;
+      display:flex; align-items:center; justify-content:center; gap:0.5rem;
+    "
+  >
+    {%- if block.settings.show_cart_icon -%}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      style="width:20px;height:20px; flex-shrink:0;">
+      <circle cx="9" cy="21" r="1"/>
+      <circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+    {%- endif -%}
+    <span class="pt-btn-text">{{ block.settings.atc_label | default: 'Add to Cart' }}</span>
+  </button>
+
+  {%- comment -%} ── DYNAMIC CHECKOUT (Buy Now) ── {%- endcomment -%}
+  {%- if block.settings.show_dynamic_btn -%}
+  <div style="margin-top:0.75rem;">
+    {{ form | payment_button }}
+  </div>
+  {%- endif -%}
+
+  {%- comment -%} ── SKU ── {%- endcomment -%}
+  {%- if block.settings.show_sku -%}
+  {%- liquid assign current_variant = product.selected_or_first_available_variant -%}
+  <p
+    style="margin:0.75rem 0 0; font-size:0.8rem; color:var(--pt-mid,#6b7280);"
+    id="pt-sku-wrap-{{ section.id }}"
+  >
+    {{ block.settings.sku_label | default: 'SKU' }}:
+    <span id="pt-sku-{{ section.id }}">{{ current_variant.sku | default: 'N/A' }}</span>
+  </p>
+  {%- endif -%}
+
+  {%- comment -%} ── TRUST ICONS ── {%- endcomment -%}
+  {%- if block.settings.benefit_1_text != blank
+       or block.settings.benefit_2_text != blank
+       or block.settings.benefit_3_text != blank -%}
+  <div
+    class="pt-trust"
+    style="
+      margin-top:1rem;
+      padding:0.875rem 1rem;
+      border:1px solid var(--pt-border,#e5e7eb);
+      border-radius:var(--pt-radius,8px);
+      display:flex;
+      flex-direction:{% if block.settings.trust_layout == 'horizontal' %}row; flex-wrap:wrap{% else %}column{% endif %};
+      gap:0.6rem;
+    "
+  >
+    {%- for i in (1..3) -%}
+      {%- assign text_key = 'benefit_' | append: i | append: '_text' -%}
+      {%- assign icon_key = 'benefit_' | append: i | append: '_icon' -%}
+      {%- assign btext = block.settings[text_key] -%}
+      {%- assign bicon = block.settings[icon_key] -%}
+      {%- if btext != blank -%}
+      <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem;">
+        {%- case bicon -%}
+        {%- when 'shipping' -%}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px;flex-shrink:0;">
+            <rect x="1" y="3" width="15" height="13"/>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+            <circle cx="5.5" cy="18.5" r="2.5"/>
+            <circle cx="18.5" cy="18.5" r="2.5"/>
+          </svg>
+        {%- when 'return' -%}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px;flex-shrink:0;">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 .49-3.6"/>
+          </svg>
+        {%- when 'shield' -%}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px;flex-shrink:0;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        {%- when 'lock' -%}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px;flex-shrink:0;">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        {%- when 'star' -%}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px;flex-shrink:0;">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        {%- endcase -%}
+        <span>{{ btext }}</span>
+      </div>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+  {%- endif -%}
+
+</div>
+
+{% comment %}
+  ============================================================
+  IMPORTANT: The quantity stepper now relies on your external
+  JavaScript (the big IIFE that listens for .pt-qty-btn clicks).
+  Do NOT add any inline JavaScript here – it would conflict.
+  ============================================================
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "Buy Buttons",
+  "settings": [
+    { "type": "header",   "content": "🛒 Add to Cart" },
+    { "type": "text",     "id": "atc_label",        "label": "Button label",          "default": "Add to Cart" },
+    { "type": "range",    "id": "btn_padding",       "label": "Button padding (px)",   "min": 10, "max": 24, "step": 2, "default": 16 },
+    { "type": "range",    "id": "btn_font_size",     "label": "Button font size (px)", "min": 13, "max": 22, "step": 1, "default": 16 },
+    { "type": "checkbox", "id": "show_cart_icon",    "label": "Show cart icon",         "default": true  },
+    { "type": "checkbox", "id": "show_dynamic_btn",  "label": "Show Buy Now button",    "default": true  },
+
+    { "type": "header",   "content": "🔢 Quantity" },
+    { "type": "checkbox", "id": "show_quantity",     "label": "Show quantity stepper",  "default": true  },
+    { "type": "text",     "id": "qty_label",         "label": "Quantity label",         "default": "Quantity" },
+
+    { "type": "header",   "content": "🏷️ SKU" },
+    { "type": "checkbox", "id": "show_sku",          "label": "Show SKU",               "default": false },
+    { "type": "text",     "id": "sku_label",         "label": "SKU label",              "default": "SKU" },
+
+    { "type": "header",   "content": "✅ Trust Icons" },
+    {
+      "type": "select", "id": "trust_layout", "label": "Layout",
+      "options": [
+        { "label": "Vertical",   "value": "vertical"   },
+        { "label": "Horizontal", "value": "horizontal" }
+      ],
+      "default": "vertical"
+    },
+    {
+      "type": "select", "id": "benefit_1_icon", "label": "Icon 1",
+      "options": [
+        { "label": "Truck",   "value": "shipping" },
+        { "label": "Return",  "value": "return"   },
+        { "label": "Shield",  "value": "shield"   },
+        { "label": "Lock",    "value": "lock"     },
+        { "label": "Star",    "value": "star"     }
+      ],
+      "default": "shipping"
+    },
+    { "type": "text", "id": "benefit_1_text", "label": "Benefit 1", "default": "Free shipping over $150" },
+    {
+      "type": "select", "id": "benefit_2_icon", "label": "Icon 2",
+      "options": [
+        { "label": "Truck",   "value": "shipping" },
+        { "label": "Return",  "value": "return"   },
+        { "label": "Shield",  "value": "shield"   },
+        { "label": "Lock",    "value": "lock"     },
+        { "label": "Star",    "value": "star"     }
+      ],
+      "default": "return"
+    },
+    { "type": "text", "id": "benefit_2_text", "label": "Benefit 2", "default": "30-day returns" },
+    {
+      "type": "select", "id": "benefit_3_icon", "label": "Icon 3",
+      "options": [
+        { "label": "Truck",   "value": "shipping" },
+        { "label": "Return",  "value": "return"   },
+        { "label": "Shield",  "value": "shield"   },
+        { "label": "Lock",    "value": "lock"     },
+        { "label": "Star",    "value": "star"     }
+      ],
+      "default": "shield"
+    },
+    { "type": "text", "id": "benefit_3_text", "label": "Benefit 3", "default": "2-year warranty" }
+  ],
+  "presets": [
+    { "name": "Buy Buttons" }
+  ]
+}
+{% endschema %}
