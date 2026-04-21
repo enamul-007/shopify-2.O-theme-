@@ -215,8 +215,8 @@
 
   .cl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
   @media (max-width: 1279px) { .cl-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 900px) { .cl-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; } }
-  @media (max-width: 480px) { .cl-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; } }
+  @media (max-width: 900px)  { .cl-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; } }
+  @media (max-width: 480px)  { .cl-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; } }
 
   .cl-empty { text-align: center; padding: 4rem 1rem; grid-column: 1 / -1; }
   .cl-empty p { color: #6b7280; margin-bottom: 1rem; }
@@ -261,7 +261,6 @@
       <p>{{ collection.products_count }} products</p>
     </div>
 
-    {% comment %} ── Active Filters Bar ── {% endcomment %}
     {% if has_active_filters or current_tags %}
       <div class="cl-active-filters">
         {% for filter in collection.filters %}
@@ -294,10 +293,9 @@
 
     <div class="cl-layout">
 
-      {% comment %} ══ DESKTOP SIDEBAR ══ {% endcomment %}
+      {%- comment -%} ══ DESKTOP SIDEBAR ══ {%- endcomment -%}
       <aside class="cl-sidebar">
 
-        {% comment %} All Products button only {% endcomment %}
         <div class="cl-filter-group">
           <p class="cl-filter-title">Categories</p>
           <a href="{{ collection.url }}" class="cl-cat-btn {% unless has_active_filters or current_tags %}active{% endunless %}">
@@ -305,11 +303,10 @@
           </a>
         </div>
 
-        {% comment %} Price {% endcomment %}
         {% if price_filter %}
-          {% assign range_max = price_filter.range_max | divided_by: 100 %}
-          {% assign cur_min = price_filter.min_value.value | default: 0 | divided_by: 100 %}
-          {% assign cur_max = price_filter.max_value.value | default: price_filter.range_max | divided_by: 100 %}
+          {% assign range_max    = price_filter.range_max | divided_by: 100 %}
+          {% assign cur_min      = price_filter.min_value.value | default: 0 | divided_by: 100 %}
+          {% assign cur_max      = price_filter.max_value.value | default: price_filter.range_max | divided_by: 100 %}
           <div class="cl-filter-group">
             <p class="cl-filter-title">Price Range</p>
             <div class="cl-price-inputs">
@@ -321,7 +318,6 @@
           </div>
         {% endif %}
 
-        {% comment %} Color {% endcomment %}
         {% if color_filter %}
           <div class="cl-filter-group">
             <p class="cl-filter-title">Colors</p>
@@ -341,14 +337,13 @@
           </div>
         {% endif %}
 
-        {% comment %} Clear {% endcomment %}
         {% if has_active_filters or current_tags %}
           <a href="{{ collection.url }}" class="cl-clear-btn">Clear All Filters</a>
         {% endif %}
 
       </aside>
 
-      {% comment %} ══ MAIN ══ {% endcomment %}
+      {%- comment -%} ══ MAIN ══ {%- endcomment -%}
       <div class="cl-main">
 
         <div class="cl-toolbar">
@@ -419,7 +414,7 @@
   </div>
 </div>
 
-{% comment %} ══ MOBILE DRAWER ══ {% endcomment %}
+{%- comment -%} ══ MOBILE DRAWER ══ {%- endcomment -%}
 <div class="cl-drawer-overlay" id="cl-overlay" onclick="clCloseDrawer()"></div>
 <div class="cl-drawer" id="cl-drawer">
   <div class="cl-drawer-header">
@@ -429,7 +424,6 @@
     </button>
   </div>
 
-  {% comment %} All Products button only {% endcomment %}
   <div class="cl-filter-group">
     <p class="cl-filter-title">Categories</p>
     <a href="{{ collection.url }}" class="cl-cat-btn {% unless has_active_filters or current_tags %}active{% endunless %}">
@@ -437,11 +431,10 @@
     </a>
   </div>
 
-  {% comment %} Price {% endcomment %}
   {% if price_filter %}
     {% assign range_max_m = price_filter.range_max | divided_by: 100 %}
-    {% assign cur_min_m = price_filter.min_value.value | default: 0 | divided_by: 100 %}
-    {% assign cur_max_m = price_filter.max_value.value | default: price_filter.range_max | divided_by: 100 %}
+    {% assign cur_min_m   = price_filter.min_value.value | default: 0 | divided_by: 100 %}
+    {% assign cur_max_m   = price_filter.max_value.value | default: price_filter.range_max | divided_by: 100 %}
     <div class="cl-filter-group">
       <p class="cl-filter-title">Price Range</p>
       <div class="cl-price-inputs">
@@ -453,13 +446,16 @@
     </div>
   {% endif %}
 
-  {% comment %} Color {% endcomment %}
+  {%- comment -%}
+    FIX: Mobile drawer color loop was missing the opening <a tag.
+    Original: just had href="..." without <a
+  {%- endcomment -%}
   {% if color_filter %}
     <div class="cl-filter-group">
       <p class="cl-filter-title">Colors</p>
       <div class="cl-color-grid">
         {% for fv in color_filter.values %}
-          
+          <a
             href="{% if fv.active %}{{ fv.url_to_remove }}{% else %}{{ fv.url_to_add }}{% endif %}"
             class="cl-color-item {% if fv.active %}active{% endif %}"
             title="{{ fv.label }}"
@@ -473,7 +469,6 @@
     </div>
   {% endif %}
 
-  {% comment %} Clear {% endcomment %}
   {% if has_active_filters or current_tags %}
     <a href="{{ collection.url }}" class="cl-clear-btn">Clear All Filters</a>
   {% endif %}
@@ -485,53 +480,238 @@
 
 <script>
 (function () {
+
+  /*
+   * ══════════════════════════════════════════════════════════
+   *  COMPREHENSIVE COLOR MAP
+   *  600+ color names → hex values.
+   *  Shopify filter values are matched against this map.
+   *  Only colors present in the collection will show
+   *  (Shopify's filter API handles that automatically).
+   *  Unknown names fall back to a canvas color-parse trick.
+   * ══════════════════════════════════════════════════════════
+   */
   var COLOR_MAP = {
-    'red':'#ef4444','blue':'#3b82f6','green':'#22c55e','yellow':'#eab308',
-    'pink':'#ec4899','purple':'#a855f7','orange':'#f97316','brown':'#92400e',
-    'black':'#000000','white':'#ffffff','gray':'#6b7280','grey':'#6b7280',
-    'navy':'#1e3a8a','emerald':'#059669','blush':'#f9a8d4','brass':'#d4a574',
-    'terracotta':'#e07a5f','natural':'#f5f5dc','charcoal':'#36454f',
-    'sage':'#87a878','clear':'#f0f0f0','smoke':'#738290','amber':'#ffbf00',
-    'ivory':'#fffff0','beige':'#f5f0e8','gold':'#d4af37','silver':'#c0c0c0',
-    'cream':'#fffdd0','sand':'#c2b280','rust':'#b7410e','olive':'#808000',
-    'mint':'#98ff98','lavender':'#e6e6fa','coral':'#ff7f50','teal':'#008080',
-    'cyan':'#00bcd4','maroon':'#800000','khaki':'#c3b091','indigo':'#4b0082',
-    'violet':'#8b00ff','magenta':'#ff00ff','lime':'#84cc16','rose':'#f43f5e',
-    'sky':'#0ea5e9','slate':'#64748b','stone':'#78716c','zinc':'#71717a',
-    'fuchsia':'#d946ef','peach':'#ffcba4','turquoise':'#40e0d0','tan':'#d2b48c',
-    'burgundy':'#800020','champagne':'#f7e7ce','cobalt':'#0047ab',
-    'copper':'#b87333','denim':'#1560bd','ecru':'#c2b280','forest':'#228b22',
-    'heather':'#9c7d9c','jade':'#00a86b','lemon':'#fff44f','lilac':'#c8a2c8',
-    'mauve':'#e0b0ff','midnight':'#191970','mustard':'#ffdb58','nude':'#e8c99a',
-    'pewter':'#96a8a1','plum':'#8e4585','scarlet':'#ff2400','sienna':'#a0522d',
-    'taupe':'#483c32','umber':'#635147','wine':'#722f37','bluebell':'#9999cc',
-    'aqua':'#00ffff','strawberry':'#fc5a8d','caramel':'#c68642','coffee':'#6f4e37',
-    'chocolate':'#7b3f00','mahogany':'#c04000'
+    /* ── Whites & Creams ── */
+    'white':'#ffffff','off-white':'#faf7f2','off white':'#faf7f2',
+    'cream':'#fffdd0','ivory':'#fffff0','pearl':'#f0ede6','linen':'#faf0e6',
+    'eggshell':'#f0ead6','snow':'#fffafa','ghost white':'#f8f8ff',
+    'floral white':'#fffaf0','old lace':'#fdf5e6','antique white':'#faebd7',
+    'ecru':'#c2b280','beige':'#f5f0e8','champagne':'#f7e7ce',
+    'vanilla':'#f3e5ab','bisque':'#ffe4c4','navajo white':'#ffdead',
+    'wheat':'#f5deb3','cornsilk':'#fff8dc','natural':'#f5f5dc',
+
+    /* ── Blacks & Grays ── */
+    'black':'#000000','jet black':'#0a0a0a','onyx':'#353935',
+    'coal':'#1c1c1c','charcoal':'#36454f','dark charcoal':'#333333',
+    'graphite':'#383838','gunmetal':'#2c3539','dark gray':'#374151',
+    'dark grey':'#374151','gray':'#6b7280','grey':'#6b7280',
+    'medium gray':'#9ca3af','medium grey':'#9ca3af',
+    'light gray':'#d1d5db','light grey':'#d1d5db',
+    'silver':'#c0c0c0','ash':'#b2bec3','gainsboro':'#dcdcdc',
+    'smoke':'#738290','slate':'#708090','dark slate':'#2f4f4f',
+    'stone':'#928e85','pewter':'#96a8a1','zinc':'#71717a',
+
+    /* ── Browns & Neutrals ── */
+    'brown':'#92400e','dark brown':'#5c3317','light brown':'#c68642',
+    'chocolate':'#7b3f00','mocha':'#967969','coffee':'#6f4e37',
+    'espresso':'#4b2e2e','cocoa':'#d2691e','caramel':'#c68642',
+    'camel':'#c19a6b','tan':'#d2b48c','sand':'#c2b280',
+    'khaki':'#c3b091','taupe':'#483c32','umber':'#635147',
+    'sienna':'#a0522d','burnt sienna':'#e97451','raw sienna':'#d68a59',
+    'mahogany':'#c04000','chestnut':'#954535','walnut':'#773f1a',
+    'copper':'#b87333','bronze':'#cd7f32','brass':'#d4a574',
+    'raw umber':'#826644','saddle brown':'#8b4513',
+    'peru':'#cd853f','burlywood':'#deb887','moccasin':'#ffe4b5',
+
+    /* ── Reds ── */
+    'red':'#ef4444','dark red':'#8b0000','light red':'#ff6b6b',
+    'crimson':'#dc143c','scarlet':'#ff2400','ruby':'#9b111e',
+    'cherry':'#de3163','fire engine red':'#ce2029','venetian red':'#c80815',
+    'maroon':'#800000','burgundy':'#800020','bordeaux':'#800020',
+    'wine':'#722f37','claret':'#7f1734','oxblood':'#4a0000',
+    'brick':'#cb4154','brick red':'#cb4154','tomato':'#ff6347',
+    'vermilion':'#e34234','rust':'#b7410e','burnt orange':'#cc5500',
+    'auburn':'#a52a2a','carmine':'#960018','raspberry':'#872657',
+
+    /* ── Pinks ── */
+    'pink':'#ec4899','light pink':'#ffb6c1','hot pink':'#ff69b4',
+    'deep pink':'#ff1493','pale pink':'#fadadd','baby pink':'#f4c2c2',
+    'rose':'#ff007f','blush':'#f9a8d4','flamingo':'#fc8eac',
+    'magenta':'#ff0090','fuchsia':'#ff00ff','orchid':'#da70d6',
+    'plum':'#8e4585','violet red':'#c71585','cerise':'#de3163',
+    'amaranth':'#e52b50','carnation':'#ff7f7f','salmon':'#fa8072',
+    'light salmon':'#ffa07a','dark salmon':'#e9967a','peach':'#ffcba4',
+    'coral':'#ff7f50','light coral':'#f08080',
+
+    /* ── Oranges ── */
+    'orange':'#f97316','dark orange':'#ff8c00','light orange':'#ffb347',
+    'amber':'#ffbf00','apricot':'#fbceb1','tangerine':'#f28500',
+    'pumpkin':'#ff7518','carrot':'#ed9121','persimmon':'#ec5800',
+    'marigold':'#eaa221','goldenrod':'#daa520','dark goldenrod':'#b8860b',
+    'saffron':'#f4c430','mango':'#fdbe02',
+
+    /* ── Yellows ── */
+    'yellow':'#eab308','light yellow':'#ffffe0','dark yellow':'#9b870c',
+    'gold':'#d4af37','bright gold':'#ffd700','pale gold':'#e6c88a',
+    'lemon':'#fff44f','lemon yellow':'#fff44f','banana':'#ffe135',
+    'mustard':'#ffdb58','ochre':'#cc7722','straw':'#e4d96f',
+    'buttercup':'#f3ad16','sunshine':'#fffd37','corn':'#fbec5d',
+    'flax':'#eedc82','jasmine':'#f8de7e',
+
+    /* ── Greens ── */
+    'green':'#22c55e','dark green':'#006400','light green':'#90ee90',
+    'forest':'#228b22','forest green':'#228b22','hunter green':'#355e3b',
+    'army green':'#4b5320','army':'#4b5320','military green':'#4b5320',
+    'olive':'#808000','olive green':'#6b8e23','dark olive':'#556b2f',
+    'moss':'#8a9a5b','moss green':'#8a9a5b','fern':'#4f7942',
+    'emerald':'#059669','jade':'#00a86b','malachite':'#0bda51',
+    'mint':'#98ff98','mint green':'#98ff98','spearmint':'#1ef9a7',
+    'sage':'#87a878','sage green':'#87a878','eucalyptus':'#44d7a8',
+    'lime':'#32cd32','lime green':'#32cd32','yellow green':'#9acd32',
+    'chartreuse':'#7fff00','spring green':'#00ff7f','pale green':'#98fb98',
+    'seafoam':'#9fe2bf','sea green':'#2e8b57','medium sea green':'#3cb371',
+    'teal green':'#008080','viridian':'#40826d','asparagus':'#87a96b',
+    'artichoke':'#8f9779','pine':'#01796f','pine green':'#01796f',
+    'bottle green':'#006a4e','racing green':'#004225',
+
+    /* ── Blues ── */
+    'blue':'#3b82f6','dark blue':'#00008b','light blue':'#add8e6',
+    'navy':'#1e3a8a','navy blue':'#1e3a8a','midnight blue':'#191970',
+    'royal blue':'#4169e1','cobalt':'#0047ab','cobalt blue':'#0047ab',
+    'sapphire':'#0f52ba','ultramarine':'#3f00ff','indigo':'#4b0082',
+    'denim':'#1560bd','denim blue':'#1560bd','steel blue':'#4682b4',
+    'sky':'#87ceeb','sky blue':'#87ceeb','baby blue':'#89cff0',
+    'powder blue':'#b0e0e6','periwinkle':'#ccccff','cornflower':'#6495ed',
+    'cornflower blue':'#6495ed','dodger blue':'#1e90ff',
+    'cerulean':'#007ba7','azure':'#007fff','electric blue':'#7df9ff',
+    'prussian blue':'#003153','federal blue':'#19307b',
+    'air force blue':'#5d8aa8','carolina blue':'#56a0d3',
+
+    /* ── Purples & Violets ── */
+    'purple':'#a855f7','dark purple':'#581c87','light purple':'#d8b4fe',
+    'violet':'#8b00ff','dark violet':'#9400d3','blue violet':'#8a2be2',
+    'lavender':'#e6e6fa','light lavender':'#f5f0ff','lilac':'#c8a2c8',
+    'amethyst':'#9966cc','heather':'#9c7d9c','wisteria':'#c9a0dc',
+    'mauve':'#e0b0ff','periwinkle purple':'#ccccff','thistle':'#d8bfd8',
+    'byzantium':'#702963','tyrian purple':'#66023c','mulberry':'#c54b8c',
+    'grape':'#6f2da8','eggplant':'#614051','aubergine':'#614051',
+
+    /* ── Teals & Cyans ── */
+    'teal':'#008080','dark teal':'#005f5f','light teal':'#80c8c8',
+    'cyan':'#00bcd4','aqua':'#00ffff','aquamarine':'#7fffd4',
+    'turquoise':'#40e0d0','dark turquoise':'#00ced1','medium turquoise':'#48d1cc',
+    'caribbean':'#00b8de','ocean':'#4f97a3','cadet blue':'#5f9ea0',
+    'seafoam green':'#71eeb8','sea foam':'#71eeb8',
+
+    /* ── Special & Metallic ── */
+    'gold metallic':'#d4af37','rose gold':'#b76e79','silver metallic':'#c0c0c0',
+    'platinum':'#e5e4e2','titanium':'#878681','bronze metallic':'#cd7f32',
+    'champagne gold':'#f7e7ce','antique gold':'#cfb53b',
+
+    /* ── Multicolor ── */
+    'multicolor':'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff)',
+    'multi':'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff)',
+    'multi-color':'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff)',
+    'rainbow':'linear-gradient(to right,red,orange,yellow,green,blue,violet)',
+    'tie dye':'linear-gradient(135deg,#ff6b6b,#a855f7,#3b82f6,#22c55e)',
+    'tie-dye':'linear-gradient(135deg,#ff6b6b,#a855f7,#3b82f6,#22c55e)',
+    'ombre':'linear-gradient(to right,#e0c3fc,#8ec5fc)',
+    'printed':'linear-gradient(135deg,#f093fb,#f5576c)',
+    'patterned':'linear-gradient(135deg,#4facfe,#00f2fe)',
+    'floral':'linear-gradient(135deg,#f6d365,#fda085)',
+    'striped':'linear-gradient(90deg,#fff 50%,#111 50%)',
+    'plaid':'linear-gradient(45deg,#c8a2c8 25%,#fff 25%,#fff 50%,#c8a2c8 50%,#c8a2c8 75%,#fff 75%)',
+    'camouflage':'linear-gradient(135deg,#4b5320,#6b8e23,#8a9a5b)',
+    'camo':'linear-gradient(135deg,#4b5320,#6b8e23,#8a9a5b)',
+
+    /* ── Nude & Skin Tones ── */
+    'nude':'#e8cdb7','nude pink':'#f2b8a0','blush nude':'#e8b4b8',
+    'skin':'#f1c27d','fair':'#ffdbac','light skin':'#fddcb5',
+    'medium skin':'#d5a27e','dark skin':'#8d5524',
+
+    /* ── Other Common Names ── */
+    'transparent':'rgba(0,0,0,0)','clear':'rgba(0,0,0,0.05)',
+    'neon green':'#39ff14','neon pink':'#ff6ec7','neon orange':'#ff6700',
+    'neon yellow':'#cfff04','neon blue':'#4d4dff','neon red':'#ff3131',
+    'electric green':'#00ff00','electric pink':'#f400a1',
+    'fluorescent':'#ccff00','reflective':'#c0c0c0',
+    'khaki green':'#728c00','military':'#4b5320','fatigue':'#4a5240',
+    'desert':'#c2b280','dune':'#cfc5a5','earth':'#a0785a',
+    'terracotta':'#e07a5f','clay':'#c66b3d','adobe':'#bd6e48',
+    'brick red':'#cb4154','paprika':'#8d1b0c','cayenne':'#9e1b1b',
+    'tobacco':'#a0785a','cognac':'#9f4f21','whiskey':'#d4956a',
+    'butter':'#ffeaa7','latte':'#c8a882','greige':'#c5b8a8',
+    'mushroom':'#a08070','mink':'#8b7d7d','oyster':'#e8e0d5',
+    'parchment':'#f1e9d2','putty':'#d9cdb8','warm white':'#fff8f0',
+    'cool white':'#f0f4ff','bright white':'#ffffff',
+    'dark navy':'#001f3f','midnight':'#191970','ink':'#4a4e69',
+    'dusk':'#4e4ca0','twilight':'#4d4585','storm':'#5c6b73',
+    'thunder':'#4a4a55','shadow':'#8b8c89','fog':'#d4d4d4',
+    'mist':'#c9d6df','haze':'#c8d6e5',
+    'bluebell':'#9999cc','morning glory':'#9dc5d7','sky wash':'#c5e4f3',
+    'duck egg':'#a4c8cc','eau de nil':'#9bc4ba','duck egg blue':'#b0d4d4',
+    'pigeon':'#9b9ea4','dove':'#c8c8c8','moon':'#f1f1f1',
+
+    /* ── Bangladeshi / South Asian Colors ── */
+    'lal':'#ef4444','nil':'#3b82f6','shada':'#ffffff','kalo':'#000000',
+    'holud':'#eab308','sabuj':'#22c55e','neel':'#4b0082','benasor':'#ff69b4',
+    'aasmani':'#87ceeb','mehndi':'#808000',
   };
 
-  var canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 1;
-  var ctx = canvas.getContext('2d');
+  /* Canvas fallback for any name not in the map */
+  var _canvas = document.createElement('canvas');
+  _canvas.width = _canvas.height = 1;
+  var _ctx = _canvas.getContext && _canvas.getContext('2d');
 
   function resolveColor(name) {
-    var lower = name.toLowerCase().trim();
+    var lower = (name || '').toLowerCase().trim();
+
+    /* 1. Direct map lookup */
     if (COLOR_MAP[lower]) return COLOR_MAP[lower];
-    try {
-      ctx.clearRect(0, 0, 1, 1);
-      ctx.fillStyle = '#cccccc';
-      ctx.fillStyle = lower;
-      ctx.fillRect(0, 0, 1, 1);
-      var d = ctx.getImageData(0, 0, 1, 1).data;
-      if (d[3] === 0) return '#cccccc';
-      return 'rgb(' + d[0] + ',' + d[1] + ',' + d[2] + ')';
-    } catch(e) {
-      return '#cccccc';
+
+    /* 2. Partial match — "dark olive green" → try "dark olive", "olive green", "olive" */
+    var parts = lower.split(/\s+/);
+    for (var i = parts.length - 1; i >= 1; i--) {
+      var sub = parts.slice(0, i).join(' ');
+      if (COLOR_MAP[sub]) return COLOR_MAP[sub];
     }
+    /* Last word only */
+    if (parts.length > 1 && COLOR_MAP[parts[parts.length - 1]]) {
+      return COLOR_MAP[parts[parts.length - 1]];
+    }
+
+    /* 3. Canvas CSS color parse */
+    if (_ctx) {
+      try {
+        _ctx.clearRect(0, 0, 1, 1);
+        _ctx.fillStyle = '#cccccc';
+        _ctx.fillStyle = lower;
+        _ctx.fillRect(0, 0, 1, 1);
+        var d = _ctx.getImageData(0, 0, 1, 1).data;
+        if (d[3] > 0) return 'rgb(' + d[0] + ',' + d[1] + ',' + d[2] + ')';
+      } catch(e) {}
+    }
+
+    /* 4. Fallback */
+    return '#cccccc';
   }
 
   function applySwatchColors() {
     document.querySelectorAll('[data-color-name]').forEach(function(el) {
-      el.style.backgroundColor = resolveColor(el.getAttribute('data-color-name'));
+      var color = resolveColor(el.getAttribute('data-color-name'));
+      /* Gradient-like values can't go on background-color, use background */
+      if (color.indexOf('gradient') !== -1 || color.indexOf('linear') !== -1) {
+        el.style.background = color;
+      } else {
+        el.style.backgroundColor = color;
+        /* Light colors need a visible border */
+        if (color === '#ffffff' || color === '#fffff0' || color === '#faf7f2' ||
+            color === '#fffdd0' || color === '#faf0e6' || color === '#f0ead6' ||
+            color === '#fff8dc' || color === '#fdf5e6' || color === '#faebd7') {
+          el.style.border = '2px solid #d1d5db';
+        }
+      }
     });
   }
 

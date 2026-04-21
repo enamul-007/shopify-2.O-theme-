@@ -1,83 +1,344 @@
-<div class="recently-viewed-products">
-    <div class="container">
-        <div class="section-heading">
-            <h2>Recently viewed products</h2>
-        </div>
-        <div class="row" id="recentlyViewedProduct">Loading....</div>
+<style>
+  .recently-viewed-products {
+    padding: 48px 0;
+  }
+  .recently-viewed-products .section-heading {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .recently-viewed-products .section-heading h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: #111827;
+  }
+  .recently-viewed-products .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .recently-viewed-products .row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 1024px) {
+    .recently-viewed-products .row { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .recently-viewed-products .row { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  }
+  @media (max-width: 480px) {
+    .recently-viewed-products .row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  }
+
+  /* ── Product card — matches product-card.liquid ── */
+  .rv-card {
+    position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .rv-card.pc-visible { opacity: 1; transform: translateY(0); }
+
+  .rv-img-wrap {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background-color: #f3f4f6;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .rv-img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+    transition: transform 0.5s ease;
+  }
+  .rv-card:hover .rv-img { transform: scale(1.05); }
+
+  .rv-badge-wrap {
+    position: absolute; top: 0.75rem; left: 0.75rem;
+    display: flex; flex-direction: column; gap: 0.5rem; z-index: 2;
+  }
+  .rv-badge {
+    display: inline-block; padding: 0.25rem 0.75rem;
+    border-radius: 9999px; font-size: 0.75rem;
+    font-weight: 500; line-height: 1.4;
+  }
+  .rv-badge-sale { background: #ef4444; color: #fff; }
+
+  .rv-actions {
+    position: absolute; top: 0.75rem; right: 0.75rem;
+    display: flex; flex-direction: column; gap: 0.5rem; z-index: 2;
+  }
+  .rv-action-btn {
+    width: 2.5rem; height: 2.5rem;
+    background: #fff; border: none; border-radius: 9999px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12); cursor: pointer;
+    opacity: 0; transform: translateX(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease,
+                background-color 0.2s ease, color 0.2s ease;
+    color: #111827;
+  }
+  .rv-action-btn:nth-child(2) { transition-delay: 0.05s; }
+  .rv-card:hover .rv-action-btn { opacity: 1; transform: translateX(0); }
+  .rv-action-btn:hover { background: #111827; color: #fff; }
+  .rv-action-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+  .rv-action-btn svg {
+    width: 18px; height: 18px; fill: none;
+    stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .rv-action-btn.pc-wishlisted svg.heart-icon { fill: #ef4444; stroke: #ef4444; }
+
+  .rv-quick-view-wrap {
+    position: absolute; bottom: 1rem; left: 1rem; right: 1rem;
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease; z-index: 2;
+  }
+  .rv-card:hover .rv-quick-view-wrap { opacity: 1; transform: translateY(0); }
+  .rv-quick-view-btn {
+    display: block; width: 100%; padding: 0.625rem 1rem;
+    background: #fff; color: #111827;
+    border: none; border-radius: 0.5rem;
+    font-size: 0.875rem; font-weight: 500;
+    cursor: pointer; text-align: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    box-sizing: border-box;
+  }
+  .rv-quick-view-btn:hover { background: #111827; color: #fff; }
+
+  .rv-info { display: flex; flex-direction: column; gap: 0.5rem; }
+  .rv-title {
+    font-weight: 500; color: #111827;
+    margin: 0; font-size: 1rem; line-height: 1.4;
+    text-decoration: none; display: block;
+    transition: color 0.2s ease;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .rv-card:hover .rv-title { color: #4b5563; }
+
+  .rv-price-row { display: flex; align-items: center; gap: 0.5rem; }
+  .rv-price { font-size: 1.125rem; font-weight: 500; color: #111827; }
+  .rv-compare-price { font-size: 0.875rem; color: #6b7280; text-decoration: line-through; }
+
+  @keyframes rv-spin { to { transform: rotate(360deg); } }
+</style>
+
+<div class="recently-viewed-products" id="rv-section-{{ section.id }}">
+  <div class="container">
+    <div class="section-heading">
+      <h2>{{ section.settings.heading | default: 'Recently Viewed' }}</h2>
     </div>
+    <div class="row" id="recentlyViewedProduct"></div>
+  </div>
 </div>
 
-<script>
-    $(document).ready(function(){
-        function updateRecentlyViewedProducts(){
-            const currentProductData = {
-                productId: "{{ product.id }}",
-                title: "{{ product.title }}",
-                image: "{{ product.featured_image | img_url: 'medium' }}",
-                price: "{{ product.price |  money }}",
-                url: "{{ product.url }}"
-            }
-            const productArray = [currentProductData];
-            const maxProducts = 4;
-            const currentproductId = currentProductData.productId;
-            const productArrayString = JSON.stringify(productArray);
-            const storedData = localStorage.getItem('recently_viewed');
-            if(storedData == null){
-                localStorage.setItem('recently_viewed',productArrayString);
-            }else{
-                const oldProductData = localStorage.getItem('recently_viewed');
-                const storedProductCount = (oldProductData.match(/productId/g) || []).length;
-                const revisitedProduct = oldProductData.includes(currentproductId);
-                if(storedProductCount < maxProducts && !revisitedProduct){
-                    const parsedResponse = JSON.parse(oldProductData);
-                    const updatedProductArray = parsedResponse.concat(productArray);
-                    localStorage.setItem('recently_viewed', JSON.stringify(updatedProductArray));
-                }else if(storedProductCount >= maxProducts && !revisitedProduct){
-                    const parsedResponse = JSON.parse(oldProductData);
-                    parsedResponse.shift();
-                    const updatedProductArray = parsedResponse.concat(productArray);
-                    localStorage.setItem('recently_viewed',JSON.stringify(updatedProductArray));
-                }
-            }
-        }
-        updateRecentlyViewedProducts();
+{%- comment -%} Store current product data with more fields for richer cards {%- endcomment -%}
+<script id="rv-current-product" type="application/json">
+{
+  "productId":      "{{ product.id }}",
+  "variantId":      "{{ product.selected_or_first_available_variant.id }}",
+  "title":          {{ product.title | json }},
+  "image":          "{{ product.featured_image | image_url: width: 600 }}",
+  "price":          "{{ product.price | money }}",
+  "comparePrice":   "{% if product.compare_at_price > product.price %}{{ product.compare_at_price | money }}{% endif %}",
+  "discountPct":    {% if product.compare_at_price > product.price %}{{ product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price }}{% else %}0{% endif %},
+  "url":            "{{ product.url }}",
+  "available":      {{ product.available }}
+}
+</script>
 
-        function displayRecentlyViewedProducts(){
-            const storedProductData = JSON.parse(localStorage.getItem('recently_viewed'));
-            const recentProductHtml = [];
-            storedProductData.forEach(function(product){
-                recentProductHtml.push(`
-                <div class="col-md-3">
-                    <div class="card my-2">
-                        <div class="card-body">
-                            <img src="${product.image}" alt="${product.title}" srcset="${product.image}" width="300" height="200">
-                            <div class="product-info">
-                                <p><strong>${product.title}</strong></p>
-                                <p>Price: ${product.price}</p>
-                                <div class="CTA">
-                                    <a href="${product.url}" class="btn btn-secondary w-100">View Details</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `)
-            });
-            const recentProductsBlock = recentProductHtml.join('');
-            $('#recentlyViewedProduct').html(recentProductsBlock);
+<script>
+(function () {
+  var MAX_ITEMS   = {{ section.settings.max_products | default: 4 }};
+  var STORAGE_KEY = 'rv_products_v2';
+
+  /* ── 1. Save current product ── */
+  function saveProduct() {
+    var el = document.getElementById('rv-current-product');
+    if (!el) return;
+    var current;
+    try { current = JSON.parse(el.textContent); } catch(e) { return; }
+    if (!current.productId) return;
+
+    var stored = [];
+    try { stored = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e) {}
+
+    /* Remove if already exists (move to end = most recent) */
+    stored = stored.filter(function(p) { return p.productId !== current.productId; });
+    stored.push(current);
+
+    /* Keep only last MAX_ITEMS */
+    if (stored.length > MAX_ITEMS) stored = stored.slice(stored.length - MAX_ITEMS);
+
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stored)); } catch(e) {}
+  }
+
+  /* ── 2. Build card HTML ── */
+  function buildCard(product, index) {
+    var delay    = index * 60;
+    var hasSale  = product.discountPct > 0;
+    var saleHtml = hasSale
+      ? '<div class="rv-badge-wrap"><span class="rv-badge rv-badge-sale">-' + product.discountPct + '%</span></div>'
+      : '';
+    var compareHtml = (product.comparePrice && hasSale)
+      ? '<span class="rv-compare-price">' + product.comparePrice + '</span>'
+      : '';
+    var imgHtml = product.image
+      ? '<img class="rv-img" src="' + product.image + '" alt="' + escHtml(product.title) + '" loading="lazy" width="600">'
+      : '<div class="rv-img" style="background:#e5e7eb;"></div>';
+
+    return '<div class="rv-card" data-product-card style="transition-delay:' + delay + 'ms;">'
+      + '<a href="' + product.url + '" style="display:block;text-decoration:none;color:inherit;">'
+      + '<div class="rv-img-wrap">'
+      + imgHtml
+      + saleHtml
+      + '<div class="rv-actions">'
+      + '<button type="button" class="rv-action-btn" aria-label="Add to wishlist" onclick="event.preventDefault();pcToggleWishlist(this,\'' + product.productId + '\')">'
+      + '<svg class="heart-icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
+      + '</button>'
+      + '<button type="button" class="rv-action-btn" aria-label="Quick add to cart" onclick="event.preventDefault();pcQuickAddToCart(this,\'' + product.variantId + '\')">'
+      + '<svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>'
+      + '</button>'
+      + '</div>'
+      + '<div class="rv-quick-view-wrap">'
+      + '<button type="button" class="rv-quick-view-btn" onclick="event.preventDefault();pcOpenQuickView(\'' + product.url.replace(/\/products\//, '').split('?')[0] + '\')">Quick View</button>'
+      + '</div>'
+      + '</div>'
+      + '<div class="rv-info">'
+      + '<a href="' + product.url + '" class="rv-title">' + escHtml(product.title) + '</a>'
+      + '<div class="rv-price-row">'
+      + '<span class="rv-price">' + product.price + '</span>'
+      + compareHtml
+      + '</div>'
+      + '</div>'
+      + '</a>'
+      + '</div>';
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ── 3. Render cards ── */
+  function renderCards() {
+    var container = document.getElementById('recentlyViewedProduct');
+    if (!container) return;
+
+    var stored = [];
+    try { stored = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e) {}
+
+    /* Show all stored products (most recent last → reverse for display) */
+    var toShow = stored.slice().reverse();
+    if (toShow.length === 0) {
+      /* Hide entire section if nothing to show */
+      var section = document.getElementById('rv-section-{{ section.id }}');
+      if (section) section.style.display = 'none';
+      return;
+    }
+
+    container.innerHTML = toShow.map(buildCard).join('');
+    observeCards(container);
+  }
+
+  /* ── 4. IntersectionObserver for fade-in ── */
+  function observeCards(container) {
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('pc-visible');
+          io.unobserve(entry.target);
         }
-        displayRecentlyViewedProducts();
-    })
+      });
+    }, { threshold: 0.05 });
+
+    container.querySelectorAll('[data-product-card]').forEach(function(card) {
+      io.observe(card);
+    });
+  }
+
+  /* ── Init ── */
+  function init() {
+    saveProduct();
+    renderCards();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  /* ── Fallback: if pcToggleWishlist / pcQuickAddToCart not defined yet ── */
+  if (!window.pcToggleWishlist) {
+    window.pcToggleWishlist = function(btn) { btn.classList.toggle('pc-wishlisted'); };
+  }
+  if (!window.pcOpenQuickView) {
+    window.pcOpenQuickView = function(handle) {
+      document.dispatchEvent(new CustomEvent('quickview:open', { detail: { handle: handle } }));
+    };
+  }
+  if (!window.pcQuickAddToCart) {
+    window.pcQuickAddToCart = function(btn, variantId) {
+      var id = parseInt(variantId, 10);
+      if (!id) return;
+      btn.disabled = true;
+      var orig = btn.innerHTML;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="animation:rv-spin 0.6s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: JSON.stringify({ id: id, quantity: 1 })
+      })
+      .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function() {
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        fetch('/cart.js').then(function(r) { return r.json(); }).then(function(cart) {
+          document.querySelectorAll('#cartCounter,.cart-count,[data-cart-count]').forEach(function(el) {
+            el.textContent = cart.item_count > 0 ? cart.item_count : '';
+          });
+          document.dispatchEvent(new CustomEvent('cart:updated', { detail: cart }));
+        });
+        setTimeout(function() { btn.innerHTML = orig; btn.disabled = false; }, 1500);
+      })
+      .catch(function() { btn.innerHTML = orig; btn.disabled = false; });
+    };
+  }
+
+})();
 </script>
 
 {% schema %}
+{
+  "name": "Recently Viewed Products",
+  "settings": [
     {
-        "name": "Recently Viewed products",
-        "settings": [],
-        "presets": [
-            {
-                "name": "Recently viewed products"
-            }
-        ]
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Recently Viewed"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Max products to store",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
     }
+  ],
+  "presets": [
+    {
+      "name": "Recently Viewed Products"
+    }
+  ]
+}
 {% endschema %}

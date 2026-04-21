@@ -1,51 +1,146 @@
-<div class="recommended-products-section" data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{- section.settings.limit -}}&intent=related">
-    <div class="container">
-        <div class="section-header">
-            <h2>You may also like</h2>
-        </div>
-        <div class="recomended-products" id="recommendedProducts">
-            {% if recommendations.performed? and recommendations.products_count > 0 %}
-                <div class="row">
-                    {% for product in recommendations.products, limit: section.settings.limit %}
-                        {%  render 'product-card', product: product %}
-                    {% endfor %}
-                </div>            
-            {% endif %}
-        </div>
+<style>
+  .recommended-products-section {
+    padding: 48px 0;
+  }
+  .recommended-products-section .section-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .recommended-products-section .section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+  }
+  .recommended-products-section .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── 4-column grid ── */
+  .recommended-products-section .row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  @media (max-width: 1024px) {
+    .recommended-products-section .row { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .recommended-products-section .row { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  }
+  @media (max-width: 480px) {
+    .recommended-products-section .row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  }
+</style>
+
+<div
+  class="recommended-products-section"
+  data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.limit }}&intent=related"
+>
+  <div class="container">
+    <div class="section-header">
+      <h2>{{ section.settings.heading | default: 'You may also like' }}</h2>
     </div>
+
+    <div class="recomended-products" id="recommendedProducts">
+      {% if recommendations.performed? and recommendations.products_count > 0 %}
+        <div class="row">
+          {% for product in recommendations.products limit: section.settings.limit %}
+            {% render 'product-card', product: product, index: forloop.index0 %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 
 <script>
-    function recommendedProducts(){
-        var url = $('.recommended-products-section').data('url');
-        fetch(url)
-        .then((response)=> response.text())
-        .then((data)=>{
-            var recData = $(data);
-            var items = $('#recommendedProducts', recData);
-            $('#recommendedProducts').replaceWith(items);
-        })
-    }
-    $(document).ready(function(){
-        recommendedProducts();
-    })
+(function() {
+ 
+  function observeNewCards(container) {
+    if (!container) return;
+
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('pc-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.05 });
+
+    container.querySelectorAll('[data-product-card]').forEach(function(card) {
+      /* Reset in case a previous observer already ran */
+      card.classList.remove('pc-visible');
+      io.observe(card);
+    });
+  }
+
+  function loadRecommendations() {
+    var section = document.querySelector('.recommended-products-section');
+    if (!section) return;
+
+    var url = section.getAttribute('data-url');
+    if (!url) return;
+
+    fetch(url)
+      .then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.text();
+      })
+      .then(function(html) {
+        var parser  = new DOMParser();
+        var doc     = parser.parseFromString(html, 'text/html');
+        var newGrid = doc.getElementById('recommendedProducts');
+        var oldGrid = document.getElementById('recommendedProducts');
+
+        if (!newGrid || !oldGrid) return;
+
+        /* Check if there's actually content */
+        if (!newGrid.querySelector('.row')) return;
+
+        oldGrid.replaceWith(newGrid);
+
+        /* ← KEY FIX: observe freshly inserted cards */
+        var inserted = document.getElementById('recommendedProducts');
+        observeNewCards(inserted);
+      })
+      .catch(function(err) {
+        console.warn('[Recommendations] Failed to load:', err);
+      });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadRecommendations);
+  } else {
+    loadRecommendations();
+  }
+})();
 </script>
 
 {% schema %}
 {
-    "name": "Product recommendations",
-    "settings": [
-        {
-            "type": "number",
-            "id": "limit",
-            "label": "Number of products to show",
-            "default": 4
-        }
-    ],
-    "presets":[
-        {
-            "name": "Product recommendations"
-        }
-    ]
+  "name": "Product recommendations",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "You may also like"
+    },
+    {
+      "type": "number",
+      "id": "limit",
+      "label": "Number of products to show",
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product recommendations"
+    }
+  ]
 }
 {% endschema %}

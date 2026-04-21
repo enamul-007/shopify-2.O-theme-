@@ -1,6 +1,6 @@
 {% comment %}
-  Cart Template - Liquid Version
-  File: cart.liquid (or sections/main-cart.liquid)
+  Cart Template
+  File: sections/main-cart.liquid
 {% endcomment %}
 
 <style>
@@ -11,15 +11,9 @@
   .cart-empty-title { font-size: 1.875rem; font-weight: 500; margin-bottom: 1rem; }
   .cart-empty-text { color: #6b7280; margin-bottom: 2rem; }
   .cart-empty-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 2rem;
-    background: #111827;
-    color: #fff;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    font-weight: 500;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 2rem; background: #111827; color: #fff;
+    border-radius: 0.5rem; text-decoration: none; font-weight: 500;
     transition: background 0.2s;
   }
   .cart-empty-btn:hover { background: #1f2937; }
@@ -28,260 +22,197 @@
   @media (min-width: 1024px) { .cart-grid { grid-template-columns: 2fr 1fr; } }
 
   .cart-items { display: flex; flex-direction: column; gap: 1rem; }
+
   .cart-item {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    transition: opacity 0.3s;
+    background: #fff; border: 1px solid #e5e7eb;
+    border-radius: 0.75rem; padding: 1rem;
+    transition: opacity 0.25s, transform 0.25s;
   }
   @media (min-width: 768px) { .cart-item { padding: 1.5rem; } }
 
+  /* ── Remove animation ── */
+  .cart-item.is-removing {
+    opacity: 0;
+    transform: translateX(24px);
+    pointer-events: none;
+  }
+
   .cart-item-inner { display: flex; gap: 1rem; }
   .cart-item-image {
-    width: 6rem;
-    height: 6rem;
-    flex-shrink: 0;
-    background: #f3f4f6;
-    border-radius: 0.5rem;
-    overflow: hidden;
+    width: 6rem; height: 6rem; flex-shrink: 0;
+    background: #f3f4f6; border-radius: 0.5rem; overflow: hidden;
   }
-  .cart-item-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  @media (min-width: 768px) {
-    .cart-item-image { width: 8rem; height: 8rem; }
-  }
+  .cart-item-image img { width: 100%; height: 100%; object-fit: cover; }
+  @media (min-width: 768px) { .cart-item-image { width: 8rem; height: 8rem; } }
 
   .cart-item-details { flex: 1; min-width: 0; }
   .cart-item-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
+    display: flex; justify-content: space-between;
+    gap: 1rem; margin-bottom: 0.5rem;
   }
-  .cart-item-title {
-    font-weight: 500;
-    color: #111827;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
+  .cart-item-title { font-weight: 500; color: #111827; text-decoration: none; transition: color 0.2s; }
   .cart-item-title:hover { color: #6b7280; }
   .cart-item-remove {
-    color: #9ca3af;
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: color 0.2s;
-    padding: 0;
+    color: #9ca3af; background: none; border: none;
+    cursor: pointer; transition: color 0.2s; padding: 0; flex-shrink: 0;
   }
-  .cart-item-remove:hover { color: #111827; }
+  .cart-item-remove:hover { color: #ef4444; }
 
-  .cart-item-options {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin-bottom: 0.75rem;
-  }
+  .cart-item-options { font-size: 0.875rem; color: #6b7280; margin-bottom: 0.75rem; }
   .cart-item-options p { margin: 0.25rem 0; }
 
   .cart-item-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-  .cart-item-quantity {
-    display: flex;
-    align-items: center;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-  }
-  .cart-item-quantity button {
-    padding: 0.5rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .cart-item-quantity button:hover { background: #f9fafb; }
-  .cart-item-quantity span {
-    padding: 0 1rem;
-    font-weight: 500;
-    min-width: 2.5rem;
-    text-align: center;
-  }
-  .cart-item-price {
-    text-align: right;
-  }
-  .cart-item-total {
-    font-size: 1.125rem;
-    font-weight: 500;
-  }
-  .cart-item-unit {
-    font-size: 0.875rem;
-    color: #6b7280;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem;
   }
 
-  .cart-continue {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+  /* ── Quantity stepper ── */
+  .cart-item-quantity {
+    display: flex; align-items: center;
+    border: 1px solid #e5e7eb; border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  .cart-qty-btn {
+    padding: 0.5rem 0.75rem; background: none; border: none;
+    cursor: pointer; transition: background 0.15s;
+    display: flex; align-items: center; justify-content: center;
     color: #111827;
-    text-decoration: none;
-    margin-top: 1rem;
+  }
+  .cart-qty-btn:hover:not(:disabled) { background: #f3f4f6; }
+  .cart-qty-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .cart-qty-btn.is-loading { opacity: 0.5; pointer-events: none; }
+  .cart-qty-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+  .cart-qty-display {
+    padding: 0 1rem; font-weight: 500;
+    min-width: 2.5rem; text-align: center;
+    border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb;
+    transition: opacity 0.2s;
+  }
+
+  .cart-item-price { text-align: right; }
+  .cart-item-total { font-size: 1.125rem; font-weight: 500; transition: opacity 0.2s; }
+  .cart-item-unit  { font-size: 0.875rem; color: #6b7280; }
+
+  .cart-continue {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    color: #111827; text-decoration: none; margin-top: 1rem;
     transition: gap 0.2s;
   }
   .cart-continue:hover { gap: 0.75rem; }
-  .cart-continue svg { transform: rotate(180deg); }
 
-  /* Order Summary */
+  /* ── Summary ── */
   .cart-summary {
-    background: #f9fafb;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    position: sticky;
-    top: 6rem;
+    background: #f9fafb; border-radius: 0.75rem;
+    padding: 1.5rem; position: sticky; top: 6rem;
   }
-  .cart-summary-title {
-    font-size: 1.25rem;
-    font-weight: 500;
-    margin-bottom: 1.5rem;
-  }
+  .cart-summary-title { font-size: 1.25rem; font-weight: 500; margin-bottom: 1.5rem; }
   .cart-summary-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-    font-size: 0.875rem;
+    display: flex; justify-content: space-between;
+    margin-bottom: 0.75rem; font-size: 0.875rem;
   }
   .cart-summary-label { color: #6b7280; }
   .cart-summary-value { font-weight: 500; }
   .cart-shipping-notice {
-    background: #eff6ff;
-    color: #1e40af;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    margin-bottom: 1.5rem;
+    background: #eff6ff; color: #1e40af;
+    padding: 0.75rem; border-radius: 0.5rem;
+    font-size: 0.875rem; margin-bottom: 1.5rem;
+    transition: opacity 0.3s;
   }
   .cart-total-row {
     border-top: 1px solid #e5e7eb;
-    padding-top: 1rem;
-    margin-top: 0.5rem;
+    padding-top: 1rem; margin-top: 0.5rem;
   }
   .cart-total-row .cart-summary-label,
-  .cart-total-row .cart-summary-value {
-    font-size: 1.125rem;
-    font-weight: 500;
-  }
+  .cart-total-row .cart-summary-value { font-size: 1.125rem; font-weight: 500; }
   .cart-checkout-btn {
-    display: block;
-    width: 100%;
-    background: #111827;
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background 0.2s;
-    margin-bottom: 0.75rem;
-    border: none;
-    cursor: pointer;
+    display: block; width: 100%; background: #111827; color: #fff;
+    text-align: center; padding: 1rem; border-radius: 0.5rem;
+    text-decoration: none; font-weight: 500; transition: background 0.2s;
+    margin-bottom: 0.75rem; border: none; cursor: pointer;
   }
   .cart-checkout-btn:hover { background: #1f2937; }
-  .cart-tax-note {
-    text-align: center;
-    font-size: 0.875rem;
-    color: #6b7280;
+  .cart-tax-note { text-align: center; font-size: 0.875rem; color: #6b7280; }
+
+  /* ── Item count badge in title ── */
+  .cart-title { margin-bottom: 2rem; }
+  .cart-count-badge {
+    font-size: 1rem; font-weight: 400; color: #6b7280;
+    margin-left: 0.5rem;
   }
 
-  /* Animation */
   @keyframes cart-fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-  .cart-animate {
-    animation: cart-fade-up 0.5s ease forwards;
-  }
-  .cart-item-animate {
-    animation: cart-fade-up 0.5s ease forwards;
-  }
+  .cart-animate     { animation: cart-fade-up 0.5s ease forwards; }
+  .cart-item-animate{ animation: cart-fade-up 0.5s ease forwards; }
 </style>
 
-<div class="cart-page">
+<div class="cart-page" id="cart-root">
   <div class="cart-container">
-    
+
     {% if cart.item_count == 0 %}
-      {% comment %} Empty Cart State {% endcomment %}
+
       <div class="cart-empty cart-animate">
         <div class="cart-empty-icon">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="21" r="1"/>
-            <circle cx="20" cy="21" r="1"/>
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
           </svg>
         </div>
-        <h1 class="cart-empty-title">Your cart is empty</h1>
-        <p class="cart-empty-text">Start shopping to add items to your cart</p>
+        <h1 class="cart-empty-title">{{ section.settings.empty_cart_title }}</h1>
+        <p class="cart-empty-text">{{ section.settings.empty_cart_text }}</p>
         <a href="/collections/all" class="cart-empty-btn">
           Continue Shopping
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
           </svg>
         </a>
       </div>
+
     {% else %}
-      {% comment %} Cart with Items {% endcomment %}
-      <h1 class="text-3xl md:text-4xl mb-8 cart-animate">Shopping Cart</h1>
-      
+
+      <h1 class="cart-title cart-animate">
+        {{ section.settings.cart_title }}
+        <span class="cart-count-badge" id="cart-count-badge">({{ cart.item_count }} item{% if cart.item_count != 1 %}s{% endif %})</span>
+      </h1>
+
       <div class="cart-grid">
-        {% comment %} Cart Items Column {% endcomment %}
+
+        {%- comment -%} ── Items column ── {%- endcomment -%}
         <div>
-          <div class="cart-items">
+          <div class="cart-items" id="cart-items-list">
             {% for item in cart.items %}
-              <div class="cart-item cart-item-animate" style="animation-delay: {{ forloop.index0 | times: 0.1 }}s">
+              <div
+                class="cart-item cart-item-animate"
+                id="cart-item-{{ item.key | replace: ':', '-' }}"
+                data-key="{{ item.key }}"
+                data-price="{{ item.price }}"
+                style="animation-delay:{{ forloop.index0 | times: 0.08 }}s"
+              >
                 <div class="cart-item-inner">
-                  {% comment %} Product Image {% endcomment %}
+
                   <div class="cart-item-image">
-                    <img 
-                      src="{{ item.image | img_url: '200x200', crop: 'center' }}" 
-                      alt="{{ item.title }}"
-                      loading="lazy"
-                    >
+                    {% if item.image %}
+                      <img src="{{ item.image | image_url: width: 200 }}" alt="{{ item.title }}" loading="lazy">
+                    {% endif %}
                   </div>
-                  
-                  {% comment %} Product Details {% endcomment %}
+
                   <div class="cart-item-details">
                     <div class="cart-item-header">
-                      <a href="{{ item.url }}" class="cart-item-title">
-                        {{ item.product.title }}
-                      </a>
-                      <button 
-                        class="cart-item-remove" 
-                        onclick="ShopifyCart.removeItem('{{ item.key }}')"
-                        aria-label="Remove item"
+                      <a href="{{ item.url }}" class="cart-item-title">{{ item.product.title }}</a>
+                      <button
+                        class="cart-item-remove"
+                        data-key="{{ item.key }}"
+                        aria-label="Remove {{ item.product.title }}"
                       >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <line x1="18" y1="6" x2="6" y2="18"/>
-                          <line x1="6" y1="6" x2="18" y2="18"/>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                         </svg>
                       </button>
                     </div>
-                    
-                    {% comment %} Variant Options {% endcomment %}
+
                     <div class="cart-item-options">
                       {% if item.variant.title != 'Default Title' %}
                         <p>{{ item.variant.title }}</p>
@@ -292,167 +223,295 @@
                         {% endif %}
                       {% endfor %}
                     </div>
-                    
-                    {% comment %} Quantity & Price {% endcomment %}
+
                     <div class="cart-item-footer">
                       <div class="cart-item-quantity">
-                        <button 
-                          onclick="ShopifyCart.updateQuantity('{{ item.key }}', {{ item.quantity | minus: 1 }})"
-                          {% if item.quantity <= 1 %}disabled style="opacity:0.5;cursor:not-allowed"{% endif %}
+                        <button
+                          class="cart-qty-btn cart-qty-minus"
+                          data-key="{{ item.key }}"
+                          data-qty="{{ item.quantity | minus: 1 }}"
+                          {% if item.quantity <= 1 %}disabled{% endif %}
+                          aria-label="Decrease quantity"
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                          </svg>
+                          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </button>
-                        <span>{{ item.quantity }}</span>
-                        <button onclick="ShopifyCart.updateQuantity('{{ item.key }}', {{ item.quantity | plus: 1 }})">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                          </svg>
+                        <span class="cart-qty-display" id="qty-{{ item.key | replace: ':', '-' }}">{{ item.quantity }}</span>
+                        <button
+                          class="cart-qty-btn cart-qty-plus"
+                          data-key="{{ item.key }}"
+                          data-qty="{{ item.quantity | plus: 1 }}"
+                          aria-label="Increase quantity"
+                        >
+                          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </button>
                       </div>
+
                       <div class="cart-item-price">
-                        <div class="cart-item-total">{{ item.final_line_price | money }}</div>
+                        <div class="cart-item-total" id="line-price-{{ item.key | replace: ':', '-' }}">{{ item.final_line_price | money }}</div>
                         <div class="cart-item-unit">{{ item.price | money }} each</div>
                       </div>
                     </div>
                   </div>
+
                 </div>
               </div>
             {% endfor %}
-            
-            {% comment %} Continue Shopping Link {% endcomment %}
-            <a href="/collections/all" class="cart-continue">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="19" y1="12" x2="5" y2="12"/>
-                <polyline points="12 19 5 12 12 5"/>
-              </svg>
-              Continue Shopping
-            </a>
           </div>
+
+          <a href="/collections/all" class="cart-continue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Continue Shopping
+          </a>
         </div>
-        
-        {% comment %} Order Summary Column {% endcomment %}
+
+        {%- comment -%} ── Summary column ── {%- endcomment -%}
         <div>
-          <div class="cart-summary cart-animate" style="animation-delay: 0.2s">
+          <div class="cart-summary cart-animate" style="animation-delay:0.2s">
             <h2 class="cart-summary-title">Order Summary</h2>
-            
+
             <div class="cart-summary-row">
               <span class="cart-summary-label">Subtotal</span>
-              <span class="cart-summary-value">{{ cart.total_price | money }}</span>
+              <span class="cart-summary-value" id="cart-subtotal">{{ cart.total_price | money }}</span>
             </div>
-            
-            {% comment %} Shipping (dynamic based on subtotal) {% endcomment %}
-            {% assign subtotal_value = cart.total_price | divided_by: 100 %}
-            {% assign free_shipping_threshold = 15000 %}
-            {% assign remaining_for_free = free_shipping_threshold | minus: cart.total_price %}
-            
             <div class="cart-summary-row">
               <span class="cart-summary-label">Shipping</span>
-              <span class="cart-summary-value">
-                {% if cart.total_price >= free_shipping_threshold %}
-                  FREE
-                {% else %}
-                  Calculated at checkout
-                {% endif %}
+              <span class="cart-summary-value" id="cart-shipping-text">
+                {% if cart.total_price >= 15000 %}FREE{% else %}Calculated at checkout{% endif %}
               </span>
             </div>
-            
             <div class="cart-summary-row">
               <span class="cart-summary-label">Estimated Tax</span>
               <span class="cart-summary-value">Calculated at checkout</span>
             </div>
-            
-            {% comment %} Free Shipping Notice {% endcomment %}
-            {% if cart.total_price < free_shipping_threshold %}
-              <div class="cart-shipping-notice">
-                Add {{ remaining_for_free | money }} more for free shipping!
-              </div>
-            {% endif %}
-            
+
+            <div class="cart-shipping-notice" id="cart-shipping-notice"
+              {% if cart.total_price >= 15000 %}style="display:none"{% endif %}
+            >
+              Add <span id="cart-remaining">{{ 15000 | minus: cart.total_price | money }}</span> more for free shipping!
+            </div>
+
             <div class="cart-summary-row cart-total-row">
               <span class="cart-summary-label">Total</span>
-              <span class="cart-summary-value">{{ cart.total_price | money }}</span>
+              <span class="cart-summary-value" id="cart-total">{{ cart.total_price | money }}</span>
             </div>
-            
-            <a href="/checkout" class="cart-checkout-btn">
-              Proceed to Checkout
-            </a>
-            
-            <div class="cart-tax-note">
-              Taxes calculated at checkout
-            </div>
+
+            <a href="/checkout" class="cart-checkout-btn">Proceed to Checkout</a>
+            <div class="cart-tax-note">Taxes calculated at checkout</div>
           </div>
         </div>
+
       </div>
     {% endif %}
-    
+
   </div>
 </div>
 
-{% comment %} JavaScript for Cart Operations {% endcomment %}
 <script>
-window.ShopifyCart = {
-  updateQuantity: function(key, quantity) {
-    if (quantity < 1) return;
-    
-    const formData = {
-      updates: {
-        [key]: quantity
-      }
-    };
-    
-    fetch('/cart/update.js', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(cart => {
-      window.location.reload();
-    })
-    .catch(error => {
-      console.error('Error updating cart:', error);
-    });
-  },
-  
-  removeItem: function(key) {
-    this.updateQuantity(key, 0);
+(function () {
+  'use strict';
+
+  var FREE_SHIPPING_CENTS = 15000; /* $150 */
+
+  /* ── Money formatter ── */
+  function money(cents) {
+    if (window.Shopify && window.Shopify.formatMoney) {
+      return window.Shopify.formatMoney(cents);
+    }
+    return '$' + (cents / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
-};
+
+  /* ── Safe element getter ── */
+  function el(id) { return document.getElementById(id); }
+
+  /* ── Update summary numbers without reload ── */
+  function updateSummary(cart) {
+    var total = cart.total_price;
+
+    /* Subtotal & total */
+    var sub = el('cart-subtotal'), tot = el('cart-total');
+    if (sub) sub.textContent = money(total);
+    if (tot) tot.textContent = money(total);
+
+    /* Shipping notice */
+    var notice    = el('cart-shipping-notice');
+    var remaining = el('cart-remaining');
+    var shipText  = el('cart-shipping-text');
+    var badge     = el('cart-count-badge');
+
+    if (total >= FREE_SHIPPING_CENTS) {
+      if (notice)   notice.style.display = 'none';
+      if (shipText) shipText.textContent = 'FREE';
+    } else {
+      if (notice)   notice.style.display = '';
+      if (remaining) remaining.textContent = money(FREE_SHIPPING_CENTS - total);
+      if (shipText)  shipText.textContent = 'Calculated at checkout';
+    }
+
+    /* Item count badge */
+    if (badge) {
+      var n = cart.item_count;
+      badge.textContent = '(' + n + ' item' + (n !== 1 ? 's' : '') + ')';
+    }
+
+    /* Header cart count (nav) */
+    document.querySelectorAll('#cartCounter,.cart-count,[data-cart-count]').forEach(function(e){
+      e.textContent = cart.item_count > 0 ? cart.item_count : '';
+    });
+    document.dispatchEvent(new CustomEvent('cart:updated', { detail: cart }));
+  }
+
+  /* ── Core cart API call ── */
+  function cartUpdate(updates) {
+    return fetch('/cart/update.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates: updates })
+    }).then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+
+  /* ── Quantity change (no reload) ── */
+  function handleQtyChange(key, newQty, btnEl) {
+    var safeKey = key.replace(/:/g, '-');
+    var qtyEl   = el('qty-' + safeKey);
+    var priceEl = el('line-price-' + safeKey);
+    var itemEl  = document.getElementById('cart-item-' + safeKey);
+
+    /* Disable buttons while loading */
+    var btns = itemEl ? itemEl.querySelectorAll('.cart-qty-btn') : [];
+    btns.forEach(function(b) { b.classList.add('is-loading'); });
+
+    var updates = {};
+    updates[key] = newQty;
+
+    cartUpdate(updates)
+      .then(function(cart) {
+        /* Find updated item */
+        var updated = cart.items.find(function(i) { return i.key === key; });
+
+        if (!updated) {
+          /* Item was removed (qty went to 0) */
+          if (itemEl) {
+            itemEl.classList.add('is-removing');
+            setTimeout(function() { itemEl.remove(); }, 280);
+          }
+        } else {
+          /* Update qty display */
+          if (qtyEl) qtyEl.textContent = updated.quantity;
+
+          /* Update line price */
+          if (priceEl) priceEl.textContent = money(updated.final_line_price);
+
+          /* Update button data-qty attributes */
+          var minus = itemEl && itemEl.querySelector('.cart-qty-minus');
+          var plus  = itemEl && itemEl.querySelector('.cart-qty-plus');
+          if (minus) {
+            minus.dataset.qty = updated.quantity - 1;
+            minus.disabled    = updated.quantity <= 1;
+          }
+          if (plus) {
+            plus.dataset.qty = updated.quantity + 1;
+          }
+        }
+
+        /* Always update summary */
+        updateSummary(cart);
+
+        /* Re-enable buttons */
+        btns.forEach(function(b) { b.classList.remove('is-loading'); });
+
+        /* If cart is now empty, reload to show empty state */
+        if (cart.item_count === 0) {
+          window.location.reload();
+        }
+      })
+      .catch(function(err) {
+        console.error('[Cart] qty update error:', err);
+        btns.forEach(function(b) { b.classList.remove('is-loading'); });
+      });
+  }
+
+  /* ── Remove item ── */
+  function handleRemove(key) {
+    var safeKey = key.replace(/:/g, '-');
+    var itemEl  = document.getElementById('cart-item-' + safeKey);
+
+    /* Immediately animate out */
+    if (itemEl) {
+      itemEl.classList.add('is-removing');
+    }
+
+    var updates = {};
+    updates[key] = 0;
+
+    cartUpdate(updates)
+      .then(function(cart) {
+        /* Remove from DOM after animation */
+        setTimeout(function() {
+          if (itemEl) itemEl.remove();
+        }, 280);
+
+        updateSummary(cart);
+
+        if (cart.item_count === 0) {
+          window.location.reload();
+        }
+      })
+      .catch(function(err) {
+        console.error('[Cart] remove error:', err);
+        /* Undo animation on error */
+        if (itemEl) itemEl.classList.remove('is-removing');
+      });
+  }
+
+  /* ── Event delegation — ONE listener for the whole list ── */
+  var itemsList = document.getElementById('cart-items-list');
+  if (!itemsList) return;
+
+  itemsList.addEventListener('click', function(e) {
+
+    /* Qty minus button */
+    var minusBtn = e.target.closest('.cart-qty-minus');
+    if (minusBtn && !minusBtn.disabled && !minusBtn.classList.contains('is-loading')) {
+      var key = minusBtn.dataset.key;
+      var qty = parseInt(minusBtn.dataset.qty, 10);
+      if (qty >= 0) handleQtyChange(key, qty, minusBtn);
+      return;
+    }
+
+    /* Qty plus button */
+    var plusBtn = e.target.closest('.cart-qty-plus');
+    if (plusBtn && !plusBtn.classList.contains('is-loading')) {
+      var key = plusBtn.dataset.key;
+      var qty = parseInt(plusBtn.dataset.qty, 10);
+      handleQtyChange(key, qty, plusBtn);
+      return;
+    }
+
+    /* Remove button */
+    var removeBtn = e.target.closest('.cart-item-remove');
+    if (removeBtn) {
+      var key = removeBtn.dataset.key;
+      handleRemove(key);
+      return;
+    }
+  });
+
+})();
 </script>
 
 {% schema %}
 {
   "name": "Cart Page",
   "settings": [
-    {
-      "type": "text",
-      "id": "cart_title",
-      "label": "Cart Title",
-      "default": "Shopping Cart"
-    },
-    {
-      "type": "text",
-      "id": "empty_cart_title",
-      "label": "Empty Cart Title",
-      "default": "Your cart is empty"
-    },
-    {
-      "type": "textarea",
-      "id": "empty_cart_text",
-      "label": "Empty Cart Message",
-      "default": "Start shopping to add items to your cart"
-    }
+    { "type": "text",     "id": "cart_title",       "label": "Cart Title",       "default": "Shopping Cart"                         },
+    { "type": "text",     "id": "empty_cart_title",  "label": "Empty Cart Title", "default": "Your cart is empty"                    },
+    { "type": "textarea", "id": "empty_cart_text",   "label": "Empty Cart Message","default": "Start shopping to add items to your cart" }
   ],
-  "presets": [
-    {
-      "name": "Cart Page"
-    }
-  ]
+  "presets": [{ "name": "Cart Page" }]
 }
 {% endschema %}

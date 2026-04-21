@@ -72,6 +72,128 @@
 
 <script src="{{ 'product-template.js' | asset_url }}" defer></script>
 
+<script>
+/* ── Flying Cart Animation ── */
+(function () {
+
+  function flyToCart(originEl) {
+    /* Find the cart icon — tries multiple common selectors */
+    var cartEl = document.querySelector('[data-cart-count]')
+               || document.querySelector('.cart-wrapper')
+               || document.querySelector('.cart-count')
+               || document.querySelector('#cartCounter');
+    if (!cartEl) return;
+
+    var btnRect  = originEl.getBoundingClientRect();
+    var cartRect = cartEl.getBoundingClientRect();
+
+    var startX = btnRect.left  + btnRect.width  / 2;
+    var startY = btnRect.top   + btnRect.height / 2;
+    var endX   = cartRect.left + cartRect.width  / 2;
+    var endY   = cartRect.top  + cartRect.height / 2;
+
+    /* ── Find product image src ── */
+    var sectionEl = document.getElementById('pt-{{ section.id }}');
+    var productImg = sectionEl && sectionEl.querySelector('.pt-main-img, img[class*="main"], img[class*="featured"], img[class*="product"]');
+    var imgSrc = productImg ? productImg.src : '';
+
+    /* Create the flying ball — image circle if available, black dot fallback */
+    var ball = document.createElement('div');
+    ball.style.cssText = [
+      'position:fixed',
+      'width:52px','height:52px',
+      'border-radius:50%',
+      'overflow:hidden',
+      'border:2px solid #fff',
+      'box-shadow:0 4px 12px rgba(0,0,0,0.25)',
+      'background:#111827',
+      'pointer-events:none',
+      'z-index:99999',
+      'opacity:1',
+      'transform:translate(-50%,-50%)',
+      'transition:none',
+      'left:' + startX + 'px',
+      'top:'  + startY + 'px'
+    ].join(';');
+
+    if (imgSrc) {
+      var img = document.createElement('img');
+      img.src = imgSrc;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      ball.appendChild(img);
+    }
+
+    document.body.appendChild(ball);
+
+    var start    = null;
+    var duration = 680;
+
+    function easeInOut(t) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    }
+
+    function step(ts) {
+      if (!start) start = ts;
+      var raw = Math.min((ts - start) / duration, 1);
+      var t   = easeInOut(raw);
+
+      /* Arc: parabola upward via sin */
+      var arcHeight = -Math.min(Math.abs(endY - startY), 160) - 40;
+      var x  = startX + (endX - startX) * t;
+      var y  = startY + (endY - startY) * t + Math.sin(raw * Math.PI) * arcHeight;
+
+      /* Shrink as it approaches cart */
+      var scale   = 1 - t * 0.55;
+      /* Fade out in last 20% */
+      var opacity = raw < 0.8 ? 1 : 1 - (raw - 0.8) / 0.2;
+
+      ball.style.left      = x + 'px';
+      ball.style.top       = y + 'px';
+      ball.style.transform = 'translate(-50%,-50%) scale(' + scale + ')';
+      ball.style.opacity   = opacity;
+
+      if (raw < 1) {
+        requestAnimationFrame(step);
+      } else {
+        ball.remove();
+
+        /* Bounce the cart badge */
+        var badge = document.querySelector('[data-cart-count], .cart-count, #cartCounter');
+        if (badge) {
+          badge.classList.remove('pop');
+          void badge.offsetWidth; /* reflow to restart animation */
+          badge.classList.add('pop');
+          setTimeout(function () { badge.classList.remove('pop'); }, 500);
+        }
+      }
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  /* Hook into the ATC form submit */
+  function initFlyOnATC() {
+    var sectionEl = document.getElementById('pt-{{ section.id }}');
+    if (!sectionEl) return;
+
+    sectionEl.addEventListener('submit', function (e) {
+      if (!e.target.classList.contains('pt-form')) return;
+      var btn = e.target.querySelector('.pt-btn-cart');
+      if (btn) flyToCart(btn);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFlyOnATC);
+  } else {
+    initFlyOnATC();
+  }
+
+  /* Also expose globally for direct calls */
+  window.flyToCart = flyToCart;
+})();
+</script>
+
 {% schema %}
 {
   "name": "Product Template",
