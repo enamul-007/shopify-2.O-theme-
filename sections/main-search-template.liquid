@@ -1,41 +1,807 @@
+{% comment %}
+  ============================================================
+  Search Template Section — Premium Redesign (Fixed)
+  File: sections/search-template.liquid
+  Includes: product cards, article cards, page cards, pagination
+  ============================================================
+{% endcomment %}
+
+<style>
+  /* ============================================================
+     TOKENS
+  ============================================================ */
+  .search-template-section {
+    --s-font-display: 'Georgia', 'Times New Roman', serif;
+    --s-font-body: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --s-bg: #f7f7f5;
+    --s-surface: #ffffff;
+    --s-ink: #111110;
+    --s-ink-2: #3d3d3a;
+    --s-muted: #888884;
+    --s-border: #e4e4e0;
+    --s-accent: #111110;
+    --s-accent-hover: #2e2e2b;
+    --s-badge-product: #f0f0ed;
+    --s-badge-product-text: #111110;
+    --s-badge-article: #e8f0fe;
+    --s-badge-article-text: #1a56db;
+    --s-badge-page: #fef3c7;
+    --s-badge-page-text: #92400e;
+    --s-shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.05);
+    --s-shadow-md: 0 4px 8px rgba(0,0,0,0.07), 0 16px 40px rgba(0,0,0,0.09);
+    --s-radius-pill: 999px;
+    --s-radius-card: 16px;
+    --s-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ============================================================
+     RESET SCOPED
+  ============================================================ */
+  .search-template-section *,
+  .search-template-section *::before,
+  .search-template-section *::after {
+    box-sizing: border-box;
+  }
+
+  /* ============================================================
+     HERO
+  ============================================================ */
+  .s-hero {
+    background-color: var(--s-bg);
+    border-bottom: 1px solid var(--s-border);
+    padding: 80px 24px 72px;
+    text-align: center;
+  }
+
+  .s-hero__inner {
+    max-width: 660px;
+    margin: 0 auto;
+  }
+
+  .s-hero__eyebrow {
+    font-family: var(--s-font-body);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--s-muted);
+    margin: 0 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .s-hero__eyebrow::before,
+  .s-hero__eyebrow::after {
+    content: '';
+    display: block;
+    width: 28px;
+    height: 1px;
+    background: var(--s-border);
+  }
+
+  .s-hero__heading {
+    font-family: var(--s-font-display);
+    font-size: clamp(26px, 4.5vw, 44px);
+    font-weight: 400;
+    color: var(--s-ink);
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    margin: 0 0 40px;
+  }
+
+  .s-hero__heading em {
+    font-style: italic;
+    color: var(--s-muted);
+  }
+
+  /* ============================================================
+     SEARCH FORM
+  ============================================================ */
+  .s-form {
+    width: 100%;
+  }
+
+  .s-form__row {
+    display: flex;
+    align-items: center;
+    background: var(--s-surface);
+    border: 1.5px solid var(--s-border);
+    border-radius: var(--s-radius-pill);
+    padding: 5px 5px 5px 22px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    gap: 10px;
+    transition: border-color 0.22s var(--s-ease), box-shadow 0.22s var(--s-ease);
+  }
+
+  .s-form__row:focus-within {
+    border-color: var(--s-ink);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04), 0 0 0 4px rgba(17,17,16,0.07);
+  }
+
+  .s-form__icon {
+    color: var(--s-muted);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition: color 0.2s;
+  }
+
+  .s-form__row:focus-within .s-form__icon {
+    color: var(--s-ink);
+  }
+
+  .s-form__input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: var(--s-font-body);
+    font-size: 15px;
+    color: var(--s-ink);
+    padding: 10px 0;
+    min-width: 0;
+  }
+
+  .s-form__input::placeholder {
+    color: #c0c0bb;
+  }
+
+  .s-form__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+
+  .s-form__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--s-accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--s-radius-pill);
+    padding: 11px 26px;
+    font-family: var(--s-font-body);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.22s var(--s-ease), transform 0.22s var(--s-ease), box-shadow 0.22s var(--s-ease);
+  }
+
+  .s-form__btn:hover {
+    background: var(--s-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+  }
+
+  .s-form__btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  /* ============================================================
+     RESULTS META BAR
+  ============================================================ */
+  .s-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .s-meta__count {
+    font-family: var(--s-font-body);
+    font-size: 13px;
+    color: var(--s-muted);
+    letter-spacing: 0.01em;
+  }
+
+  .s-meta__count strong {
+    color: var(--s-ink);
+    font-weight: 600;
+  }
+
+  .s-meta__divider {
+    width: 100%;
+    height: 1px;
+    background: var(--s-border);
+    margin-bottom: 32px;
+  }
+
+  /* ============================================================
+     BODY
+  ============================================================ */
+  .s-body {
+    background: var(--s-bg);
+    padding: 56px 24px 96px;
+    min-height: 360px;
+  }
+
+  .s-container {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  /* ============================================================
+     GRID
+  ============================================================ */
+  .s-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+    gap: 24px;
+    align-items: start;
+  }
+
+  .s-grid > * {
+    transition: transform 0.28s var(--s-ease), box-shadow 0.28s var(--s-ease);
+  }
+
+  .s-grid > *:hover {
+    transform: translateY(-5px);
+  }
+
+  /* ============================================================
+     UNIVERSAL CARD STYLES
+  ============================================================ */
+  .s-card {
+    background: var(--s-surface);
+    border-radius: var(--s-radius-card);
+    border: 1px solid var(--s-border);
+    box-shadow: var(--s-shadow-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.28s var(--s-ease), box-shadow 0.28s var(--s-ease), border-color 0.28s var(--s-ease);
+  }
+
+  .s-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--s-shadow-md);
+    border-color: transparent;
+  }
+
+  .s-card__link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* Image wrapper (for products & articles) */
+  .s-card__img-wrap {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--s-border);
+    flex-shrink: 0;
+  }
+
+  .s-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.55s var(--s-ease);
+  }
+
+  .s-card:hover .s-card__img {
+    transform: scale(1.05);
+  }
+
+  /* Page icon wrapper */
+  .s-card__icon-wrap {
+    width: 100%;
+    padding: 28px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .s-card__icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--s-bg);
+    border: 1px solid var(--s-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--s-muted);
+  }
+
+  /* Card body */
+  .s-card__body {
+    padding: 18px 22px 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .s-card__badge {
+    display: inline-block;
+    font-family: var(--s-font-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    align-self: flex-start;
+    margin-bottom: 2px;
+  }
+
+  .s-card--product .s-card__badge {
+    background: var(--s-badge-product);
+    color: var(--s-badge-product-text);
+  }
+  .s-card--article .s-card__badge {
+    background: var(--s-badge-article);
+    color: var(--s-badge-article-text);
+  }
+  .s-card--page .s-card__badge {
+    background: var(--s-badge-page);
+    color: var(--s-badge-page-text);
+  }
+
+  .s-card__title {
+    font-family: var(--s-font-display);
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--s-ink);
+    line-height: 1.35;
+    margin: 0;
+    letter-spacing: -0.015em;
+  }
+
+  .s-card__excerpt,
+  .s-card__price {
+    font-family: var(--s-font-body);
+    font-size: 13px;
+    color: var(--s-muted);
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  .s-card__price {
+    margin-top: 4px;
+    font-weight: 500;
+    color: var(--s-ink-2);
+  }
+
+  /* Card footer */
+  .s-card__foot {
+    padding: 12px 22px 18px;
+    border-top: 1px solid var(--s-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .s-card__cta {
+    font-family: var(--s-font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--s-ink);
+    letter-spacing: 0.03em;
+    transition: letter-spacing 0.25s var(--s-ease), color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .s-card:hover .s-card__cta {
+    letter-spacing: 0.08em;
+  }
+
+  .s-card__arrow {
+    display: inline-block;
+    transition: transform 0.25s var(--s-ease);
+  }
+
+  .s-card:hover .s-card__arrow {
+    transform: translateX(4px);
+  }
+
+  /* ============================================================
+     PAGINATION
+  ============================================================ */
+  .s-pagination {
+    margin-top: 64px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .s-pagination__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 10px;
+    font-family: var(--s-font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--s-ink-2);
+    background: var(--s-surface);
+    border: 1px solid var(--s-border);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+
+  .s-pagination__item--current {
+    background: var(--s-accent);
+    border-color: var(--s-accent);
+    color: #fff;
+  }
+
+  .s-pagination__item:hover:not(.s-pagination__item--current) {
+    background: var(--s-bg);
+    border-color: var(--s-ink);
+  }
+
+  /* ============================================================
+     EMPTY STATE
+  ============================================================ */
+  .s-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 24px 40px;
+    gap: 0;
+  }
+
+  .s-empty__ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 1.5px solid var(--s-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .s-empty__ring::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px dashed var(--s-border);
+  }
+
+  .s-empty__heading {
+    font-family: var(--s-font-display);
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--s-ink);
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+  }
+
+  .s-empty__sub {
+    font-family: var(--s-font-body);
+    font-size: 14px;
+    color: var(--s-muted);
+    line-height: 1.7;
+    max-width: 340px;
+    margin: 0 0 32px;
+  }
+
+  .s-empty__tips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 36px;
+  }
+
+  .s-empty__tip {
+    font-family: var(--s-font-body);
+    font-size: 12px;
+    color: var(--s-ink-2);
+    background: var(--s-surface);
+    border: 1px solid var(--s-border);
+    border-radius: 999px;
+    padding: 5px 14px;
+    letter-spacing: 0.01em;
+  }
+
+  /* ============================================================
+     FADE-IN ANIMATIONS
+  ============================================================ */
+  @keyframes s-fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .s-hero__inner {
+    animation: s-fadeUp 0.55s var(--s-ease) both;
+  }
+
+  .s-meta {
+    animation: s-fadeUp 0.45s 0.05s var(--s-ease) both;
+  }
+
+  .s-grid {
+    animation: s-fadeUp 0.5s 0.1s var(--s-ease) both;
+  }
+
+  .s-empty {
+    animation: s-fadeUp 0.5s 0.05s var(--s-ease) both;
+  }
+
+  /* ============================================================
+     RESPONSIVE
+  ============================================================ */
+  @media (max-width: 768px) {
+    .s-hero { padding: 52px 20px 44px; }
+
+    .s-form__btn .s-form__btn-label { display: none; }
+    .s-form__btn { padding: 11px 16px; }
+
+    .s-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .s-body { padding: 36px 16px 64px; }
+  }
+
+  @media (max-width: 480px) {
+    .s-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .s-card__body { padding: 14px 16px 10px; }
+    .s-card__foot { padding: 10px 16px 14px; }
+    .s-card__title { font-size: 15px; }
+  }
+</style>
+
 <div class="search-template-section">
-    <div class="container">
-        <div class="search-form-header py-5">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <form action="{{ routes.search_url }}" method="get" role="search">
-                        <div class="d-flex">
-                            <input class="form-control mx-2" type="search" name="q" id="searchBox" value="{{ search.terms |  escape }}" placeholder="Search">
-                            <input type="hidden" name="options[prefix]" value="last">
-                            <button type="submit" class="btn btn-primary btn-sm">Search</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        {% if search.results.size > 0 %}
-            <div class="search-results">
-                <div class="row">
-                    {% for item in search.results %}
-                        {% case item.object_type %}
-                            {% when 'product' %}
-                                {% render 'product-card', product: item %}
-                            {% when 'article' %}
-                            <div class="col-md-3 article">
-                                <a href="{{ item.url }}">{{ item.title }}</a>
-                            </div>
-                            {% when 'page' %}
-                            <div class="col-md-3 page">
-                                <a href="{{ item.url }}">{{ item.title }}</a>
-                            </div>
-                        {% endcase %}
-                    {% endfor %}
-                </div>
-            </div>
-            {% else %}
-                <div class="text-center">
-                    <p>No results found!</p>
-                </div>
+
+  <!-- HERO SECTION -->
+  <div class="s-hero">
+    <div class="s-hero__inner">
+      <p class="s-hero__eyebrow">Search</p>
+      <h1 class="s-hero__heading">
+        {% if search.performed %}
+          {% if search.results.size > 0 %}
+            {{ search.results.size }} result{% if search.results.size != 1 %}s{% endif %} for <em>&ldquo;{{ search.terms | escape }}&rdquo;</em>
+          {% else %}
+            No results for <em>&ldquo;{{ search.terms | escape }}&rdquo;</em>
+          {% endif %}
+        {% else %}
+          What are you looking for?
         {% endif %}
+      </h1>
+
+      <form action="{{ routes.search_url }}" method="get" role="search" class="s-form">
+        <div class="s-form__row">
+          <span class="s-form__icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+          </span>
+          <input
+            class="s-form__input"
+            type="search"
+            name="q"
+            value="{{ search.terms | escape }}"
+            placeholder="Search products, articles, pages…"
+            autocomplete="off"
+            aria-label="Search"
+          >
+          <input type="hidden" name="options[prefix]" value="last">
+          <button type="submit" class="s-form__btn" aria-label="Submit search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <span class="s-form__btn-label">Search</span>
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="s-body">
+    <div class="s-container">
+
+      {% if search.performed and search.results.size > 0 %}
+        {% paginate search.results by 24 %}
+
+          <!-- Meta bar -->
+          <div class="s-meta">
+            <p class="s-meta__count">
+              Showing <strong>{{ search.results.size }}</strong>
+              result{% if search.results.size != 1 %}s{% endif %}
+              {% if search.performed %} for <strong>&ldquo;{{ search.terms | escape }}&rdquo;</strong>{% endif %}
+            </p>
+          </div>
+          <div class="s-meta__divider"></div>
+
+          <!-- Results grid -->
+          <div class="s-grid">
+            {% for item in search.results %}
+              {% case item.object_type %}
+
+                {% when 'product' %}
+                  <div class="s-card s-card--product">
+                    <a href="{{ item.url }}" class="s-card__link">
+                      {% if item.featured_image %}
+                        <div class="s-card__img-wrap">
+                          <img
+                            src="{{ item.featured_image | img_url: '400x' }}"
+                            alt="{{ item.title | escape }}"
+                            class="s-card__img"
+                            loading="lazy"
+                          >
+                        </div>
+                      {% else %}
+                        <div class="s-card__img-wrap" style="background: #f0f0ed;"></div>
+                      {% endif %}
+                      <div class="s-card__body">
+                        <span class="s-card__badge">Product</span>
+                        <h3 class="s-card__title">{{ item.title }}</h3>
+                        <p class="s-card__price">{{ item.price | money }}</p>
+                        {% if item.vendor %}
+                          <p class="s-card__excerpt">{{ item.vendor }}</p>
+                        {% endif %}
+                      </div>
+                      <div class="s-card__foot">
+                        <span class="s-card__cta">
+                          View product
+                          <span class="s-card__arrow" aria-hidden="true">→</span>
+                        </span>
+                      </div>
+                    </a>
+                  </div>
+
+                {% when 'article' %}
+                  <div class="s-card s-card--article">
+                    <a href="{{ item.url }}" class="s-card__link">
+                      {% if item.image %}
+                        <div class="s-card__img-wrap">
+                          <img
+                            src="{{ item.image | img_url: '400x' }}"
+                            alt="{{ item.title | escape }}"
+                            class="s-card__img"
+                            loading="lazy"
+                          >
+                        </div>
+                      {% endif %}
+                      <div class="s-card__body">
+                        <span class="s-card__badge">Article</span>
+                        <h3 class="s-card__title">{{ item.title }}</h3>
+                        {% if item.excerpt %}
+                          <p class="s-card__excerpt">{{ item.excerpt | strip_html | truncate: 100 }}</p>
+                        {% endif %}
+                      </div>
+                      <div class="s-card__foot">
+                        <span class="s-card__cta">
+                          Read article
+                          <span class="s-card__arrow" aria-hidden="true">→</span>
+                        </span>
+                      </div>
+                    </a>
+                  </div>
+
+                {% when 'page' %}
+                  <div class="s-card s-card--page">
+                    <a href="{{ item.url }}" class="s-card__link">
+                      <div class="s-card__icon-wrap">
+                        <div class="s-card__icon-circle" aria-hidden="true">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                               fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="s-card__body">
+                        <span class="s-card__badge">Page</span>
+                        <h3 class="s-card__title">{{ item.title }}</h3>
+                        {% if item.content %}
+                          <p class="s-card__excerpt">{{ item.content | strip_html | truncate: 100 }}</p>
+                        {% endif %}
+                      </div>
+                      <div class="s-card__foot">
+                        <span class="s-card__cta">
+                          View page
+                          <span class="s-card__arrow" aria-hidden="true">→</span>
+                        </span>
+                      </div>
+                    </a>
+                  </div>
+
+              {% endcase %}
+            {% endfor %}
+          </div>
+
+          <!-- Pagination -->
+          {% if paginate.pages > 1 %}
+            <div class="s-pagination">
+              {% if paginate.previous %}
+                <a href="{{ paginate.previous.url }}" class="s-pagination__item" aria-label="Previous">←</a>
+              {% endif %}
+              {% for part in paginate.parts %}
+                {% if part.is_link %}
+                  <a href="{{ part.url }}" class="s-pagination__item">{{ part.title }}</a>
+                {% else %}
+                  <span class="s-pagination__item s-pagination__item--current">{{ part.title }}</span>
+                {% endif %}
+              {% endfor %}
+              {% if paginate.next %}
+                <a href="{{ paginate.next.url }}" class="s-pagination__item" aria-label="Next">→</a>
+              {% endif %}
+            </div>
+          {% endif %}
+
+        {% endpaginate %}
+
+      {% elsif search.performed and search.results.size == 0 %}
+
+        <!-- Empty state -->
+        <div class="s-empty">
+          <div class="s-empty__ring" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+          </div>
+          <h2 class="s-empty__heading">No results found</h2>
+          <p class="s-empty__sub">
+            We couldn&rsquo;t find anything for &ldquo;{{ search.terms | escape }}&rdquo;.
+            Try a different term or browse below.
+          </p>
+          <div class="s-empty__tips" aria-label="Search tips">
+            <span class="s-empty__tip">Check your spelling</span>
+            <span class="s-empty__tip">Use fewer keywords</span>
+            <span class="s-empty__tip">Try broader terms</span>
+          </div>
+        </div>
+
+      {% endif %}
+
+    </div>
+  </div>
+
 </div>
+
+{% schema %}
+{
+  "name": "Search",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Search"
+    }
+  ]
+}
+{% endschema %}

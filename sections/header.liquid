@@ -1,759 +1,686 @@
 {%- style -%}
+  /* ────────────────────────────────
+     CSS CUSTOM PROPERTIES
+  ──────────────────────────────── */
   :root {
-    --header-bg: {{ section.settings.color_scheme.settings.background }};
-    --header-text: {{ section.settings.color_scheme.settings.text }};
-    --header-button: {{ section.settings.color_scheme.settings.button }};
-    --header-button-label: {{ section.settings.color_scheme.settings.button_label }};
-    --header-border: {{ section.settings.border_color }};
-    --nav-hover: {{ section.settings.nav_hover_color }};
+    --hdr-bg:        {{ section.settings.color_scheme.settings.background }};
+    --hdr-text:      {{ section.settings.color_scheme.settings.text }};
+    --hdr-btn-bg:    {{ section.settings.color_scheme.settings.button }};
+    --hdr-btn-text:  {{ section.settings.color_scheme.settings.button_label }};
+    --hdr-border:    {{ section.settings.border_color }};
+    --hdr-hover:     {{ section.settings.nav_hover_color }};
+    --ease-out:      cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  /* Page Background Transparency */
+  /* ────────────────────────────────
+     PAGE BACKGROUND OVERLAYS
+  ──────────────────────────────── */
   .page-bg-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -1;
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: -1;
   }
+  .home-page-bg       { background: {{ section.settings.home_bg_color }};       opacity: {{ section.settings.home_bg_opacity       | times: 0.01 }}; }
+  .product-page-bg    { background: {{ section.settings.product_bg_color }};    opacity: {{ section.settings.product_bg_opacity    | times: 0.01 }}; }
+  .collection-page-bg { background: {{ section.settings.collection_bg_color }}; opacity: {{ section.settings.collection_bg_opacity | times: 0.01 }}; }
 
-  .home-page-bg { background-color: {{ section.settings.home_bg_color }}; opacity: {{ section.settings.home_bg_opacity | times: 0.01 }}; }
-  .product-page-bg { background-color: {{ section.settings.product_bg_color }}; opacity: {{ section.settings.product_bg_opacity | times: 0.01 }}; }
-  .collection-page-bg { background-color: {{ section.settings.collection_bg_color }}; opacity: {{ section.settings.collection_bg_opacity | times: 0.01 }}; }
-
-  #shopify-section-{{ section.id }} .header-section {
-    background-color: var(--header-bg);
-    color: var(--header-text);
-    border-bottom: {{ section.settings.border_thickness }}px solid var(--header-border);
-    padding: {{ section.settings.padding_v }}px {{ section.settings.padding_h }}px;
-    transition: transform 0.3s ease, background-color 0.3s ease;
+  /* ────────────────────────────────
+     HEADER WRAPPER
+  ──────────────────────────────── */
+  .hdr {
+    background: var(--hdr-bg);
+    color: var(--hdr-text);
+    border-bottom: {{ section.settings.border_thickness }}px solid var(--hdr-border);
     position: relative;
     width: 100%;
     z-index: 1000;
+    transition: transform 0.3s var(--ease-out),
+                box-shadow 0.3s var(--ease-out),
+                background 0.3s var(--ease-out);
   }
-
-  /* Sticky Header Types */
-  #shopify-section-{{ section.id }} .header-section.is-sticky {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    animation: slideDown 0.3s ease;
+  .hdr.is-sticky {
+    position: fixed; top: 0; left: 0; right: 0;
+    animation: hdr-slide-down 0.35s var(--ease-out);
   }
-
-  #shopify-section-{{ section.id }} .header-section.is-hidden {
-    transform: translateY(-100%);
-  }
-
-  @keyframes slideDown {
+  .hdr.is-hidden { transform: translateY(-100%); }
+  @keyframes hdr-slide-down {
     from { transform: translateY(-100%); }
-    to { transform: translateY(0); }
+    to   { transform: translateY(0); }
   }
-
   {% if section.settings.header_shadow %}
-  #shopify-section-{{ section.id }} .header-section.is-sticky {
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  }
+  .hdr.is-sticky { box-shadow: 0 2px 20px rgba(0,0,0,0.07); }
   {% endif %}
 
-  #shopify-section-{{ section.id }} .navbar {
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+  /* Spacer — prevents content jump when sticky kicks in */
+  .hdr-spacer { display: none; }
+  .hdr.is-sticky + .hdr-spacer { display: block; }
 
-  #shopify-section-{{ section.id }} .container-fluid {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: nowrap;
+  .hdr-inner {
     max-width: {% if section.settings.page_width == 'narrow' %}1000px{% elsif section.settings.page_width == 'wide' %}1400px{% else %}1200px{% endif %};
     margin: 0 auto;
-    width: 100%;
-  }
-
-  /* Logo & Shop Name */
-  #shopify-section-{{ section.id }} .navbar-brand {
-    color: var(--header-text);
-    font-size: {{ section.settings.logo_font_size }}px;
-    font-weight: 700;
-    text-decoration: none;
+    padding: {{ section.settings.padding_v }}px {{ section.settings.padding_h }}px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 0;
-    flex-shrink: 0;
-    z-index: 2;
+    gap: 24px;
+    position: relative; /* for center-logo absolute positioning */
   }
 
+  /* ────────────────────────────────
+     LOGO
+     Priority: custom_logo → settings.logo → shop name
+  ──────────────────────────────── */
+  .hdr-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--hdr-text);
+    font-size: {{ section.settings.logo_font_size }}px;
+    font-weight: 700;
+    flex-shrink: 0;
+    z-index: 2;
+    transition: opacity 0.2s;
+    /* FIX: explicit height so logo never collapses */
+    min-height: {{ section.settings.logo_height }}px;
+  }
+  .hdr-logo:hover { opacity: 0.78; }
+
+  /* FIX: image always properly sized */
+  .hdr-logo img {
+    display: block;
+    height: {{ section.settings.logo_height }}px;
+    width: auto;
+    max-width: 240px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .hdr-logo-name { white-space: nowrap; }
+
+  /* Logo position variants */
   {% if section.settings.logo_position == 'center' %}
-  #shopify-section-{{ section.id }} .navbar-brand {
+  .hdr-logo {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
   }
   {% elsif section.settings.logo_position == 'right' %}
-  #shopify-section-{{ section.id }} .navbar-brand {
-    order: 3;
-    margin-left: auto;
-  }
-  #shopify-section-{{ section.id }} .header-icons {
-    order: 1;
-    margin-left: 0;
-    margin-right: auto;
-  }
-  #shopify-section-{{ section.id }} .navbar-toggler {
-    order: 2;
-  }
+  .hdr-logo { order: 4; margin-left: auto; }
+  .hdr-nav-wrap { order: 1; }
+  .hdr-icons { order: 2; margin-left: 0 !important; }
   {% endif %}
 
-  #shopify-section-{{ section.id }} .navbar-brand img {
-    height: {{ section.settings.logo_height }}px;
-    width: auto;
-    display: block;
-    object-fit: contain;
-  }
+  /* Show/hide logo parts */
+  .hdr-logo-img  { display: {% if section.settings.show_brand_name == 'name' %}none{% else %}block{% endif %}; }
+  .hdr-logo-name { display: {% if section.settings.show_brand_name == 'logo' %}none{% else %}inline{% endif %}; }
 
-  #shopify-section-{{ section.id }} .brand-name {
-    display: {% if section.settings.show_brand_name %}inline{% else %}none{% endif %};
-    white-space: nowrap;
-  }
-
-  #shopify-section-{{ section.id }} .navbar-collapse {
+  /* ────────────────────────────────
+     DESKTOP NAV
+  ──────────────────────────────── */
+  .hdr-nav-wrap {
     display: flex;
     align-items: center;
-    flex-grow: 1;
+    flex: 1;
+    min-width: 0;
   }
-
-  /* Navigation */
-  #shopify-section-{{ section.id }} .navbar-nav {
+  .hdr-nav {
     display: flex;
-    flex-direction: row;
     align-items: center;
     gap: {{ section.settings.nav_gap }}px;
-    flex-grow: 1;
     list-style: none;
-    margin: 0;
-    padding: 0;
-    {% if section.settings.nav_position == 'left' %}justify-content: flex-start;
-    {% elsif section.settings.nav_position == 'center' %}justify-content: center;
-    {% elsif section.settings.nav_position == 'right' %}justify-content: flex-end;{% endif %}
+    margin: 0; padding: 0;
+    flex: 1;
+    {% if section.settings.nav_position == 'center' %}justify-content: center;
+    {% elsif section.settings.nav_position == 'right'  %}justify-content: flex-end;
+    {% else %}justify-content: flex-start;{% endif %}
   }
+  .hdr-nav-item { position: relative; list-style: none; }
 
-  #shopify-section-{{ section.id }} .navbar-nav .nav-link {
-    color: var(--header-text);
-    font-size: {{ section.settings.nav_font_size }}px;
-    font-weight: {{ section.settings.nav_font_weight }};
-    padding: 8px 4px;
-    text-decoration: none;
-    transition: color 0.2s ease;
-    white-space: nowrap;
-    letter-spacing: {{ section.settings.nav_letter_spacing }}px;
-    text-transform: {{ section.settings.nav_text_transform }};
+  .hdr-nav-link {
     display: flex;
     align-items: center;
+    gap: 4px;
+    color: var(--hdr-text);
+    font-size: {{ section.settings.nav_font_size }}px;
+    font-weight: {{ section.settings.nav_font_weight }};
+    letter-spacing: {{ section.settings.nav_letter_spacing }}px;
+    text-transform: {{ section.settings.nav_text_transform }};
+    text-decoration: none;
+    padding: 6px 0;
+    white-space: nowrap;
     cursor: pointer;
-  }
-
-  #shopify-section-{{ section.id }} .navbar-nav .nav-link:hover,
-  #shopify-section-{{ section.id }} .navbar-nav .nav-link.active {
-    color: var(--nav-hover);
-  }
-
-  #shopify-section-{{ section.id }} .nav-item {
     position: relative;
-    list-style: none;
+    transition: color 0.2s;
   }
-
-  .dropdown-arrow {
-    margin-left: 4px;
-    transition: transform 0.2s ease;
-  }
-
-  .nav-item.is-open .dropdown-arrow {
-    transform: rotate(180deg);
-  }
-
-  /* Dropdown Menu */
-  #shopify-section-{{ section.id }} .dropdown-menu {
-    display: none;
+  .hdr-nav-link::after {
+    content: '';
     position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    background-color: var(--header-bg);
-    border: 1px solid var(--header-border);
-    border-radius: 8px;
-    padding: 8px 0;
-    min-width: 200px;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--hdr-hover);
+    border-radius: 1px;
+    transition: width 0.25s var(--ease-out);
+  }
+  .hdr-nav-link:hover,
+  .hdr-nav-link:focus { color: var(--hdr-hover); }
+  .hdr-nav-link:hover::after { width: 100%; }
+
+  .hdr-nav-arrow {
+    width: 14px; height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor; fill: none;
+    stroke-width: 2.5; stroke-linecap: round;
+    transition: transform 0.22s var(--ease-out);
+  }
+  .hdr-nav-item.is-open .hdr-nav-arrow { transform: rotate(180deg); }
+
+  /* ────────────────────────────────
+     DROPDOWN (standard)
+     FIX: use visibility+opacity NOT display:none
+     so CSS transitions actually work
+  ──────────────────────────────── */
+  .hdr-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    padding-top: 14px; /* bridge gap — prevents mouseleave flicker */
     z-index: 999;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out), visibility 0.2s;
     list-style: none;
     margin: 0;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    min-width: 210px;
   }
-
-  #shopify-section-{{ section.id }} .dropdown-menu.is-open {
-    display: block;
+  .hdr-dropdown-inner {
+    background: var(--hdr-bg);
+    border: 1px solid var(--hdr-border);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.10);
+    list-style: none;
+    margin: 0; padding: 8px;
+  }
+  .hdr-nav-item.is-open > .hdr-dropdown {
+    visibility: visible;
     opacity: 1;
-    transform: translateY(0);
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
   }
-
-  #shopify-section-{{ section.id }} .dropdown-item {
-    color: var(--header-text);
-    padding: 10px 16px;
-    display: block;
+  .hdr-dropdown-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: var(--hdr-text);
     text-decoration: none;
     font-size: {{ section.settings.nav_font_size | minus: 1 }}px;
-    transition: background 0.2s ease, color 0.2s ease;
-    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s, padding-left 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .hdr-dropdown-link:hover {
+    background: rgba(0,0,0,0.04);
+    color: var(--hdr-hover);
+    padding-left: 16px;
+    border-left-color: var(--hdr-hover);
   }
 
-  #shopify-section-{{ section.id }} .dropdown-item:hover,
-  #shopify-section-{{ section.id }} .dropdown-item:focus {
-    background-color: var(--header-button);
-    color: var(--header-button-label);
-    border-left-color: var(--nav-hover);
-  }
-
-  /* Mega Menu */
-  #shopify-section-{{ section.id }} .mega-submenu {
-    display: none;
+  /* ────────────────────────────────
+     MEGA MENU
+     FIX: same visibility+opacity trick
+  ──────────────────────────────── */
+  .hdr-mega {
     position: absolute;
-    top: calc(100% + 8px);
+    top: 100%;
     left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-    background-color: var(--header-bg);
-    border-top: 3px solid var(--header-button);
-    border-radius: 12px;
-    padding: 24px;
-    min-width: 700px;
-    max-width: 90vw;
+    transform: translateX(-50%) translateY(8px);
+    padding-top: 14px; /* bridge */
     z-index: 999;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    visibility: hidden;
     opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out), visibility 0.25s;
+    min-width: min(720px, 90vw);
+    max-width: 90vw;
   }
-
-  #shopify-section-{{ section.id }} .mega-submenu.is-open {
-    display: block;
+  .hdr-mega-inner {
+    background: var(--hdr-bg);
+    border: 1px solid var(--hdr-border);
+    border-top: 2px solid var(--hdr-hover);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.11);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+  }
+  .hdr-nav-item.is-open > .hdr-mega {
+    visibility: visible;
     opacity: 1;
+    pointer-events: auto;
     transform: translateX(-50%) translateY(0);
   }
 
-  #shopify-section-{{ section.id }} .mega-inner {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 24px;
-  }
-
-  #shopify-section-{{ section.id }} .mega-column {
-    padding: 0 8px;
-  }
-
-  #shopify-section-{{ section.id }} .mega-heading {
-    margin: 0 0 12px 0;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--header-border);
-  }
-
-  #shopify-section-{{ section.id }} .mega-heading a {
-    color: var(--header-text);
-    font-weight: 700;
-    font-size: 14px;
-    text-decoration: none;
+  /* Mega card */
+  .hdr-mega-card {
     display: block;
-    transition: color 0.2s;
-  }
-
-  #shopify-section-{{ section.id }} .mega-heading a:hover {
-    color: var(--nav-hover);
-  }
-
-  #shopify-section-{{ section.id }} .mega-submenu ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  #shopify-section-{{ section.id }} .mega-submenu ul li {
-    margin: 6px 0;
-  }
-
-  #shopify-section-{{ section.id }} .mega-submenu ul li a {
-    color: var(--header-text);
-    font-size: 13px;
     text-decoration: none;
-    display: block;
-    padding: 4px 0;
-    opacity: 0.8;
-    transition: all 0.2s;
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
     position: relative;
-    padding-left: 0;
   }
-
-  #shopify-section-{{ section.id }} .mega-submenu ul li a::before {
-    content: '›';
-    position: absolute;
-    left: -12px;
-    opacity: 0;
-    transition: all 0.2s;
-    color: var(--nav-hover);
+  .hdr-mega-card:hover {
+    border-color: var(--hdr-border);
+    background: rgba(0,0,0,0.025);
+    transform: translateY(-2px);
   }
-
-  #shopify-section-{{ section.id }} .mega-submenu ul li a:hover {
-    opacity: 1;
-    color: var(--nav-hover);
-    padding-left: 12px;
+  .hdr-mega-card-img {
+    width: 100%; aspect-ratio: 4/3;
+    object-fit: cover; border-radius: 8px;
+    margin-bottom: 10px; display: block;
+    background: rgba(0,0,0,0.05);
   }
-
-  #shopify-section-{{ section.id }} .mega-submenu ul li a:hover::before {
-    opacity: 1;
-    left: 0;
+  .hdr-mega-card-placeholder {
+    width: 100%; aspect-ratio: 4/3;
+    border-radius: 8px; margin-bottom: 10px;
+    background: rgba(0,0,0,0.05);
+    display: flex; align-items: center; justify-content: center;
   }
+  .hdr-mega-card-placeholder svg { opacity: 0.2; }
+  .hdr-mega-card-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--hdr-text); margin: 0 0 3px;
+    transition: color 0.15s;
+  }
+  .hdr-mega-card:hover .hdr-mega-card-title { color: var(--hdr-hover); }
+  .hdr-mega-card-count { font-size: 11px; opacity: 0.5; margin: 0; color: var(--hdr-text); }
 
-  /* Header Icons */
-  #shopify-section-{{ section.id }} .header-icons {
-    display: flex;
-    align-items: center;
+  /* Mega text columns (fallback) */
+  .hdr-mega-col {}
+  .hdr-mega-col-head {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    opacity: 0.45; margin: 0 0 10px;
+  }
+  .hdr-mega-col-head a { color: inherit; text-decoration: none; }
+  .hdr-mega-col-links { list-style: none; padding: 0; margin: 0; }
+  .hdr-mega-col-links li a {
+    font-size: 13.5px; color: var(--hdr-text); text-decoration: none;
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 0 5px 10px; opacity: 0.75;
+    transition: opacity 0.15s, color 0.15s, padding-left 0.15s;
+    position: relative;
+  }
+  .hdr-mega-col-links li a::before { content: '›'; position: absolute; left: 0; color: var(--hdr-hover); opacity: 0; transition: opacity 0.15s; }
+  .hdr-mega-col-links li a:hover { opacity: 1; color: var(--hdr-hover); padding-left: 16px; }
+  .hdr-mega-col-links li a:hover::before { opacity: 1; }
+
+  /* ────────────────────────────────
+     HEADER ICONS
+     FIX: improved hover with rounded bg
+  ──────────────────────────────── */
+  .hdr-icons {
+    display: flex; align-items: center;
     gap: {{ section.settings.icon_gap }}px;
-    flex-shrink: 0;
-    margin-left: auto;
-    list-style: none;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding: 0;
+    flex-shrink: 0; margin-left: auto;
     z-index: 2;
   }
-
   {% if section.settings.icons_position == 'left' %}
-  #shopify-section-{{ section.id }} .header-icons {
-    order: -1;
-    margin-left: 0;
-    margin-right: 16px;
-  }
+  .hdr-icons { order: 0; margin-left: 0; margin-right: 16px; }
   {% endif %}
 
-  {% if section.settings.icons_row_position == 'bottom' %}
-  #shopify-section-{{ section.id }} .header-icons {
-    flex-direction: column;
-    gap: 8px;
-  }
-  {% endif %}
-
-  #shopify-section-{{ section.id }} .header-icons a,
-  #shopify-section-{{ section.id }} .header-icons span,
-  #shopify-section-{{ section.id }} .header-icons li,
-  #shopify-section-{{ section.id }} .header-icons button {
-    color: var(--header-text);
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.2s;
+  .hdr-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px;
+    border-radius: 50%; /* round hover bg */
+    background: transparent;
+    color: var(--hdr-text);
     text-decoration: none;
-    gap: 4px;
-    list-style: none;
-    background: none;
-    border: none;
-    padding: 4px;
-    font-size: inherit;
+    border: none; cursor: pointer;
+    padding: 0; font-size: inherit;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    position: relative;
   }
-
-  #shopify-section-{{ section.id }} .header-icons a:hover,
-  #shopify-section-{{ section.id }} .header-icons button:hover {
-    opacity: 0.7;
-    transform: scale(1.1);
+  .hdr-icon:hover {
+    background: rgba(0,0,0,0.06);
+    color: var(--hdr-hover);
+    transform: scale(1.05);
   }
-
-  #shopify-section-{{ section.id }} .header-icons svg {
-    fill: currentColor;
+  .hdr-icon svg {
     width: {{ section.settings.icon_size }}px;
     height: {{ section.settings.icon_size }}px;
+    fill: none; stroke: currentColor;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
     display: block;
   }
 
-  #shopify-section-{{ section.id }} .cart-count {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--header-button-label);
-    background: var(--header-button);
-    padding: 2px 6px;
-    border-radius: 10px;
-    min-width: 18px;
-    text-align: center;
+  /* Cart badge */
+  .hdr-cart { position: relative; }
+  .hdr-cart-badge {
     position: absolute;
-    top: -4px;
-    right: -4px;
+    top: 0; right: 0;
+    min-width: 17px; height: 17px;
+    background: var(--hdr-btn-bg);
+    color: var(--hdr-btn-text);
+    font-size: 10px; font-weight: 700;
+    border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+    transform: scale({% if cart.item_count > 0 %}1{% else %}0{% endif %});
+    transition: transform 0.3s var(--ease-spring);
+    pointer-events: none;
   }
-
-  #shopify-section-{{ section.id }} .cart-wrapper {
-    position: relative;
+  @keyframes badge-pop {
+    0%   { transform: scale(0.2) rotate(-12deg); }
+    55%  { transform: scale(1.3) rotate(4deg); }
+    100% { transform: scale(1) rotate(0deg); }
   }
+  .hdr-cart-badge.is-popping { animation: badge-pop 0.45s var(--ease-spring) forwards; }
 
-  /* Custom Select Styling */
-  .custom-select-wrapper {
-    position: relative;
+  @keyframes icon-shake {
+    0%,100% { transform: scale(1.05) rotate(0deg); }
+    25%      { transform: scale(1.05) rotate(-8deg); }
+    75%      { transform: scale(1.05) rotate(8deg); }
   }
+  .hdr-cart.is-shaking svg { animation: icon-shake 0.38s ease; }
 
-  .custom-select-trigger {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    background: transparent;
-    border: 1px solid var(--header-border);
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.2s;
-  }
-
-  .custom-select-trigger:hover {
-    background: rgba(0,0,0,0.05);
-  }
-
-  .custom-options {
-    display: none;
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    background: var(--header-bg);
-    border: 1px solid var(--header-border);
-    border-radius: 8px;
-    min-width: 140px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    z-index: 1000;
-    max-height: 300px;
-    overflow-y: auto;
-  }
-
-  .custom-options.is-open {
-    display: block;
-  }
-
-  .custom-option {
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: background 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .custom-option:hover {
-    background: var(--header-button);
-    color: var(--header-button-label);
-  }
-
-  .custom-option:first-child { border-radius: 8px 8px 0 0; }
-  .custom-option:last-child { border-radius: 0 0 8px 8px; }
-
-  /* Hamburger Menu */
-  #shopify-section-{{ section.id }} .navbar-toggler {
-    border: 1px solid var(--header-text);
-    padding: 8px;
-    background: none;
-    border-radius: 6px;
-    cursor: pointer;
+  /* ────────────────────────────────
+     HAMBURGER TOGGLE
+     STAYS INSIDE HEADER — never moves
+  ──────────────────────────────── */
+  .hdr-toggle {
     display: none;
     flex-direction: column;
-    gap: 4px;
-    z-index: 1001;
-  }
-
-  #shopify-section-{{ section.id }} .navbar-toggler.is-active .toggler-line:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-  }
-
-  #shopify-section-{{ section.id }} .navbar-toggler.is-active .toggler-line:nth-child(2) {
-    opacity: 0;
-  }
-
-  #shopify-section-{{ section.id }} .navbar-toggler.is-active .toggler-line:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
-  }
-
-  .toggler-line {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: var(--header-text);
-    border-radius: 2px;
-    transition: all 0.3s ease;
-  }
-
-  /* Search Modal */
-  .search-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(4px);
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .search-modal.is-open {
-    display: flex;
-    opacity: 1;
-    align-items: flex-start;
     justify-content: center;
-    padding-top: 100px;
-  }
-
-  .search-modal-content {
-    background: var(--header-bg);
-    width: 90%;
-    max-width: 700px;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    transform: translateY(-20px);
-    transition: transform 0.3s ease;
-  }
-
-  .search-modal.is-open .search-modal-content {
-    transform: translateY(0);
-  }
-
-  .search-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .search-input-wrapper {
-    flex: 1;
-    position: relative;
-  }
-
-  .search-input {
-    width: 100%;
-    padding: 14px 20px;
-    border: 2px solid var(--header-border);
-    border-radius: 8px;
-    font-size: 16px;
+    gap: 5px;
+    width: 38px; height: 38px;
+    padding: 9px;
     background: transparent;
-    color: var(--header-text);
-    transition: border-color 0.2s;
-  }
-
-  .search-input:focus {
-    outline: none;
-    border-color: var(--nav-hover);
-  }
-
-  .search-close {
-    background: none;
-    border: none;
-    font-size: 28px;
-    cursor: pointer;
-    color: var(--header-text);
-    padding: 0 8px;
-    line-height: 1;
-    transition: transform 0.2s;
-  }
-
-  .search-close:hover {
-    transform: rotate(90deg);
-  }
-
-  .search-results {
-    max-height: 400px;
-    overflow-y: auto;
-    border-top: 1px solid var(--header-border);
-    padding-top: 16px;
-  }
-
-  .search-result-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
+    border: 1.5px solid var(--hdr-border);
     border-radius: 8px;
     cursor: pointer;
+    /* FIX: must be ABOVE the mobile panel (z-index > panel's 1001) */
+    z-index: 1002;
+    flex-shrink: 0;
     transition: background 0.2s;
-    text-decoration: none;
-    color: inherit;
   }
+  .hdr-toggle:hover { background: rgba(0,0,0,0.05); }
+  .hdr-toggle-line {
+    display: block; width: 100%;
+    height: 1.8px; border-radius: 1px;
+    background: var(--hdr-text);
+    transition: transform 0.3s var(--ease-out), opacity 0.3s, width 0.3s;
+  }
+  .hdr-toggle-line:nth-child(2) { width: 65%; }
+  .hdr-toggle.is-active .hdr-toggle-line:nth-child(1) { transform: rotate(45deg) translate(5px,5px); width: 100%; }
+  .hdr-toggle.is-active .hdr-toggle-line:nth-child(2) { opacity: 0; transform: translateX(-6px); }
+  .hdr-toggle.is-active .hdr-toggle-line:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); width: 100%; }
 
-  .search-result-item:hover {
+  /* ────────────────────────────────
+     MOBILE NAV PANEL
+     FIX: completely separate from header DOM flow
+     The panel is a SIBLING of the header, not inside it.
+     This is why the toggle button never "moves" into the menu.
+  ──────────────────────────────── */
+  .hdr-mob-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.42);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .hdr-mob-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+  .hdr-mob-panel {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: min(300px, 86vw);
+    background: var(--hdr-bg);
+    z-index: 1001; /* above overlay (1000) but below toggle (1002) */
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.35s var(--ease-out);
+    box-shadow: 4px 0 40px rgba(0,0,0,0.14);
+    overflow: hidden; /* panel itself clips; inner nav scrolls */
+  }
+  .hdr-mob-panel.is-open { transform: translateX(0); }
+
+  /* Panel header row */
+  .hdr-mob-panel-head {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 58px; min-height: 58px;
+    border-bottom: 1px solid var(--hdr-border);
+    flex-shrink: 0;
+  }
+  .hdr-mob-brand {
+    display: flex; align-items: center; gap: 8px;
+    text-decoration: none; color: var(--hdr-text);
+    font-size: 15px; font-weight: 700;
+    min-width: 0; overflow: hidden;
+  }
+  .hdr-mob-brand img { height: 28px; width: auto; object-fit: contain; flex-shrink: 0; }
+  .hdr-mob-brand span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hdr-mob-close {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px;
+    border: none; border-radius: 8px;
+    background: rgba(0,0,0,0.06);
+    color: var(--hdr-text); cursor: pointer;
+    flex-shrink: 0; margin-left: 8px;
+    transition: background 0.2s, transform 0.25s;
+  }
+  .hdr-mob-close:hover { background: rgba(0,0,0,0.12); transform: rotate(90deg); }
+  .hdr-mob-close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+
+  /* Panel search */
+  .hdr-mob-search-wrap {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--hdr-border);
+    flex-shrink: 0;
+  }
+  .hdr-mob-search-row {
+    display: flex; align-items: center; gap: 8px;
     background: rgba(0,0,0,0.05);
+    border-radius: 8px; padding: 8px 12px;
   }
-
-  .search-result-image {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 6px;
-    background: var(--header-border);
+  .hdr-mob-search-row svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.4; flex-shrink: 0; }
+  .hdr-mob-search-input {
+    flex: 1; border: none; background: transparent;
+    font-size: 14px; color: var(--hdr-text); outline: none;
   }
+  .hdr-mob-search-input::placeholder { opacity: 0.4; }
 
-  .search-result-info h4 {
-    margin: 0 0 4px 0;
-    font-size: 14px;
+  /* Panel nav — scrollable */
+  .hdr-mob-nav {
+    flex: 1; overflow-y: auto;
+    padding: 6px 0;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
   }
+  .hdr-mob-nav::-webkit-scrollbar { display: none; }
 
-  .search-result-info p {
-    margin: 0;
-    font-size: 13px;
-    opacity: 0.7;
+  /* Nav items */
+  .hdr-mob-link {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 0 16px; height: 48px;
+    color: var(--hdr-text); text-decoration: none;
+    font-size: 15px; font-weight: 500;
+    width: 100%; border: none; background: transparent;
+    cursor: pointer; text-align: left;
+    transition: background 0.15s, color 0.15s;
+    box-sizing: border-box;
   }
+  .hdr-mob-link:hover { background: rgba(0,0,0,0.04); }
+  .hdr-mob-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; transition: transform 0.25s var(--ease-out); flex-shrink: 0; }
+  .hdr-mob-link.is-open svg { transform: rotate(90deg); }
 
-  /* Mobile Responsive */
+  /* Accordion submenu — max-height collapse */
+  .hdr-mob-sub {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s var(--ease-out);
+    border-left: 2px solid var(--hdr-border);
+    margin: 0 16px 0 24px;
+  }
+  .hdr-mob-sub.is-open { max-height: 600px; }
+  .hdr-mob-sub a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 12px; height: 40px;
+    color: var(--hdr-text); text-decoration: none;
+    font-size: 14px; opacity: 0.72;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  .hdr-mob-sub a::before { content: '›'; opacity: 0.4; font-size: 15px; }
+  .hdr-mob-sub a:hover { opacity: 1; color: var(--hdr-hover); }
+
+  /* Panel footer */
+  .hdr-mob-footer {
+    border-top: 1px solid var(--hdr-border);
+    padding: 12px 16px;
+    display: flex; gap: 8px;
+    flex-shrink: 0;
+  }
+  .hdr-mob-footer a {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    gap: 6px; height: 40px; border-radius: 8px;
+    background: rgba(0,0,0,0.05); color: var(--hdr-text);
+    text-decoration: none; font-size: 13px; font-weight: 500;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .hdr-mob-footer a:hover { background: rgba(0,0,0,0.09); }
+  .hdr-mob-footer a svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+
+  /* ────────────────────────────────
+     SEARCH MODAL
+  ──────────────────────────────── */
+  .hdr-search-modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.32);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9000;
+    display: flex; align-items: flex-start;
+    justify-content: center;
+    padding-top: 64px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.28s var(--ease-out);
+  }
+  .hdr-search-modal.is-open { opacity: 1; pointer-events: auto; }
+  .hdr-search-modal-box {
+    background: var(--hdr-bg);
+    width: 90%; max-width: 680px;
+    border-radius: 14px; padding: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.16);
+    transform: translateY(-16px);
+    transition: transform 0.28s var(--ease-out);
+  }
+  .hdr-search-modal.is-open .hdr-search-modal-box { transform: translateY(0); }
+  .hdr-search-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .hdr-search-input-wrap { flex: 1; }
+  .hdr-search-input {
+    width: 100%; padding: 12px 16px;
+    border: 1.5px solid var(--hdr-border); border-radius: 10px;
+    font-size: 15px; background: transparent; color: var(--hdr-text);
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .hdr-search-input::placeholder { opacity: 0.45; }
+  .hdr-search-input:focus { border-color: var(--hdr-hover); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+  .hdr-search-close {
+    display: flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border: none;
+    border-radius: 10px; background: rgba(0,0,0,0.06);
+    color: var(--hdr-text); cursor: pointer; flex-shrink: 0;
+    transition: background 0.2s, transform 0.25s;
+  }
+  .hdr-search-close:hover { background: rgba(0,0,0,0.1); transform: rotate(90deg); }
+  .hdr-search-close svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+  .hdr-search-results { max-height: 380px; overflow-y: auto; }
+  .hdr-search-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.4; padding: 10px 10px 4px; margin: 0; }
+  .hdr-search-result {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px; border-radius: 10px;
+    text-decoration: none; color: var(--hdr-text);
+    transition: background 0.15s;
+  }
+  .hdr-search-result:hover { background: rgba(0,0,0,0.04); }
+  .hdr-search-result-img { width: 46px; height: 46px; object-fit: cover; border-radius: 8px; background: rgba(0,0,0,0.06); flex-shrink: 0; }
+  .hdr-search-result-title { font-size: 13.5px; font-weight: 500; margin: 0 0 2px; }
+  .hdr-search-result-price { font-size: 12px; opacity: 0.55; margin: 0; }
+  .hdr-search-empty { text-align: center; padding: 28px; opacity: 0.5; font-size: 14px; }
+
+  /* ────────────────────────────────
+     CUSTOM SELECT (Language/Country)
+  ──────────────────────────────── */
+  .hdr-select-wrap { position: relative; }
+  .hdr-select-trigger {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 8px; border-radius: 8px;
+    background: transparent; border: 1px solid var(--hdr-border);
+    cursor: pointer; font-size: 12px; color: var(--hdr-text);
+    transition: background 0.2s;
+  }
+  .hdr-select-trigger:hover { background: rgba(0,0,0,0.05); }
+  .hdr-select-options {
+    display: none; position: absolute;
+    top: calc(100% + 6px); right: 0;
+    background: var(--hdr-bg);
+    border: 1px solid var(--hdr-border);
+    border-radius: 10px; min-width: 140px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+    z-index: 1000; max-height: 280px;
+    overflow-y: auto; padding: 6px;
+  }
+  .hdr-select-options.is-open { display: block; }
+  .hdr-select-option {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 8px;
+    cursor: pointer; font-size: 13px; color: var(--hdr-text);
+    transition: background 0.15s;
+  }
+  .hdr-select-option:hover { background: rgba(0,0,0,0.05); color: var(--hdr-hover); }
+
+  /* ────────────────────────────────
+     PRODUCT CARD TRANSITIONS
+  ──────────────────────────────── */
+  .product-card {
+    transition: {% if section.settings.product_transition == 'smooth' %}all 0.3s ease{% elsif section.settings.product_transition == 'instant' %}none{% else %}transform 0.3s ease, box-shadow 0.3s ease{% endif %};
+  }
+  {% if section.settings.product_transition == 'lift' %}
+  .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 28px rgba(0,0,0,0.12); }
+  {% endif %}
+
+  /* ────────────────────────────────
+     RESPONSIVE — show toggle, hide desktop nav
+  ──────────────────────────────── */
   @media (max-width: 991px) {
-    #shopify-section-{{ section.id }} .navbar-toggler {
-      display: flex;
-    }
-
-    #shopify-section-{{ section.id }} .navbar-brand {
+    .hdr-toggle   { display: flex; }
+    .hdr-nav-wrap { display: none; }   /* hide desktop nav */
+    /* Reset logo absolute positioning on mobile */
+    .hdr-logo {
       position: static !important;
       transform: none !important;
       order: 0 !important;
       margin-left: 0 !important;
     }
-
-    #shopify-section-{{ section.id }} .navbar-collapse {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
-      background: var(--header-bg);
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 80px 24px 24px;
-      z-index: 999;
-      overflow-y: auto;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-    }
-
-    #shopify-section-{{ section.id }} .navbar-collapse.is-open {
-      display: flex;
-      transform: translateX(0);
-    }
-
-    #shopify-section-{{ section.id }} .navbar-nav {
-      flex-direction: column;
-      align-items: flex-start;
-      width: 100%;
-      gap: 0;
-    }
-
-    #shopify-section-{{ section.id }} .nav-item {
-      width: 100%;
-      border-bottom: 1px solid var(--header-border);
-    }
-
-    #shopify-section-{{ section.id }} .nav-link {
-      padding: 16px 0 !important;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      font-size: 16px;
-    }
-
-    #shopify-section-{{ section.id }} .dropdown-arrow {
-      transition: transform 0.3s ease;
-    }
-
-    #shopify-section-{{ section.id }} .dropdown-menu,
-    #shopify-section-{{ section.id }} .mega-submenu {
-      position: static;
-      transform: none;
-      min-width: 100%;
-      box-shadow: none;
-      border: none;
-      border-left: 3px solid var(--header-button);
-      border-radius: 0;
-      padding: 0 0 16px 16px;
-      margin: 0;
-      display: none;
-      opacity: 1;
-      background: transparent;
-    }
-
-    #shopify-section-{{ section.id }} .mega-submenu {
-      min-width: 100%;
-      padding: 16px;
-    }
-
-    #shopify-section-{{ section.id }} .mega-inner {
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    #shopify-section-{{ section.id }} .mega-heading {
-      font-size: 15px;
-    }
-
-    #shopify-section-{{ section.id }} .header-icons {
-      margin-left: auto;
-    }
-
-    #shopify-section-{{ section.id }} .container-fluid {
-      flex-wrap: wrap;
-      position: relative;
-    }
-
-    /* Mobile overlay */
-    .mobile-menu-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 998;
-    }
-
-    .mobile-menu-overlay.is-open {
-      display: block;
-    }
-  }
-
-  /* Product Card Transitions */
-  .product-card {
-    transition: {% if section.settings.product_transition == 'smooth' %}all 0.3s ease{% elsif section.settings.product_transition == 'instant' %}none{% else %}all 0.5s ease{% endif %};
-  }
-
-  .product-card:hover {
-    {% if section.settings.product_transition == 'lift' %}transform: translateY(-6px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.15);{% endif %}
   }
 
   /* Accessibility */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0,0,0,0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--nav-hover);
-    outline-offset: 2px;
-  }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  :focus-visible { outline: 2px solid var(--hdr-hover); outline-offset: 2px; }
 {%- endstyle -%}
 
-<!-- Page Background Overlay -->
+{%- comment -%} Page background overlays {%- endcomment -%}
 {% if template == 'index' %}
   <div class="page-bg-overlay home-page-bg"></div>
 {% elsif template == 'product' %}
@@ -762,618 +689,563 @@
   <div class="page-bg-overlay collection-page-bg"></div>
 {% endif %}
 
-<div class="header-section" id="header-{{ section.id }}" data-sticky="{{ section.settings.sticky_header_type }}">
-  <nav class="navbar" role="navigation" aria-label="Main navigation">
-    <div class="container-fluid">
+{%- comment -%}
+  HEADER — the toggle button lives HERE and never moves.
+  The mobile panel is OUTSIDE the header (below it in the DOM).
+{%- endcomment -%}
+<div class="hdr" id="hdr-{{ section.id }}" data-sticky="{{ section.settings.sticky_header_type }}">
+  <div class="hdr-inner">
 
-      <!-- Mobile Toggle -->
-      <button class="navbar-toggler" id="toggler-{{ section.id }}" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-{{ section.id }}">
-        <span class="toggler-line"></span>
-        <span class="toggler-line"></span>
-        <span class="toggler-line"></span>
-      </button>
+    {%- comment -%} Toggle stays in header row — z-index 1002 keeps it above the panel {%- endcomment -%}
+    <button
+      class="hdr-toggle"
+      id="hdr-tog-{{ section.id }}"
+      aria-label="Open navigation"
+      aria-expanded="false"
+      aria-controls="hdr-mob-panel-{{ section.id }}"
+    >
+      <span class="hdr-toggle-line"></span>
+      <span class="hdr-toggle-line"></span>
+      <span class="hdr-toggle-line"></span>
+    </button>
 
-      <!-- Logo & Shop Name -->
-      <a class="navbar-brand" href="{{ shop.url }}" aria-label="{{ shop.name }} - Home">
-        {% if section.settings.custom_logo != blank %}
-          <img src="{{ section.settings.custom_logo | image_url: height: section.settings.logo_height }}" 
-               srcset="{{ section.settings.custom_logo | image_url: height: section.settings.logo_height }} 1x, {{ section.settings.custom_logo | image_url: height: section.settings.logo_height | times: 2 }} 2x"
-               alt="{{ shop.name }}" 
-               loading="lazy"
-               width="{{ section.settings.logo_height }}"
-               height="{{ section.settings.logo_height }}">
-        {% elsif settings.logo != blank %}
-          <img src="{{ settings.logo | image_url: height: section.settings.logo_height }}" 
-               srcset="{{ settings.logo | image_url: height: section.settings.logo_height }} 1x, {{ settings.logo | image_url: height: section.settings.logo_height | times: 2 }} 2x"
-               alt="{{ shop.name }}" 
-               loading="lazy"
-               width="{{ section.settings.logo_height }}"
-               height="{{ section.settings.logo_height }}">
-        {% endif %}
-        <span class="brand-name">{{ shop.name }}</span>
-      </a>
+    {%- comment -%} LOGO — priority: custom_logo → settings.logo → shop name {%- endcomment -%}
+    <a class="hdr-logo" href="{{ shop.url }}" aria-label="{{ shop.name }}">
+      <span class="hdr-logo-img">
+        {%- if section.settings.custom_logo != blank -%}
+          {%- assign logo_src = section.settings.custom_logo -%}
+          <img
+            src="{{ logo_src | image_url: height: section.settings.logo_height }}"
+            alt="{{ shop.name }}"
+            height="{{ section.settings.logo_height }}"
+            width="{{ logo_src.width | times: section.settings.logo_height | divided_by: logo_src.height | round }}"
+            loading="eager"
+            fetchpriority="high"
+          >
+        {%- elsif settings.logo != blank -%}
+          {%- assign logo_src = settings.logo -%}
+          <img
+            src="{{ logo_src | image_url: height: section.settings.logo_height }}"
+            alt="{{ shop.name }}"
+            height="{{ section.settings.logo_height }}"
+            width="{{ logo_src.width | times: section.settings.logo_height | divided_by: logo_src.height | round }}"
+            loading="eager"
+            fetchpriority="high"
+          >
+        {%- endif -%}
+      </span>
+      <span class="hdr-logo-name">{{ shop.name }}</span>
+    </a>
 
-      <!-- Navigation Menu -->
-      <div class="navbar-collapse" id="nav-{{ section.id }}">
-        <ul class="navbar-nav">
-          {% for link in section.settings.menu.links %}
-            <li class="nav-item" data-has-dropdown="{% if link.links.size > 0 %}true{% else %}false{% endif %}">
-              <a class="nav-link" href="{{ link.url }}" {% if link.links.size > 0 %}aria-haspopup="true" aria-expanded="false"{% endif %}>
-                {{ link.title }}
-                {% if link.links.size > 0 %}
-                  <svg class="dropdown-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                {% endif %}
-              </a>
+    {%- comment -%} Desktop navigation {%- endcomment -%}
+    <div class="hdr-nav-wrap">
+      <ul class="hdr-nav" role="list">
+        {% for link in section.settings.menu.links %}
+          <li class="hdr-nav-item" data-has-child="{% if link.links.size > 0 %}true{% else %}false{% endif %}">
 
+            <a
+              class="hdr-nav-link"
+              href="{{ link.url }}"
+              {% if link.links.size > 0 %}aria-haspopup="true" aria-expanded="false"{% endif %}
+            >
+              {{ link.title }}
               {% if link.links.size > 0 %}
-                {% if section.settings.mega_menu and link.links.size > 2 %}
-                  <div class="mega-submenu" role="menu">
-                    <div class="mega-inner">
-                      {% for child in link.links %}
-                        <div class="mega-column">
-                          <h4 class="mega-heading">
-                            <a href="{{ child.url }}" role="menuitem">{{ child.title }}</a>
-                          </h4>
-                          {% if child.links.size > 0 %}
-                            <ul>
-                              {% for grandChild in child.links %}
-                                <li><a href="{{ grandChild.url }}" role="menuitem">{{ grandChild.title }}</a></li>
-                              {% endfor %}
-                            </ul>
-                          {% endif %}
-                        </div>
-                      {% endfor %}
-                    </div>
-                  </div>
-                {% else %}
-                  <ul class="dropdown-menu" role="menu">
-                    {% for child in link.links %}
-                      <li><a class="dropdown-item" href="{{ child.url }}" role="menuitem">{{ child.title }}</a></li>
-                    {% endfor %}
-                  </ul>
-                {% endif %}
+                <svg class="hdr-nav-arrow" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
+            </a>
 
-      <!-- Header Icons -->
-      <div class="header-icons">
-        
-        <!-- Search -->
-        {% if section.settings.show_search %}
-          <button type="button" class="search-trigger" aria-label="Open search" data-search-trigger>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-            </svg>
-          </button>
-        {% endif %}
-
-        <!-- Language Selector -->
-        {% if section.settings.show_language %}
-          <div class="custom-select-wrapper" data-select-type="language">
-            <button class="custom-select-trigger" aria-label="Select language" aria-expanded="false">
-              {% if section.settings.show_flags %}<span>🌐</span>{% endif %}
-              <span class="selected-text">EN</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </button>
-            <div class="custom-options" role="listbox">
-              {% assign languages = section.settings.languages | split: ',' %}
-              {% for lang in languages %}
-                <div class="custom-option" role="option" data-value="{{ lang | strip | handleize }}">
-                  {{ lang | strip }}
+            {%- if link.links.size > 0 -%}
+              {%- if section.settings.mega_menu and link.links.size > 2 -%}
+                {%- comment -%} MEGA MENU {%- endcomment -%}
+                <div class="hdr-mega" role="menu">
+                  <div class="hdr-mega-inner">
+                    {%- for child in link.links -%}
+                      <a class="hdr-mega-card" href="{{ child.url }}" role="menuitem">
+                        {%- if child.object.image != blank -%}
+                          <img class="hdr-mega-card-img" src="{{ child.object.image | image_url: width: 280 }}" alt="{{ child.title }}" loading="lazy" width="280">
+                        {%- else -%}
+                          <div class="hdr-mega-card-placeholder">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                          </div>
+                        {%- endif -%}
+                        <p class="hdr-mega-card-title">{{ child.title }}</p>
+                        {%- if child.links.size > 0 -%}<p class="hdr-mega-card-count">{{ child.links.size }} items</p>{%- endif -%}
+                      </a>
+                    {%- endfor -%}
+                  </div>
                 </div>
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
+              {%- else -%}
+                {%- comment -%} STANDARD DROPDOWN {%- endcomment -%}
+                <ul class="hdr-dropdown" role="menu">
+                  <div class="hdr-dropdown-inner">
+                    {%- for child in link.links -%}
+                      <li><a class="hdr-dropdown-link" href="{{ child.url }}" role="menuitem">{{ child.title }}</a></li>
+                    {%- endfor -%}
+                  </div>
+                </ul>
+              {%- endif -%}
+            {%- endif -%}
 
-        <!-- Country/Region Selector -->
-        {% if section.settings.show_localization %}
-          <div class="custom-select-wrapper" data-select-type="country">
-            <button class="custom-select-trigger" aria-label="Select country" aria-expanded="false">
-              {% if section.settings.show_flags %}<span>📍</span>{% endif %}
-              <span class="selected-text">US</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </button>
-            <div class="custom-options" role="listbox">
-              <div class="custom-option" role="option" data-value="us">🇺🇸 United States</div>
-              <div class="custom-option" role="option" data-value="ca">🇨🇦 Canada</div>
-              <div class="custom-option" role="option" data-value="bd">🇧🇩 Bangladesh</div>
-              <div class="custom-option" role="option" data-value="uk">🇬🇧 United Kingdom</div>
-              <div class="custom-option" role="option" data-value="au">🇦🇺 Australia</div>
-              <div class="custom-option" role="option" data-value="in">🇮🇳 India</div>
-            </div>
-          </div>
-        {% endif %}
-
-        <!-- Account -->
-        {% if section.settings.show_account and shop.customer_accounts_enabled %}
-          <a href="{{ routes.account_url }}" aria-label="Account">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
-            </svg>
-          </a>
-        {% endif %}
-
-        <!-- Cart -->
-        {% if section.settings.show_cart %}
-          <a href="{{ routes.cart_url }}" class="cart-wrapper" {% if settings.cart_type == 'drawer' %}data-cart-drawer-trigger{% endif %} aria-label="Cart - {{ cart.item_count }} items">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
-            </svg>
-            {% if cart.item_count > 0 %}
-              <span class="cart-count" data-cart-count>{{ cart.item_count }}</span>
-            {% endif %}
-          </a>
-        {% endif %}
-      </div>
-
+          </li>
+        {% endfor %}
+      </ul>
     </div>
-  </nav>
-</div>
 
-<!-- Mobile Menu Overlay -->
-<div class="mobile-menu-overlay" id="mobile-overlay-{{ section.id }}"></div>
+    {%- comment -%} Header icons {%- endcomment -%}
+    <div class="hdr-icons">
 
-<!-- Search Modal -->
-<div class="search-modal" id="search-modal-{{ section.id }}" role="dialog" aria-modal="true" aria-label="Search">
-  <div class="search-modal-content">
-    <div class="search-header">
-      <div class="search-input-wrapper">
-        <input type="search" 
-               class="search-input" 
-               placeholder="{{ section.settings.search_placeholder }}" 
-               aria-label="Search products"
-               autocomplete="off"
-               data-search-input>
-      </div>
-      <button type="button" class="search-close" aria-label="Close search">×</button>
-    </div>
-    <div class="search-results" data-search-results>
-      <!-- Results populated by JS -->
+      {%- if section.settings.show_search -%}
+        <button type="button" class="hdr-icon hdr-search-trigger" aria-label="Search" data-search-trigger>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        </button>
+      {%- endif -%}
+
+      {%- if section.settings.show_language -%}
+        <div class="hdr-select-wrap" data-select-type="language">
+          <button class="hdr-select-trigger" aria-label="Language" aria-expanded="false">
+            {%- if section.settings.show_flags -%}<span>🌐</span>{%- endif -%}
+            <span class="hdr-sel-text">EN</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="hdr-select-options" role="listbox">
+            {%- assign languages = section.settings.languages | split: ',' -%}
+            {%- for lang in languages -%}
+              <div class="hdr-select-option" role="option" data-val="{{ lang | strip | handleize }}">{{ lang | strip }}</div>
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_localization -%}
+        <div class="hdr-select-wrap" data-select-type="country">
+          <button class="hdr-select-trigger" aria-label="Country" aria-expanded="false">
+            {%- if section.settings.show_flags -%}<span>📍</span>{%- endif -%}
+            <span class="hdr-sel-text">US</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="hdr-select-options" role="listbox">
+            <div class="hdr-select-option" role="option" data-val="us">🇺🇸 United States</div>
+            <div class="hdr-select-option" role="option" data-val="ca">🇨🇦 Canada</div>
+            <div class="hdr-select-option" role="option" data-val="bd">🇧🇩 Bangladesh</div>
+            <div class="hdr-select-option" role="option" data-val="uk">🇬🇧 United Kingdom</div>
+            <div class="hdr-select-option" role="option" data-val="au">🇦🇺 Australia</div>
+            <div class="hdr-select-option" role="option" data-val="in">🇮🇳 India</div>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_account and shop.customer_accounts_enabled -%}
+        <a class="hdr-icon" href="{{ routes.account_url }}" aria-label="Account">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </a>
+      {%- endif -%}
+
+      {%- if section.settings.show_cart -%}
+        <a class="hdr-icon hdr-cart" href="{{ routes.cart_url }}" aria-label="Cart, {{ cart.item_count }} items" data-cart-link>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="hdr-cart-badge" data-cart-count aria-hidden="true">
+            {%- if cart.item_count > 0 -%}{{ cart.item_count }}{%- endif -%}
+          </span>
+        </a>
+      {%- endif -%}
+
     </div>
   </div>
 </div>
 
+{%- comment -%}
+  Spacer prevents layout jump when header becomes sticky
+{%- endcomment -%}
+<div class="hdr-spacer" style="height:{{ section.settings.padding_v | times: 2 | plus: section.settings.logo_height | plus: 2 }}px" aria-hidden="true"></div>
+
+{%- comment -%}
+  MOBILE PANEL — outside the header element entirely.
+  The toggle button (inside .hdr) stays at z-index 1002,
+  this panel is at z-index 1001, overlay at 1000.
+  Result: toggle button is ALWAYS on top and never "inside" the panel.
+{%- endcomment -%}
+<div class="hdr-mob-overlay" id="hdr-mob-overlay-{{ section.id }}" aria-hidden="true"></div>
+
+<div
+  class="hdr-mob-panel"
+  id="hdr-mob-panel-{{ section.id }}"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Navigation menu"
+>
+  {%- comment -%} Panel header {%- endcomment -%}
+  <div class="hdr-mob-panel-head">
+    <a class="hdr-mob-brand" href="{{ shop.url }}">
+      {%- if section.settings.custom_logo != blank -%}
+        <img src="{{ section.settings.custom_logo | image_url: height: 56 }}" alt="{{ shop.name }}" height="28">
+      {%- elsif settings.logo != blank -%}
+        <img src="{{ settings.logo | image_url: height: 56 }}" alt="{{ shop.name }}" height="28">
+      {%- endif -%}
+      <span>{{ shop.name }}</span>
+    </a>
+    <button class="hdr-mob-close" id="hdr-mob-close-{{ section.id }}" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  {%- comment -%} Panel search {%- endcomment -%}
+  <div class="hdr-mob-search-wrap">
+    <div class="hdr-mob-search-row">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+      <input type="search" class="hdr-mob-search-input" placeholder="{{ section.settings.search_placeholder }}" autocomplete="off" aria-label="Search">
+    </div>
+  </div>
+
+  {%- comment -%} Panel nav links {%- endcomment -%}
+  <nav class="hdr-mob-nav" aria-label="Mobile navigation">
+    {% for link in section.settings.menu.links %}
+      {% if link.links.size > 0 %}
+        <button class="hdr-mob-link" data-mob-toggle aria-expanded="false">
+          {{ link.title }}
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+        <div class="hdr-mob-sub" aria-hidden="true">
+          {% for child in link.links %}
+            <a href="{{ child.url }}">{{ child.title }}</a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <a class="hdr-mob-link" href="{{ link.url }}">{{ link.title }}</a>
+      {% endif %}
+    {% endfor %}
+  </nav>
+
+  {%- comment -%} Panel footer {%- endcomment -%}
+  <div class="hdr-mob-footer">
+    {%- if section.settings.show_account and shop.customer_accounts_enabled -%}
+      <a href="{{ routes.account_url }}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Account
+      </a>
+    {%- endif -%}
+    <a href="{{ routes.cart_url }}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Cart{% if cart.item_count > 0 %} ({{ cart.item_count }}){% endif %}
+    </a>
+  </div>
+</div>
+
+{%- comment -%} Search modal {%- endcomment -%}
+<div class="hdr-search-modal" id="hdr-search-modal-{{ section.id }}" role="dialog" aria-modal="true" aria-label="Search">
+  <div class="hdr-search-modal-box">
+    <div class="hdr-search-row">
+      <div class="hdr-search-input-wrap">
+        <input type="search" class="hdr-search-input" placeholder="{{ section.settings.search_placeholder }}" autocomplete="off" aria-label="Search products" data-search-input>
+      </div>
+      <button type="button" class="hdr-search-close" aria-label="Close search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="hdr-search-results" data-search-results></div>
+  </div>
+</div>
+
 <script>
-(function() {
+(function () {
   'use strict';
-  
-  const sectionId = '{{ section.id }}';
-  const section = document.getElementById('shopify-section-' + sectionId);
-  if (!section) return;
 
-  // Elements
-  const header = section.querySelector('.header-section');
-  const toggler = document.getElementById('toggler-' + sectionId);
-  const nav = document.getElementById('nav-' + sectionId);
-  const mobileOverlay = document.getElementById('mobile-overlay-' + sectionId);
-  const searchModal = document.getElementById('search-modal-' + sectionId);
-  const searchTrigger = section.querySelector('[data-search-trigger]');
-  const searchClose = searchModal?.querySelector('.search-close');
-  const searchInput = searchModal?.querySelector('[data-search-input]');
-  
-  let lastScrollTop = 0;
-  let ticking = false;
-  const stickyType = header?.dataset.sticky || 'never';
+  var sid      = '{{ section.id }}';
+  var hdr      = document.getElementById('hdr-' + sid);
+  var toggle   = document.getElementById('hdr-tog-' + sid);
+  var overlay  = document.getElementById('hdr-mob-overlay-' + sid);
+  var panel    = document.getElementById('hdr-mob-panel-' + sid);
+  var closeBtn = document.getElementById('hdr-mob-close-' + sid);
+  var searchModal = document.getElementById('hdr-search-modal-' + sid);
+  if (!hdr) return;
 
-  // =====================
-  // Mobile Menu Toggle
-  // =====================
-  if (toggler && nav) {
-    toggler.addEventListener('click', function() {
-      const isOpen = nav.classList.toggle('is-open');
-      toggler.classList.toggle('is-active', isOpen);
-      toggler.setAttribute('aria-expanded', isOpen);
-      mobileOverlay?.classList.toggle('is-open', isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    });
+  var sticky     = hdr.dataset.sticky || 'never';
+  var lastScroll = 0;
+  var ticking    = false;
 
-    // Close on overlay click
-    mobileOverlay?.addEventListener('click', closeMobileMenu);
-    
-    // Close on escape key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeMobileMenu();
-        closeSearchModal();
-        closeAllDropdowns();
-      }
-    });
-  }
-
-  function closeMobileMenu() {
-    nav?.classList.remove('is-open');
-    toggler?.classList.remove('is-active');
-    toggler?.setAttribute('aria-expanded', 'false');
-    mobileOverlay?.classList.remove('is-open');
-    document.body.style.overflow = '';
-  }
-
-  // =====================
-  // Dropdown Menus (Desktop)
-  // =====================
-  const navItems = section.querySelectorAll('.nav-item[data-has-dropdown="true"]');
-  
-  // Only for desktop
-  function initDesktopDropdowns() {
-    if (window.innerWidth <= 991) return;
-    
-    navItems.forEach(item => {
-      const link = item.querySelector('.nav-link');
-      const submenu = item.querySelector('.dropdown-menu, .mega-submenu');
-      if (!submenu) return;
-
-      let closeTimer;
-
-      function open() {
-        clearTimeout(closeTimer);
-        // Close others
-        navItems.forEach(other => {
-          if (other !== item) {
-            other.classList.remove('is-open');
-            other.querySelector('.nav-link')?.setAttribute('aria-expanded', 'false');
-            other.querySelector('.dropdown-menu, .mega-submenu')?.classList.remove('is-open');
-          }
-        });
-        
-        item.classList.add('is-open');
-        link.setAttribute('aria-expanded', 'true');
-        submenu.classList.add('is-open');
-      }
-
-      function close() {
-        closeTimer = setTimeout(() => {
-          item.classList.remove('is-open');
-          link.setAttribute('aria-expanded', 'false');
-          submenu.classList.remove('is-open');
-        }, 150);
-      }
-
-      item.addEventListener('mouseenter', open);
-      item.addEventListener('mouseleave', close);
-      submenu.addEventListener('mouseenter', () => clearTimeout(closeTimer));
-      submenu.addEventListener('mouseleave', close);
-    });
-  }
-
-  // Mobile: Click to toggle
-  function initMobileDropdowns() {
-    if (window.innerWidth > 991) return;
-    
-    navItems.forEach(item => {
-      const link = item.querySelector('.nav-link');
-      if (!link) return;
-      
-      // Remove href to prevent navigation on parent links with children
-      if (link.getAttribute('aria-haspopup')) {
-        const originalHref = link.getAttribute('href');
-        link.dataset.href = originalHref;
-        
-        link.addEventListener('click', function(e) {
-          e.preventDefault();
-          const submenu = item.querySelector('.dropdown-menu, .mega-submenu');
-          const isOpen = item.classList.toggle('is-open');
-          
-          link.setAttribute('aria-expanded', isOpen);
-          submenu?.classList.toggle('is-open', isOpen);
-          
-          // If opening, close siblings
-          if (isOpen) {
-            navItems.forEach(sibling => {
-              if (sibling !== item && sibling.classList.contains('is-open')) {
-                sibling.classList.remove('is-open');
-                sibling.querySelector('.nav-link')?.setAttribute('aria-expanded', 'false');
-                sibling.querySelector('.dropdown-menu, .mega-submenu')?.classList.remove('is-open');
-              }
-            });
-          }
-        });
-      }
-    });
-  }
-
-  // =====================
-  // Sticky Header Logic
-  // =====================
-  function handleStickyHeader() {
-    if (stickyType === 'never') return;
-    
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    
-    if (stickyType === 'always') {
-      if (scrollTop > 1) {
-        header.classList.add('is-sticky');
+  /* ─── Sticky ─── */
+  function onScroll() {
+    var st = window.pageYOffset || document.documentElement.scrollTop;
+    if (sticky === 'always') {
+      hdr.classList.toggle('is-sticky', st > 1);
+    } else if (sticky === 'scroll_up') {
+      if (st > lastScroll && st > 80) {
+        hdr.classList.add('is-hidden');
+        hdr.classList.remove('is-sticky');
       } else {
-        header.classList.remove('is-sticky');
-      }
-    } else if (stickyType === 'scroll_up') {
-      if (scrollTop > lastScrollTop && scrollTop > 100) {
-        // Scrolling down
-        header.classList.add('is-hidden');
-        header.classList.remove('is-sticky');
-      } else {
-        // Scrolling up
-        header.classList.remove('is-hidden');
-        if (scrollTop > 1) {
-          header.classList.add('is-sticky');
-        } else {
-          header.classList.remove('is-sticky');
-        }
+        hdr.classList.remove('is-hidden');
+        hdr.classList.toggle('is-sticky', st > 1);
       }
     }
-    
-    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    lastScroll = st <= 0 ? 0 : st;
   }
-
-  // Throttled scroll listener
-  window.addEventListener('scroll', function() {
+  window.addEventListener('scroll', function () {
     if (!ticking) {
-      window.requestAnimationFrame(function() {
-        handleStickyHeader();
-        ticking = false;
-      });
+      requestAnimationFrame(function () { onScroll(); ticking = false; });
       ticking = true;
     }
   }, { passive: true });
 
-  // =====================
-  // Search Modal
-  // =====================
-  function openSearchModal() {
-    searchModal?.classList.add('is-open');
-    searchInput?.focus();
+  /* ─── Mobile panel open/close ─── */
+  function openPanel() {
+    panel.classList.add('is-open');
+    overlay.classList.add('is-open');
+    toggle.classList.add('is-active');
+    toggle.setAttribute('aria-expanded', 'true');
+    overlay.removeAttribute('aria-hidden');
     document.body.style.overflow = 'hidden';
+    /* focus first link in panel */
+    var first = panel.querySelector('a, button');
+    if (first) setTimeout(function () { first.focus(); }, 350);
+  }
+  function closePanel() {
+    panel.classList.remove('is-open');
+    overlay.classList.add('is-open');
+    overlay.classList.remove('is-open');
+    toggle.classList.remove('is-active');
+    toggle.setAttribute('aria-expanded', 'false');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    toggle.focus();
   }
 
-  function closeSearchModal() {
-    searchModal?.classList.remove('is-open');
+  toggle   && toggle.addEventListener('click', function () { panel.classList.contains('is-open') ? closePanel() : openPanel(); });
+  closeBtn && closeBtn.addEventListener('click', closePanel);
+  overlay  && overlay.addEventListener('click', closePanel);
+
+  /* ─── Mobile accordion ─── */
+  document.querySelectorAll('#hdr-mob-panel-' + sid + ' [data-mob-toggle]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var sub    = btn.nextElementSibling;
+      var isOpen = btn.classList.contains('is-open');
+      /* Close all siblings first */
+      document.querySelectorAll('#hdr-mob-panel-' + sid + ' [data-mob-toggle].is-open').forEach(function (b) {
+        b.classList.remove('is-open');
+        b.setAttribute('aria-expanded', 'false');
+        if (b.nextElementSibling) {
+          b.nextElementSibling.classList.remove('is-open');
+          b.nextElementSibling.setAttribute('aria-hidden', 'true');
+        }
+      });
+      if (!isOpen && sub) {
+        btn.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+        sub.classList.add('is-open');
+        sub.setAttribute('aria-hidden', 'false');
+      }
+    });
+  });
+
+  /* ─── Mobile search redirect ─── */
+  var mobSearchInput = panel && panel.querySelector('.hdr-mob-search-input');
+  if (mobSearchInput) {
+    mobSearchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && this.value.trim()) {
+        window.location.href = '/search?q=' + encodeURIComponent(this.value.trim()) + '&type=product';
+      }
+    });
+  }
+
+  /* ─── Desktop dropdowns ─── */
+  /* FIX: visibility+opacity transition — no display flicker */
+  function initDesktopDropdowns() {
+    if (window.innerWidth <= 991) return;
+
+    document.querySelectorAll('#hdr-' + sid + ' .hdr-nav-item[data-has-child="true"]').forEach(function (item) {
+      var link    = item.querySelector('.hdr-nav-link');
+      var submenu = item.querySelector('.hdr-dropdown, .hdr-mega');
+      if (!submenu) return;
+      var timer;
+
+      function openItem() {
+        clearTimeout(timer);
+        /* Close other open items */
+        document.querySelectorAll('#hdr-' + sid + ' .hdr-nav-item.is-open').forEach(function (other) {
+          if (other !== item) {
+            other.classList.remove('is-open');
+            var ol = other.querySelector('.hdr-nav-link');
+            if (ol) ol.setAttribute('aria-expanded', 'false');
+          }
+        });
+        item.classList.add('is-open');
+        if (link) link.setAttribute('aria-expanded', 'true');
+      }
+      function closeItem() {
+        timer = setTimeout(function () {
+          item.classList.remove('is-open');
+          if (link) link.setAttribute('aria-expanded', 'false');
+        }, 100);
+      }
+
+      item.addEventListener('mouseenter', openItem);
+      item.addEventListener('mouseleave', closeItem);
+      submenu.addEventListener('mouseenter', function () { clearTimeout(timer); });
+      submenu.addEventListener('mouseleave', closeItem);
+    });
+  }
+
+  /* Close desktop menus on outside click */
+  document.addEventListener('click', function (e) {
+    if (window.innerWidth <= 991) return;
+    if (!e.target.closest('#hdr-' + sid + ' .hdr-nav-item')) {
+      document.querySelectorAll('#hdr-' + sid + ' .hdr-nav-item.is-open').forEach(function (item) {
+        item.classList.remove('is-open');
+        var l = item.querySelector('.hdr-nav-link');
+        if (l) l.setAttribute('aria-expanded', 'false');
+      });
+    }
+    if (!e.target.closest('.hdr-select-wrap')) {
+      document.querySelectorAll('.hdr-select-options.is-open').forEach(function (o) { o.classList.remove('is-open'); });
+    }
+  });
+
+  /* ─── Search modal ─── */
+  var searchTrigger = hdr.querySelector('[data-search-trigger]');
+  var searchClose   = searchModal && searchModal.querySelector('.hdr-search-close');
+  var searchInput   = searchModal && searchModal.querySelector('[data-search-input]');
+  var searchResults = searchModal && searchModal.querySelector('[data-search-results]');
+  var searchTimer;
+
+  function openSearch() {
+    if (!searchModal) return;
+    searchModal.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () { searchInput && searchInput.focus(); }, 60);
+  }
+  function closeSearch() {
+    if (!searchModal) return;
+    searchModal.classList.remove('is-open');
     document.body.style.overflow = '';
     if (searchInput) searchInput.value = '';
+    if (searchResults) searchResults.innerHTML = '';
   }
 
-  searchTrigger?.addEventListener('click', openSearchModal);
-  searchClose?.addEventListener('click', closeSearchModal);
-  
-  // Close on backdrop click
-  searchModal?.addEventListener('click', function(e) {
-    if (e.target === searchModal) closeSearchModal();
+  searchTrigger && searchTrigger.addEventListener('click', openSearch);
+  searchClose   && searchClose.addEventListener('click', closeSearch);
+  searchModal   && searchModal.addEventListener('click', function (e) { if (e.target === searchModal) closeSearch(); });
+
+  searchInput && searchInput.addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    var q = searchInput.value.trim();
+    if (q.length < 2) { if (searchResults) searchResults.innerHTML = ''; return; }
+    searchTimer = setTimeout(function () { doSearch(q); }, 300);
   });
 
-  // Predictive Search
-  let searchTimeout;
-  searchInput?.addEventListener('input', function(e) {
-    clearTimeout(searchTimeout);
-    const query = e.target.value.trim();
-    
-    if (query.length < 2) {
-      clearSearchResults();
-      return;
-    }
-    
-    searchTimeout = setTimeout(() => performSearch(query), 300);
-  });
+  function doSearch(q) {
+    fetch('/search/suggest.json?q=' + encodeURIComponent(q) + '&resources[type]=product,article,page&resources[limit]=6')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var res = (data.resources && data.resources.results) || {};
+        var html = '';
 
-  async function performSearch(query) {
-    try {
-      const response = await fetch(`/search/suggest.json?q=${encodeURIComponent(query)}&resources[type]=product,article,page&resources[limit]=6`);
-      const data = await response.json();
-      renderSearchResults(data.resources.results);
-    } catch (error) {
-      console.error('Search error:', error);
-    }
-  }
-
-  function renderSearchResults(results) {
-    const container = searchModal?.querySelector('[data-search-results]');
-    if (!container) return;
-    
-    let html = '';
-    
-    // Products
-    if (results.products?.length) {
-      html += '<div style="margin-bottom: 16px;"><h3 style="font-size: 12px; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px;">Products</h3>';
-      results.products.forEach(product => {
-        html += `
-          <a href="${product.url}" class="search-result-item">
-            <img src="${product.image || ''}" alt="${product.title}" class="search-result-image" onerror="this.style.display='none'">
-            <div class="search-result-info">
-              <h4>${product.title}</h4>
-              <p>$${product.price}</p>
-            </div>
-          </a>
-        `;
-      });
-      html += '</div>';
-    }
-    
-    // Pages
-    if (results.pages?.length) {
-      html += '<div style="margin-bottom: 16px;"><h3 style="font-size: 12px; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px;">Pages</h3>';
-      results.pages.forEach(page => {
-        html += `<a href="${page.url}" class="search-result-item"><div class="search-result-info"><h4>${page.title}</h4></div></a>`;
-      });
-      html += '</div>';
-    }
-    
-    if (!html) {
-      html = '<p style="text-align: center; padding: 24px; opacity: 0.6;">No results found</p>';
-    }
-    
-    container.innerHTML = html;
-  }
-
-  function clearSearchResults() {
-    const container = searchModal?.querySelector('[data-search-results]');
-    if (container) container.innerHTML = '';
-  }
-
-  // =====================
-  // Custom Select (Language/Country)
-  // =====================
-  const customSelects = section.querySelectorAll('.custom-select-wrapper');
-  
-  customSelects.forEach(wrapper => {
-    const trigger = wrapper.querySelector('.custom-select-trigger');
-    const options = wrapper.querySelector('.custom-options');
-    const selectedText = trigger?.querySelector('.selected-text');
-    const type = wrapper.dataset.selectType;
-    
-    // Load saved preference
-    const saved = localStorage.getItem(`header_${type}`);
-    if (saved && selectedText) {
-      selectedText.textContent = saved.toUpperCase();
-    }
-    
-    trigger?.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const isOpen = options.classList.toggle('is-open');
-      trigger.setAttribute('aria-expanded', isOpen);
-      
-      // Close others
-      customSelects.forEach(other => {
-        if (other !== wrapper) {
-          other.querySelector('.custom-options')?.classList.remove('is-open');
-          other.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
+        if (res.products && res.products.length) {
+          html += '<p class="hdr-search-section">Products</p>';
+          res.products.forEach(function (p) {
+            var img   = p.image ? '<img src="' + p.image + '" class="hdr-search-result-img" alt="' + p.title + '" loading="lazy">' : '<div class="hdr-search-result-img"></div>';
+            var price = p.price ? ('$' + (parseFloat(p.price) / 100).toFixed(2)) : '';
+            html += '<a href="' + p.url + '" class="hdr-search-result">' + img + '<div><p class="hdr-search-result-title">' + p.title + '</p><p class="hdr-search-result-price">' + price + '</p></div></a>';
+          });
         }
-      });
-    });
-    
-    // Option selection
-    wrapper.querySelectorAll('.custom-option').forEach(option => {
-      option.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const value = this.dataset.value;
-        const text = this.textContent.trim();
-        
-        if (selectedText) {
-          selectedText.textContent = text.split(' ')[0].toUpperCase(); // Get flag or code
+        if (res.pages && res.pages.length) {
+          html += '<p class="hdr-search-section">Pages</p>';
+          res.pages.forEach(function (pg) {
+            html += '<a href="' + pg.url + '" class="hdr-search-result"><div><p class="hdr-search-result-title">' + pg.title + '</p></div></a>';
+          });
         }
-        
-        // Save to localStorage
-        localStorage.setItem(`header_${type}`, value);
-        
-        // Close dropdown
-        options.classList.remove('is-open');
-        trigger.setAttribute('aria-expanded', 'false');
-        
-        // Dispatch event for other scripts
-        window.dispatchEvent(new CustomEvent('localizationChanged', { 
-          detail: { type: type, value: value, text: text } 
-        }));
-        
-        // Optional: Reload page with locale parameter
-        // window.location.href = `?${type}=${value}`;
-      });
-    });
-  });
-
-  // Close dropdowns on outside click
-  function closeAllDropdowns() {
-    customSelects.forEach(wrapper => {
-      wrapper.querySelector('.custom-options')?.classList.remove('is-open');
-      wrapper.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
-    });
-  }
-
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.custom-select-wrapper')) {
-      closeAllDropdowns();
-    }
-    
-    // Close desktop menus on outside click
-    if (window.innerWidth > 991 && !e.target.closest('.nav-item')) {
-      navItems.forEach(item => {
-        item.classList.remove('is-open');
-        item.querySelector('.nav-link')?.setAttribute('aria-expanded', 'false');
-        item.querySelector('.dropdown-menu, .mega-submenu')?.classList.remove('is-open');
-      });
-    }
-  });
-
-  // =====================
-  // Cart Count Update
-  // =====================
-  function updateCartCount() {
-    fetch('/cart.js')
-      .then(res => res.json())
-      .then(cart => {
-        const countElements = section.querySelectorAll('[data-cart-count]');
-        countElements.forEach(el => {
-          el.textContent = cart.item_count;
-          el.style.display = cart.item_count > 0 ? 'block' : 'none';
-        });
+        if (!html) html = '<p class="hdr-search-empty">No results for "' + q + '"</p>';
+        if (searchResults) searchResults.innerHTML = html;
       })
-      .catch(console.error);
+      .catch(function () {});
   }
 
-  // Listen for cart updates
-  document.addEventListener('cart:updated', updateCartCount);
-  
-  // Auto-open cart drawer setting
-  {% if section.settings.auto_open_cart_drawer %}
-  document.addEventListener('product:added', function() {
-    setTimeout(() => {
-      const cartDrawer = document.querySelector('[data-cart-drawer]') || 
-                         document.querySelector('cart-drawer');
-      if (cartDrawer && cartDrawer.open) cartDrawer.open();
-    }, 100);
-  });
-  {% endif %}
+  /* ─── Custom selects ─── */
+  document.querySelectorAll('.hdr-select-wrap').forEach(function (wrap) {
+    var trigger = wrap.querySelector('.hdr-select-trigger');
+    var opts    = wrap.querySelector('.hdr-select-options');
+    var selText = trigger && trigger.querySelector('.hdr-sel-text');
+    var type    = wrap.dataset.selectType;
+    var saved   = type && localStorage.getItem('hdr_sel_' + type);
+    if (saved && selText) selText.textContent = saved.toUpperCase().slice(0, 3);
 
-  // =====================
-  // Initialization
-  // =====================
-  function init() {
-    initDesktopDropdowns();
-    initMobileDropdowns();
-    
-    // Handle resize
-    let resizeTimer;
-    window.addEventListener('resize', function() {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function() {
-        if (window.innerWidth > 991) {
-          closeMobileMenu();
-          initDesktopDropdowns();
-        } else {
-          initMobileDropdowns();
-        }
-      }, 250);
+    trigger && trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = opts.classList.toggle('is-open');
+      trigger.setAttribute('aria-expanded', open);
+      /* close others */
+      document.querySelectorAll('.hdr-select-options.is-open').forEach(function (o) {
+        if (o !== opts) o.classList.remove('is-open');
+      });
     });
-  }
+    opts && opts.querySelectorAll('.hdr-select-option').forEach(function (opt) {
+      opt.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (selText) selText.textContent = opt.textContent.trim().slice(0, 3).toUpperCase();
+        if (type) localStorage.setItem('hdr_sel_' + type, opt.dataset.val || '');
+        opts.classList.remove('is-open');
+        trigger.setAttribute('aria-expanded', 'false');
+        window.dispatchEvent(new CustomEvent('localizationChanged', { detail: { type: type, value: opt.dataset.val } }));
+      });
+    });
+  });
 
-  // Run on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+  /* ─── Cart badge update ─── */
+  function updateCart(count) {
+    var badges = document.querySelectorAll('[data-cart-count]');
+    badges.forEach(function (b) {
+      b.textContent = count > 0 ? count : '';
+      if (count > 0) {
+        b.classList.remove('is-popping');
+        void b.offsetWidth; /* reflow */
+        b.classList.add('is-popping');
+        setTimeout(function () { b.classList.remove('is-popping'); }, 500);
+      }
+    });
+    var cartLink = document.querySelector('[data-cart-link]');
+    if (cartLink && count > 0) {
+      cartLink.classList.remove('is-shaking');
+      void cartLink.offsetWidth;
+      cartLink.classList.add('is-shaking');
+      setTimeout(function () { cartLink.classList.remove('is-shaking'); }, 450);
+    }
+    /* Update aria-label */
+    if (cartLink) cartLink.setAttribute('aria-label', 'Cart, ' + count + ' items');
   }
-  
-  // Expose update function for external calls
+  document.addEventListener('cart:updated', function (e) { if (e.detail) updateCart(e.detail.item_count || 0); });
+  document.addEventListener('cart:refresh', function (e) { if (e.detail) updateCart(e.detail.item_count || 0); });
+
+  /* ─── Escape key ─── */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    closePanel();
+    closeSearch();
+    document.querySelectorAll('#hdr-' + sid + ' .hdr-nav-item.is-open').forEach(function (item) { item.classList.remove('is-open'); });
+  });
+
+  /* ─── Resize ─── */
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (window.innerWidth > 991) { closePanel(); initDesktopDropdowns(); }
+    }, 200);
+  });
+
+  /* ─── Init ─── */
+  initDesktopDropdowns();
+
+  /* Expose */
   window.HeaderSection = window.HeaderSection || {};
-  window.HeaderSection[sectionId] = {
-    updateCart: updateCartCount,
-    closeMobileMenu: closeMobileMenu
-  };
+  window.HeaderSection[sid] = { updateCart: updateCart, closeMenu: closePanel };
+
 })();
 </script>
 
 {% schema %}
 {
-  "name": "Advanced Header Pro",
+  "name": "Modern Header",
   "settings": [
     {
       "type": "header",
-      "content": "Color & Border"
+      "content": "Color and Style"
     },
     {
       "type": "color_scheme",
@@ -1385,10 +1257,7 @@
       "type": "range",
       "id": "border_thickness",
       "label": "Border Thickness",
-      "min": 0,
-      "max": 10,
-      "step": 1,
-      "unit": "px",
+      "min": 0, "max": 8, "step": 1, "unit": "px",
       "default": 1
     },
     {
@@ -1400,7 +1269,7 @@
     {
       "type": "checkbox",
       "id": "header_shadow",
-      "label": "Show Shadow on Sticky",
+      "label": "Shadow When Sticky",
       "default": true
     },
     {
@@ -1410,55 +1279,49 @@
     {
       "type": "range",
       "id": "padding_v",
-      "label": "Padding Top/Bottom",
-      "min": 0,
-      "max": 40,
-      "step": 2,
-      "unit": "px",
+      "label": "Vertical Padding",
+      "min": 8, "max": 40, "step": 2, "unit": "px",
       "default": 16
     },
     {
       "type": "range",
       "id": "padding_h",
-      "label": "Padding Left/Right",
-      "min": 0,
-      "max": 80,
-      "step": 4,
-      "unit": "px",
+      "label": "Horizontal Padding",
+      "min": 16, "max": 80, "step": 4, "unit": "px",
       "default": 24
     },
     {
       "type": "header",
-      "content": "Header Behavior"
+      "content": "Sticky Behavior"
     },
     {
       "type": "select",
       "id": "sticky_header_type",
-      "label": "Sticky Header",
+      "label": "Sticky Mode",
       "options": [
-        { "value": "never", "label": "Never" },
-        { "value": "always", "label": "Always Sticky" },
-        { "value": "scroll_up", "label": "Show on Scroll Up" }
+        { "value": "never",     "label": "Disabled"         },
+        { "value": "always",    "label": "Always Sticky"    },
+        { "value": "scroll_up", "label": "Show on Scroll Up"}
       ],
       "default": "always"
     },
     {
       "type": "header",
-      "content": "Logo Settings"
+      "content": "Logo"
     },
     {
       "type": "image_picker",
       "id": "custom_logo",
-      "label": "Custom Logo"
+      "label": "Custom Logo (overrides theme logo)"
     },
     {
       "type": "select",
       "id": "logo_position",
       "label": "Logo Position",
       "options": [
-        { "value": "left", "label": "Left" },
+        { "value": "left",   "label": "Left"   },
         { "value": "center", "label": "Center" },
-        { "value": "right", "label": "Right" }
+        { "value": "right",  "label": "Right"  }
       ],
       "default": "left"
     },
@@ -1466,27 +1329,26 @@
       "type": "range",
       "id": "logo_height",
       "label": "Logo Height",
-      "min": 20,
-      "max": 100,
-      "step": 2,
-      "unit": "px",
+      "min": 20, "max": 100, "step": 2, "unit": "px",
       "default": 40
     },
     {
       "type": "range",
       "id": "logo_font_size",
-      "label": "Logo Text Size",
-      "min": 12,
-      "max": 36,
-      "step": 1,
-      "unit": "px",
-      "default": 20
+      "label": "Shop Name Font Size",
+      "min": 14, "max": 32, "step": 1, "unit": "px",
+      "default": 18
     },
     {
-      "type": "checkbox",
+      "type": "select",
       "id": "show_brand_name",
-      "label": "Show Shop Name With Logo",
-      "default": false
+      "label": "Brand Display",
+      "options": [
+        { "value": "logo", "label": "Logo Only"   },
+        { "value": "name", "label": "Name Only"   },
+        { "value": "both", "label": "Logo + Name" }
+      ],
+      "default": "both"
     },
     {
       "type": "header",
@@ -1500,33 +1362,29 @@
     {
       "type": "select",
       "id": "nav_position",
-      "label": "Menu Position",
+      "label": "Navigation Alignment",
       "options": [
-        { "value": "left", "label": "Left" },
+        { "value": "left",   "label": "Left"   },
         { "value": "center", "label": "Center" },
-        { "value": "right", "label": "Right" }
+        { "value": "right",  "label": "Right"  }
       ],
-      "default": "left"
+      "default": "center"
     },
     {
       "type": "range",
       "id": "nav_font_size",
       "label": "Font Size",
-      "min": 12,
-      "max": 22,
-      "step": 1,
-      "unit": "px",
-      "default": 15
+      "min": 12, "max": 18, "step": 1, "unit": "px",
+      "default": 14
     },
     {
       "type": "select",
       "id": "nav_font_weight",
       "label": "Font Weight",
       "options": [
-        { "value": "400", "label": "Regular" },
-        { "value": "500", "label": "Medium" },
-        { "value": "600", "label": "SemiBold" },
-        { "value": "700", "label": "Bold" }
+        { "value": "400", "label": "Regular"  },
+        { "value": "500", "label": "Medium"   },
+        { "value": "600", "label": "SemiBold" }
       ],
       "default": "500"
     },
@@ -1535,8 +1393,8 @@
       "id": "nav_text_transform",
       "label": "Text Transform",
       "options": [
-        { "value": "none", "label": "None" },
-        { "value": "uppercase", "label": "Uppercase" },
+        { "value": "none",       "label": "None"       },
+        { "value": "uppercase",  "label": "Uppercase"  },
         { "value": "capitalize", "label": "Capitalize" }
       ],
       "default": "none"
@@ -1545,37 +1403,31 @@
       "type": "range",
       "id": "nav_letter_spacing",
       "label": "Letter Spacing",
-      "min": 0,
-      "max": 5,
-      "step": 0.5,
-      "unit": "px",
+      "min": 0, "max": 3, "step": 0.5, "unit": "px",
       "default": 0
     },
     {
       "type": "range",
       "id": "nav_gap",
       "label": "Gap Between Links",
-      "min": 4,
-      "max": 48,
-      "step": 2,
-      "unit": "px",
-      "default": 24
+      "min": 16, "max": 48, "step": 2, "unit": "px",
+      "default": 28
     },
     {
       "type": "color",
       "id": "nav_hover_color",
       "label": "Link Hover Color",
-      "default": "#2563eb"
+      "default": "#111827"
     },
     {
       "type": "checkbox",
       "id": "mega_menu",
-      "label": "Enable Mega Menu (for 3+ columns)",
+      "label": "Enable Mega Menu for 3+ Child Links",
       "default": true
     },
     {
       "type": "header",
-      "content": "Icons & Actions"
+      "content": "Icons and Actions"
     },
     {
       "type": "checkbox",
@@ -1599,21 +1451,15 @@
       "type": "range",
       "id": "icon_size",
       "label": "Icon Size",
-      "min": 14,
-      "max": 32,
-      "step": 1,
-      "unit": "px",
+      "min": 16, "max": 28, "step": 1, "unit": "px",
       "default": 20
     },
     {
       "type": "range",
       "id": "icon_gap",
       "label": "Gap Between Icons",
-      "min": 4,
-      "max": 32,
-      "step": 2,
-      "unit": "px",
-      "default": 16
+      "min": 4, "max": 24, "step": 2, "unit": "px",
+      "default": 4
     },
     {
       "type": "select",
@@ -1621,19 +1467,9 @@
       "label": "Icons Position",
       "options": [
         { "value": "right", "label": "Right" },
-        { "value": "left", "label": "Left" }
+        { "value": "left",  "label": "Left"  }
       ],
       "default": "right"
-    },
-    {
-      "type": "select",
-      "id": "icons_row_position",
-      "label": "Icons Layout",
-      "options": [
-        { "value": "top", "label": "Row (Horizontal)" },
-        { "value": "bottom", "label": "Column (Vertical)" }
-      ],
-      "default": "top"
     },
     {
       "type": "header",
@@ -1642,8 +1478,8 @@
     {
       "type": "text",
       "id": "search_placeholder",
-      "label": "Search Placeholder",
-      "default": "Search products, articles..."
+      "label": "Placeholder Text",
+      "default": "Search products..."
     },
     {
       "type": "header",
@@ -1652,7 +1488,7 @@
     {
       "type": "checkbox",
       "id": "show_localization",
-      "label": "Show Country/Region Selector",
+      "label": "Show Country Selector",
       "default": false
     },
     {
@@ -1665,7 +1501,7 @@
       "type": "checkbox",
       "id": "show_flags",
       "label": "Show Flag Icons",
-      "default": true
+      "default": false
     },
     {
       "type": "text",
@@ -1675,96 +1511,87 @@
     },
     {
       "type": "header",
-      "content": "Page Layout"
+      "content": "Page Width"
     },
     {
       "type": "select",
       "id": "page_width",
-      "label": "Page Width",
+      "label": "Maximum Content Width",
       "options": [
         { "value": "narrow", "label": "Narrow (1000px)" },
         { "value": "normal", "label": "Normal (1200px)" },
-        { "value": "wide", "label": "Wide (1400px)" }
+        { "value": "wide",   "label": "Wide (1400px)"   }
       ],
       "default": "normal"
     },
     {
       "type": "header",
-      "content": "Product Settings"
+      "content": "Product Cards"
     },
     {
       "type": "select",
       "id": "product_transition",
-      "label": "Product Card Transition",
+      "label": "Hover Effect",
       "options": [
-        { "value": "instant", "label": "Instant" },
-        { "value": "smooth", "label": "Smooth" },
-        { "value": "lift", "label": "Lift on Hover" }
+        { "value": "instant", "label": "None"        },
+        { "value": "smooth",  "label": "Smooth Fade" },
+        { "value": "lift",    "label": "Lift Up"     }
       ],
       "default": "lift"
     },
     {
       "type": "checkbox",
       "id": "auto_open_cart_drawer",
-      "label": "Auto-Open Cart Drawer on Add to Cart",
+      "label": "Auto Open Cart Drawer on Add to Cart",
       "default": true
     },
     {
       "type": "header",
-      "content": "Background Transparency"
+      "content": "Page Background Transparency"
     },
     {
       "type": "color",
       "id": "home_bg_color",
-      "label": "Home Page Background Color",
+      "label": "Home Page Background",
       "default": "#ffffff"
     },
     {
       "type": "range",
       "id": "home_bg_opacity",
       "label": "Home Page Opacity",
-      "min": 0,
-      "max": 100,
-      "step": 10,
-      "unit": "%",
+      "min": 0, "max": 100, "step": 10, "unit": "%",
       "default": 100
     },
     {
       "type": "color",
       "id": "product_bg_color",
-      "label": "Product Page Background Color",
+      "label": "Product Page Background",
       "default": "#ffffff"
     },
     {
       "type": "range",
       "id": "product_bg_opacity",
       "label": "Product Page Opacity",
-      "min": 0,
-      "max": 100,
-      "step": 10,
-      "unit": "%",
+      "min": 0, "max": 100, "step": 10, "unit": "%",
       "default": 100
     },
     {
       "type": "color",
       "id": "collection_bg_color",
-      "label": "Collection Page Background Color",
+      "label": "Collection Page Background",
       "default": "#ffffff"
     },
     {
       "type": "range",
       "id": "collection_bg_opacity",
       "label": "Collection Page Opacity",
-      "min": 0,
-      "max": 100,
-      "step": 10,
-      "unit": "%",
+      "min": 0, "max": 100, "step": 10, "unit": "%",
       "default": 100
     }
   ],
   "presets": [
     {
-      "name": "Advanced Header Pro"
+      "name": "Modern Header"
     }
   ]
 }
