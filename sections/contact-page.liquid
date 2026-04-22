@@ -1,26 +1,1319 @@
-<div class="contact-page-template">
-    <div class="container">
-        <div class="page-heading text-center my-5">
-            <h2>{{ page.title }}</h2>
+{% comment %}
+  ============================================================
+  CONTACT PAGE – FULL SECTION WITH GLOBAL BACKGROUND
+  - Hero shows page.title + page.content
+  - One background image for the whole section
+  - Contact form + hours/map on top
+  - Maps: accepts both embed URL or full iframe code
+  ============================================================
+{% endcomment %}
+
+{{ 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' | stylesheet_tag }}
+
+{%- style -%}
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+  #lx-contact-{{ section.id }} {
+    --lx-blur:             {{ section.settings.glass_blur }}px;
+    --lx-alpha:            {{ section.settings.glass_alpha | divided_by: 100.0 }};
+    --lx-btn-bg:           {{ section.settings.btn_bg_color }};
+    --lx-btn-text:         {{ section.settings.btn_text_color }};
+    --lx-btn-hover:        {{ section.settings.btn_hover_color }};
+    --lx-btn-radius:       {{ section.settings.btn_border_radius }}px;
+    --lx-accent:           #c9a96e;
+    --lx-border:           rgba(255,255,255,0.25);
+    --lx-heading-size:     {{ section.settings.heading_font_size }}px;
+    --lx-subheading-size:  {{ section.settings.subheading_font_size }}px;
+    --lx-letter-spacing:   {{ section.settings.letter_spacing | divided_by: 100.0 }}em;
+    --lx-col-gap:          {{ section.settings.column_gap }}rem;
+    --lx-heading-color:    {{ section.settings.heading_color }};
+    --lx-subheading-color: {{ section.settings.subheading_color }};
+    --lx-input-text-color: {{ section.settings.input_text_color }};
+    --lx-label-color:      {{ section.settings.label_color }};
+    --lx-info-text-color:  {{ section.settings.info_text_color }};
+    --lx-icon-color:       {{ section.settings.icon_color }};
+    --lxhm-card-bg:        {{ section.settings.hm_card_bg }};
+    --lxhm-card-border:    {{ section.settings.hm_card_border }};
+    --lxhm-heading-clr:    {{ section.settings.hm_heading_color }};
+    --lxhm-text-clr:       {{ section.settings.hm_text_color }};
+    --lxhm-muted-clr:      {{ section.settings.hm_muted_color }};
+    --lxhm-open-clr:       {{ section.settings.hm_open_color }};
+    --lxhm-closed-clr:     {{ section.settings.hm_closed_color }};
+    --lxhm-map-radius:     {{ section.settings.map_border_radius }}px;
+  }
+
+  /* ════════════════════════════════════════════════════════
+     GLOBAL BACKGROUND (covers everything)
+  ════════════════════════════════════════════════════════ */
+  #lx-contact-{{ section.id }} {
+    position: relative;
+    {% if section.settings.global_bg_image != blank %}
+      background: url('{{ section.settings.global_bg_image | image_url: width: 2400 }}') center/cover no-repeat fixed;
+    {% else %}
+      background: {{ section.settings.global_bg_gradient }};
+    {% endif %}
+  }
+  #lx-contact-{{ section.id }}::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,{{ section.settings.global_overlay_top | divided_by: 100.0 }}) 0%,
+      rgba(0,0,0,{{ section.settings.global_overlay_mid | divided_by: 100.0 }}) 40%,
+      rgba(0,0,0,{{ section.settings.global_overlay_bottom | divided_by: 100.0 }}) 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+  #lx-contact-{{ section.id }} > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ════════════════════════════════════════════════════════
+     ① HERO – shows page.title & page.content
+  ════════════════════════════════════════════════════════ */
+  #lx-contact-{{ section.id }} .lxcp-hero {
+    min-height: {{ section.settings.hero_height }}px;
+    display: flex;
+    align-items: flex-end;
+    font-family: 'DM Sans', sans-serif;
+    padding: {{ section.settings.hero_padding_top }}px 0 {{ section.settings.hero_padding_bottom }}px;
+  }
+  #lx-contact-{{ section.id }} .lxcp-hero-content {
+    width: 100%;
+  }
+  #lx-contact-{{ section.id }} .lxcp-hero-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(2.8rem, 8vw, {{ section.settings.hero_heading_size }}px);
+    line-height: 0.93;
+    letter-spacing: -0.02em;
+    color: {{ section.settings.hero_heading_color }};
+    text-shadow: 0 4px 40px rgba(0,0,0,0.4);
+    margin-bottom: 1.1rem;
+  }
+  #lx-contact-{{ section.id }} .lxcp-hero-sub {
+    font-size: clamp(0.88rem, 1.4vw, 1rem);
+    font-weight: 300;
+    line-height: 1.75;
+    color: {{ section.settings.hero_sub_color }};
+    max-width: 700px;
+  }
+  #lx-contact-{{ section.id }} .lxcp-hero-sub p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ════════════════════════════════════════════════════════
+     ② CONTACT FORM (transparent background)
+  ════════════════════════════════════════════════════════ */
+  #lx-contact-{{ section.id }} .lxcp-form-wrap {
+    padding: {{ section.settings.form_padding_top }}px 0 {{ section.settings.form_padding_bottom }}px;
+    background: transparent;
+  }
+  #lx-contact-{{ section.id }} .lxcp-form-bg,
+  #lx-contact-{{ section.id }} .lxcp-form-bg::after {
+    display: none;
+  }
+  #lx-contact-{{ section.id }} .lx-row-gap {
+    gap: var(--lx-col-gap);
+  }
+  {% if section.settings.form_alignment == 'left' %}
+    #lx-contact-{{ section.id }} .lx-align { justify-content: flex-start !important; }
+  {% elsif section.settings.form_alignment == 'right' %}
+    #lx-contact-{{ section.id }} .lx-align { justify-content: flex-end !important; }
+  {% else %}
+    #lx-contact-{{ section.id }} .lx-align { justify-content: center !important; }
+  {% endif %}
+  {% if section.settings.layout_direction == 'right-left' %}
+    #lx-contact-{{ section.id }} .lx-layout-row { flex-direction: row-reverse; }
+    @media (max-width: 991px) { #lx-contact-{{ section.id }} .lx-layout-row { flex-direction: column; } }
+  {% else %}
+    #lx-contact-{{ section.id }} .lx-layout-row { flex-direction: row; }
+    @media (max-width: 991px) { #lx-contact-{{ section.id }} .lx-layout-row { flex-direction: column; } }
+  {% endif %}
+  {% unless section.settings.show_contact_info and section.settings.show_form %}
+    #lx-contact-{{ section.id }} .lx-single-col { max-width: 680px; margin-left: auto; margin-right: auto; }
+  {% endunless %}
+  #lx-contact-{{ section.id }} .lx-section-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(2.5rem, 7vw, var(--lx-heading-size));
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--lx-heading-color);
+    text-shadow: 0 4px 32px rgba(0,0,0,0.5);
+    margin-bottom: 0.15em;
+  }
+  #lx-contact-{{ section.id }} .lx-section-heading em {
+    font-style: italic;
+    color: var(--lx-accent);
+  }
+  #lx-contact-{{ section.id }} .lx-section-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: var(--lx-subheading-size);
+    letter-spacing: var(--lx-letter-spacing);
+    text-transform: uppercase;
+    color: var(--lx-subheading-color);
+    margin-bottom: 2.5rem;
+  }
+  #lx-contact-{{ section.id }} .lx-glass {
+    background: rgba(255,255,255,var(--lx-alpha));
+    backdrop-filter: blur(var(--lx-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--lx-blur)) saturate(180%);
+    border: 1px solid var(--lx-border);
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+  @media (max-width: 576px) {
+    #lx-contact-{{ section.id }} .lx-glass { padding: 2rem 1.25rem; border-radius: 14px; }
+  }
+  #lx-contact-{{ section.id }} .lx-field { position: relative; margin-bottom: 2rem; }
+  #lx-contact-{{ section.id }} .lx-field input,
+  #lx-contact-{{ section.id }} .lx-field textarea {
+    width: 100%; background: transparent; border: none;
+    border-bottom: 1.5px solid rgba(0,0,0,0.18); border-radius: 0;
+    padding: 0.75rem 0 0.5rem; font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; color: var(--lx-input-text-color);
+    outline: none; transition: border-color 0.3s ease; box-shadow: none !important;
+  }
+  #lx-contact-{{ section.id }} .lx-field textarea { resize: none; min-height: 110px; }
+  #lx-contact-{{ section.id }} .lx-field label {
+    position: absolute; top: 0.75rem; left: 0;
+    font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--lx-label-color); pointer-events: none;
+    transition: top 0.25s ease, font-size 0.25s ease, color 0.25s ease;
+  }
+  #lx-contact-{{ section.id }} .lx-field input:focus ~ label,
+  #lx-contact-{{ section.id }} .lx-field input:not(:placeholder-shown) ~ label,
+  #lx-contact-{{ section.id }} .lx-field textarea:focus ~ label,
+  #lx-contact-{{ section.id }} .lx-field textarea:not(:placeholder-shown) ~ label {
+    top: -1rem; font-size: 0.68rem; color: var(--lx-accent);
+  }
+  #lx-contact-{{ section.id }} .lx-field::after {
+    content: ''; position: absolute; bottom: 0; left: 0;
+    width: 0; height: 1.5px; background: var(--lx-accent);
+    transition: width 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  #lx-contact-{{ section.id }} .lx-field:focus-within::after { width: 100%; }
+  #lx-contact-{{ section.id }} .lx-field:focus-within input,
+  #lx-contact-{{ section.id }} .lx-field:focus-within textarea { border-bottom-color: transparent; }
+  #lx-contact-{{ section.id }} .lx-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+    background: var(--lx-btn-bg); color: var(--lx-btn-text); border: none;
+    border-radius: var(--lx-btn-radius); padding: 0.85rem 2.4rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    {% if section.settings.btn_width == 'full' %}width: 100%;{% endif %}
+  }
+  #lx-contact-{{ section.id }} .lx-btn:hover { background: var(--lx-btn-hover); transform: scale(1.05); box-shadow: 0 8px 32px rgba(0,0,0,0.28); }
+  #lx-contact-{{ section.id }} .lx-btn:active { transform: scale(0.97); }
+  #lx-contact-{{ section.id }} .lx-btn svg { transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  #lx-contact-{{ section.id }} .lx-btn:hover svg { transform: translateX(4px); }
+  #lx-contact-{{ section.id }} .lx-info { color: var(--lx-info-text-color); padding-right: 2rem; }
+  @media (max-width: 991px) { #lx-contact-{{ section.id }} .lx-info { padding-right: 0; margin-bottom: 2rem; } }
+  #lx-contact-{{ section.id }} .lx-info-item { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.6rem; }
+  #lx-contact-{{ section.id }} .lx-info-icon {
+    width: 42px; height: 42px; background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: background 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  #lx-contact-{{ section.id }} .lx-info-item:hover .lx-info-icon { background: var(--lx-accent); transform: scale(1.12) rotate(-5deg); }
+  #lx-contact-{{ section.id }} .lx-info-icon svg { color: var(--lx-icon-color); }
+  #lx-contact-{{ section.id }} .lx-info-label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--lx-accent); margin-bottom: 0.15rem; }
+  #lx-contact-{{ section.id }} .lx-info-value { font-size: 0.9rem; color: var(--lx-info-text-color); line-height: 1.5; }
+  #lx-contact-{{ section.id }} .lx-divider { width: 50px; height: 1px; background: var(--lx-accent); margin: 1.5rem 0; opacity: 0.7; }
+  #lx-contact-{{ section.id }} .lx-socials { display: flex; gap: 0.75rem; margin-top: 2rem; flex-wrap: wrap; }
+  #lx-contact-{{ section.id }} .lx-social-link {
+    width: 36px; height: 36px; border: 1px solid rgba(255,255,255,0.25); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.6); text-decoration: none;
+    transition: border-color 0.3s, color 0.3s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  #lx-contact-{{ section.id }} .lx-social-link:hover { border-color: var(--lx-accent); color: var(--lx-accent); transform: translateY(-3px) scale(1.1); }
+  #lx-contact-{{ section.id }} .lx-alert { border-radius: 10px; font-size: 0.85rem; margin-bottom: 1.5rem; border: none; }
+  #lx-contact-{{ section.id }} .lx-alert-success { background: rgba(201,169,110,0.15); color: #5a4010; border-left: 3px solid var(--lx-accent); }
+  #lx-contact-{{ section.id }} .lx-alert-error { background: rgba(220,53,69,0.1); color: #6b1117; border-left: 3px solid #dc3545; }
+  #lx-contact-{{ section.id }} .lx-field-error { font-size: 0.75rem; color: #dc3545; margin-top: 0.3rem; display: flex; align-items: center; gap: 0.3rem; }
+
+  /* ════════════════════════════════════════════════════════
+     ③ HOURS & MAP (transparent background)
+  ════════════════════════════════════════════════════════ */
+  #lx-contact-{{ section.id }} .lxcp-hm-wrap {
+    background: transparent;
+    padding: {{ section.settings.hm_padding_top }}px 0 {{ section.settings.hm_padding_bottom }}px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  #lx-contact-{{ section.id }} .lxcp-hm-label {
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--lx-accent); display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;
+  }
+  #lx-contact-{{ section.id }} .lxcp-hm-label::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--lx-accent); }
+  #lx-contact-{{ section.id }} .lxcp-hm-heading {
+    font-family: 'Cormorant Garamond', serif; font-weight: 300;
+    font-size: clamp(2rem, 4vw, {{ section.settings.hm_heading_size }}px);
+    line-height: 1.05; letter-spacing: -0.01em; color: var(--lxhm-heading-clr); margin-bottom: 0.3rem;
+  }
+  #lx-contact-{{ section.id }} .lxcp-hm-heading em { font-style: italic; color: var(--lx-accent); }
+  #lx-contact-{{ section.id }} .lxcp-hm-sub { font-size: 0.88rem; font-weight: 300; color: var(--lxhm-muted-clr); margin-bottom: 2.5rem; max-width: 440px; }
+  #lx-contact-{{ section.id }} .lxcp-hours-card {
+    background: var(--lxhm-card-bg); border: 1px solid var(--lxhm-card-border);
+    border-radius: 16px; padding: 2.2rem 2rem; height: 100%;
+  }
+  #lx-contact-{{ section.id }} .lxcp-card-title {
+    font-family: 'Cormorant Garamond', serif; font-weight: 400; font-size: 1.3rem;
+    color: var(--lxhm-heading-clr); margin-bottom: 0.2rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  #lx-contact-{{ section.id }} .lxcp-card-title svg { color: var(--lx-accent); flex-shrink: 0; }
+  #lx-contact-{{ section.id }} .lxcp-card-sub { font-size: 0.78rem; color: var(--lxhm-muted-clr); letter-spacing: 0.05em; margin-bottom: 1.5rem; padding-left: 1.8rem; }
+  #lx-contact-{{ section.id }} .lxcp-hours-divider { height: 1px; background: linear-gradient(to right, var(--lx-accent), transparent); margin-bottom: 1.3rem; opacity: 0.3; }
+  #lx-contact-{{ section.id }} .lxcp-day-row { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  #lx-contact-{{ section.id }} .lxcp-day-row:last-of-type { border-bottom: none; }
+  #lx-contact-{{ section.id }} .lxcp-day-name { font-size: 0.82rem; font-weight: 400; letter-spacing: 0.03em; color: var(--lxhm-text-clr); min-width: 105px; }
+  #lx-contact-{{ section.id }} .lxcp-day-time { font-size: 0.82rem; font-weight: 300; color: var(--lxhm-muted-clr); text-align: right; flex: 1; }
+  #lx-contact-{{ section.id }} .lxcp-status-dot { width: 7px; height: 7px; border-radius: 50%; margin-left: 0.7rem; flex-shrink: 0; }
+  #lx-contact-{{ section.id }} .lxcp-status-dot.open   { background: var(--lxhm-open-clr); box-shadow: 0 0 6px var(--lxhm-open-clr); }
+  #lx-contact-{{ section.id }} .lxcp-status-dot.closed { background: var(--lxhm-closed-clr); }
+  #lx-contact-{{ section.id }} .lxcp-day-row.is-today .lxcp-day-name { color: var(--lx-accent); font-weight: 500; }
+  #lx-contact-{{ section.id }} .lxcp-day-row.is-today .lxcp-day-time { color: var(--lxhm-text-clr); }
+  #lx-contact-{{ section.id }} .lxcp-open-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25);
+    border-radius: 50px; padding: 0.25rem 0.75rem;
+    font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #4ade80; margin-top: 1.3rem;
+  }
+  #lx-contact-{{ section.id }} .lxcp-live-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: lxcpPulse 1.8s ease-in-out infinite; }
+  @keyframes lxcpPulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.7); } }
+  #lx-contact-{{ section.id }} .lxcp-closed-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2);
+    border-radius: 50px; padding: 0.25rem 0.75rem;
+    font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #f87171; margin-top: 1.3rem;
+  }
+  #lx-contact-{{ section.id }} .lxcp-map-wrap {
+    border-radius: var(--lxhm-map-radius); overflow: hidden;
+    border: 1px solid var(--lxhm-card-border); box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    height: 100%; min-height: {{ section.settings.map_height }}px; position: relative;
+  }
+  #lx-contact-{{ section.id }} .lxcp-map-wrap iframe { width: 100%; height: 100%; min-height: {{ section.settings.map_height }}px; display: block; border: none; filter: {{ section.settings.map_filter }}; }
+  #lx-contact-{{ section.id }} .lxcp-map-badge {
+    position: absolute; bottom: 1rem; left: 1rem;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 0.6rem 1rem; z-index: 10; pointer-events: none;
+  }
+  #lx-contact-{{ section.id }} .lxcp-map-badge p { margin: 0; font-size: 0.78rem; color: rgba(255,255,255,0.85); line-height: 1.5; }
+  #lx-contact-{{ section.id }} .lxcp-map-badge strong { color: var(--lx-accent); font-weight: 500; }
+  #lx-contact-{{ section.id }} .lxcp-map-placeholder {
+    width: 100%; height: 100%; min-height: {{ section.settings.map_height }}px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.75rem; background: var(--lxhm-card-bg); border: 2px dashed rgba(201,169,110,0.22);
+  }
+  #lx-contact-{{ section.id }} .lxcp-map-placeholder p { color: rgba(255,255,255,0.3); font-size: 0.78rem; letter-spacing: 0.07em; margin: 0; text-align: center; padding: 0 1rem; }
+
+  /* ════════════════════════════════════════════════════════
+     ANIMATIONS
+  ════════════════════════════════════════════════════════ */
+  {% if section.settings.enable_animation %}
+    @keyframes lxcpFadeUp { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }
+    #lx-contact-{{ section.id }} .lxcp-hero-heading { animation: lxcpFadeUp 0.8s 0.22s cubic-bezier(0.22,1,0.36,1) both; }
+    #lx-contact-{{ section.id }} .lxcp-hero-sub     { animation: lxcpFadeUp 0.8s 0.36s cubic-bezier(0.22,1,0.36,1) both; }
+    #lx-contact-{{ section.id }} .lx-animate    { opacity:0; animation: lxcpFadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
+    #lx-contact-{{ section.id }} .lx-animate-d1 { animation-delay: 0.05s; }
+    #lx-contact-{{ section.id }} .lx-animate-d2 { animation-delay: 0.15s; }
+    #lx-contact-{{ section.id }} .lx-animate-d3 { animation-delay: 0.25s; }
+    #lx-contact-{{ section.id }} .lx-animate-d4 { animation-delay: 0.35s; }
+    #lx-contact-{{ section.id }} .lxcp-hm-anim-1 { animation: lxcpFadeUp 0.7s 0.05s cubic-bezier(0.22,1,0.36,1) both; }
+    #lx-contact-{{ section.id }} .lxcp-hm-anim-2 { animation: lxcpFadeUp 0.7s 0.18s cubic-bezier(0.22,1,0.36,1) both; }
+    #lx-contact-{{ section.id }} .lxcp-hm-anim-3 { animation: lxcpFadeUp 0.7s 0.30s cubic-bezier(0.22,1,0.36,1) both; }
+  {% else %}
+    #lx-contact-{{ section.id }} .lx-animate { opacity:1; animation:none; }
+  {% endif %}
+{%- endstyle -%}
+
+{%- if section.settings.enable_animation -%}
+  {%- assign anim_d1 = 'lx-animate lx-animate-d1' -%}
+  {%- assign anim_d2 = 'lx-animate lx-animate-d2' -%}
+  {%- assign anim_d3 = 'lx-animate lx-animate-d3' -%}
+  {%- assign anim_d4 = 'lx-animate lx-animate-d4' -%}
+{%- else -%}
+  {%- assign anim_d1 = '' -%}{%- assign anim_d2 = '' -%}{%- assign anim_d3 = '' -%}{%- assign anim_d4 = '' -%}
+{%- endif -%}
+{%- if section.settings.layout_direction == 'right-left' -%}
+  {%- assign flex_class = 'd-flex flex-column flex-lg-row-reverse' -%}
+{%- else -%}
+  {%- assign flex_class = 'd-flex flex-column flex-lg-row' -%}
+{%- endif -%}
+{%- assign show_info = section.settings.show_contact_info -%}
+{%- assign show_form = section.settings.show_form -%}
+
+<div id="lx-contact-{{ section.id }}">
+
+  {% comment %} ━━━━━━━━━━━━━━━━━━━━ ① HERO (page.title + page.content) ━━━━━━━━━━━━━━━━━━━━ {% endcomment %}
+  <div class="lxcp-hero container-fluid px-4 px-md-5">
+    <div class="lxcp-hero-content">
+      <div class="row">
+        <div class="col-12 col-lg-8">
+          <h1 class="lxcp-hero-heading">{{ page.title | escape }}</h1>
+          <div class="lxcp-hero-sub rte">
+            {{ page.content }}
+          </div>
         </div>
-        <div class="contact-form">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    {% form 'contact' %}
-                        <div class="customer-info my-2">
-                            <div class="form-row">
-                                <input class="col-6 form-control my-2" type="text" name="contact[first_name]" id="f_name" placeholder="First Name">
-                                <input class="col-6 form-control" type="text" name="contact[last_name]" id="l_name" placeholder="Last Name">
-                            </div>
-                            <input class="form-control my-2" type="email" name="contact[email]" id="email" placeholder="Email">
-                        </div>
-                        <div class="customer-message">
-                            <textarea class="form-control" name="contact[message]" id="message" cols="20" placeholder="Message"></textarea>
-                        </div>
-                        <button type="submit" class="my-2 btn btn-secondary">Submit</button>
-                    {% endform %}
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
+
+  {% comment %} ━━━━━━━━━━━━━━━━━━━━ ② CONTACT FORM ━━━━━━━━━━━━━━━━━━━━ {% endcomment %}
+  {% if show_info or show_form %}
+  <div class="lxcp-form-wrap">
+    <div class="lxcp-form-inner container-fluid px-4 px-md-5">
+      <div class="{{ flex_class }} lx-align lx-layout-row align-items-center lx-row-gap">
+
+        {% if show_info %}
+        <div class="{% unless show_form %}lx-single-col w-100{% else %}col-12 col-lg-4{% endunless %} lx-info">
+          <p class="lx-section-sub {{ anim_d1 }}">{{ section.settings.subheading | default: 'Get in touch' }}</p>
+          <h2 class="lx-section-heading {{ anim_d2 }}">{{ section.settings.heading | default: "Let's <em>talk</em>" }}</h2>
+          <div class="lx-divider {{ anim_d3 }}"></div>
+          <div class="{{ anim_d3 }}">
+            {% if section.settings.contact_address != blank %}
+              <div class="lx-info-item">
+                <div class="lx-info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg></div>
+                <div><p class="lx-info-label">Address</p><p class="lx-info-value">{{ section.settings.contact_address }}</p></div>
+              </div>
+            {% endif %}
+            {% if section.settings.contact_email != blank %}
+              <div class="lx-info-item">
+                <div class="lx-info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg></div>
+                <div><p class="lx-info-label">Email</p><p class="lx-info-value"><a href="mailto:{{ section.settings.contact_email }}" style="color:inherit;text-decoration:none;">{{ section.settings.contact_email }}</a></p></div>
+              </div>
+            {% endif %}
+            {% if section.settings.contact_phone != blank %}
+              <div class="lx-info-item">
+                <div class="lx-info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"/></svg></div>
+                <div><p class="lx-info-label">Phone</p><p class="lx-info-value"><a href="tel:{{ section.settings.contact_phone }}" style="color:inherit;text-decoration:none;">{{ section.settings.contact_phone }}</a></p></div>
+              </div>
+            {% endif %}
+          </div>
+          {%- assign has_social = false -%}
+          {%- if section.settings.social_instagram != blank or section.settings.social_facebook != blank or section.settings.social_linkedin != blank -%}{%- assign has_social = true -%}{%- endif -%}
+          {% if has_social %}
+            <div class="lx-socials {{ anim_d4 }}">
+              {% if section.settings.social_instagram != blank %}<a href="{{ section.settings.social_instagram }}" class="lx-social-link" target="_blank" rel="noopener" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/></svg></a>{% endif %}
+              {% if section.settings.social_facebook != blank %}<a href="{{ section.settings.social_facebook }}" class="lx-social-link" target="_blank" rel="noopener" aria-label="Facebook"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>{% endif %}
+              {% if section.settings.social_linkedin != blank %}<a href="{{ section.settings.social_linkedin }}" class="lx-social-link" target="_blank" rel="noopener" aria-label="LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>{% endif %}
+            </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if show_form %}
+        <div class="{% unless show_info %}lx-single-col w-100{% else %}col-12 col-lg-7{% endunless %} lx-form-col {{ anim_d4 }}">
+          <div class="lx-glass">
+            {%- form 'contact', id: 'LxContactForm-{{ section.id }}' -%}
+              {%- if form.posted_successfully? -%}
+                <div class="lx-alert lx-alert-success d-flex align-items-center gap-2 p-3 mb-4" role="alert"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg><span>{{ 'templates.contact.form.post_success' | t }}</span></div>
+              {%- endif -%}
+              {%- if form.errors -%}
+                <div class="lx-alert lx-alert-error d-flex align-items-center gap-2 p-3 mb-4" role="alert"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg><span>{{ 'templates.contact.form.error_heading' | t }}</span></div>
+              {%- endif -%}
+              <div class="row g-4 mb-0">
+                <div class="col-sm-6"><div class="lx-field"><input type="text" id="LxForm-first-{{ section.id }}" name="contact[first_name]" placeholder=" " value="{% if form.first_name %}{{ form.first_name }}{% elsif customer %}{{ customer.first_name }}{% endif %}" autocomplete="given-name"><label for="LxForm-first-{{ section.id }}">First name</label></div></div>
+                <div class="col-sm-6"><div class="lx-field"><input type="text" id="LxForm-last-{{ section.id }}" name="contact[last_name]" placeholder=" " value="{% if form.last_name %}{{ form.last_name }}{% elsif customer %}{{ customer.last_name }}{% endif %}" autocomplete="family-name"><label for="LxForm-last-{{ section.id }}">Last name</label></div></div>
+              </div>
+              <div class="lx-field">
+                <input type="email" id="LxForm-email-{{ section.id }}" name="contact[email]" placeholder=" " value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}" autocomplete="email" spellcheck="false" autocapitalize="off" aria-required="true" {% if form.errors contains 'email' %}aria-invalid="true"{% endif %}>
+                <label for="LxForm-email-{{ section.id }}">Email address <span aria-hidden="true" style="color:var(--lx-accent)">*</span></label>
+                {%- if form.errors contains 'email' -%}<p class="lx-field-error"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>{%- endif -%}
+              </div>
+              <div class="lx-field"><input type="tel" id="LxForm-phone-{{ section.id }}" name="contact[phone]" placeholder=" " value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}" autocomplete="tel" pattern="[0-9\-\+\s\(\)]*"><label for="LxForm-phone-{{ section.id }}">Phone number</label></div>
+              <div class="lx-field"><textarea id="LxForm-body-{{ section.id }}" name="contact[body]" rows="4" placeholder=" ">{{- form.body -}}</textarea><label for="LxForm-body-{{ section.id }}">Your message</label></div>
+              <div class="d-flex {% if section.settings.btn_width == 'full' %}w-100{% else %}justify-content-end{% endif %} mt-4">
+                <button type="submit" class="lx-btn">{{ section.settings.btn_label | default: 'Send Message' }}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3"/></svg></button>
+              </div>
+            {%- endform -%}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% comment %} ━━━━━━━━━━━━━━━━━━━━ ③ HOURS & MAP ━━━━━━━━━━━━━━━━━━━━ {% endcomment %}
+  {% if section.settings.show_hours_map %}
+  <div class="lxcp-hm-wrap">
+    <div class="container-fluid px-4 px-md-5" style="position:relative;z-index:1;">
+      {% if section.settings.show_hm_heading %}
+        <div class="row mb-4 mb-lg-5 {% if section.settings.enable_animation %}lxcp-hm-anim-1{% endif %}">
+          <div class="col-12 col-lg-8">
+            {% if section.settings.hm_label != blank %}<p class="lxcp-hm-label">{{ section.settings.hm_label }}</p>{% endif %}
+            <h2 class="lxcp-hm-heading">{{ section.settings.hm_heading }}</h2>
+            {% if section.settings.hm_subtext != blank %}<p class="lxcp-hm-sub">{{ section.settings.hm_subtext }}</p>{% endif %}
+          </div>
+        </div>
+      {% endif %}
+      <div class="row g-4 align-items-stretch">
+        {% if section.settings.show_hours %}
+        <div class="col-12 {% if section.settings.show_map %}col-lg-4{% endif %} {% if section.settings.enable_animation %}lxcp-hm-anim-2{% endif %}">
+          <div class="lxcp-hours-card">
+            <h3 class="lxcp-card-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>{{ section.settings.hours_title | default: 'Store Hours' }}</h3>
+            <p class="lxcp-card-sub">{{ section.settings.hours_subtitle | default: 'All times local' }}</p>
+            <div class="lxcp-hours-divider"></div>
+            {%- assign days = 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday' | split: ',' -%}
+            {%- assign today_num = 'now' | date: '%u' | plus: 0 -%}
+            {%- for day in days -%}
+              {%- assign is_today = false -%}
+              {%- if forloop.index == today_num -%}{%- assign is_today = true -%}{%- endif -%}
+              {%- assign time_key = day | downcase | append: '_hours' -%}
+              {%- assign closed_key = day | downcase | append: '_closed' -%}
+              {%- assign time_val = section.settings[time_key] -%}
+              {%- assign is_closed = section.settings[closed_key] -%}
+              <div class="lxcp-day-row {% if is_today %}is-today{% endif %}">
+                <span class="lxcp-day-name">{{ day }}</span>
+                <span class="lxcp-day-time">{%- if is_closed -%}Closed{%- elsif time_val != blank -%}{{ time_val }}{%- else -%}—{%- endif -%}</span>
+                <span class="lxcp-status-dot {% if is_closed %}closed{% else %}open{% endif %}"></span>
+              </div>
+            {%- endfor -%}
+            {% if section.settings.show_live_badge %}
+              {%- assign cur_h = 'now' | date: '%H' | plus: 0 -%}
+              {%- assign open_h = section.settings.live_open_hour | plus: 0 -%}
+              {%- assign close_h = section.settings.live_close_hour | plus: 0 -%}
+              {%- assign td_closed = 'now' | date: '%A' | downcase | append: '_closed' -%}
+              {%- if section.settings[td_closed] -%}
+                <div class="lxcp-closed-badge">● Closed Today</div>
+              {%- elsif cur_h >= open_h and cur_h < close_h -%}
+                <div class="lxcp-open-badge"><span class="lxcp-live-dot"></span> Open Now</div>
+              {%- else -%}
+                <div class="lxcp-closed-badge">● Currently Closed</div>
+              {%- endif -%}
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if section.settings.show_map %}
+        <div class="col-12 {% if section.settings.show_hours %}col-lg-8{% endif %} {% if section.settings.enable_animation %}lxcp-hm-anim-3{% endif %}">
+          <div class="lxcp-map-wrap">
+            {%- assign map_input = section.settings.map_embed_url | strip -%}
+            {%- if map_input != blank -%}
+              {%- comment %} If user pasted full iframe, extract src attribute {% endcomment -%}
+              {%- if map_input contains 'iframe' and map_input contains 'src=' -%}
+                {%- assign src_start = map_input | split: 'src="' | last | split: '"' | first -%}
+                {%- assign map_final_url = src_start -%}
+              {%- else -%}
+                {%- assign map_final_url = map_input -%}
+              {%- endif -%}
+              {%- comment %} Ensure URL has protocol {% endcomment -%}
+              {%- unless map_final_url contains '://' -%}
+                {%- assign map_final_url = 'https://' | append: map_final_url -%}
+              {%- endunless -%}
+              <iframe src="{{ map_final_url }}" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="{{ section.settings.store_name | default: 'Store Location' }}"></iframe>
+            {%- else -%}
+              <div class="lxcp-map-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#c9a96e" stroke-width="1.2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>
+                </svg>
+                <p><strong>How to add Google Map:</strong><br>1. Go to Google Maps → Share → Embed a map<br>2. Copy the <code>src="..."</code> URL only<br>3. Paste it in Theme Editor → Map Settings → <strong>Google Maps Embed URL</strong></p>
+                <p style="font-size:0.7rem; margin-top:0.5rem;">Example: <code>https://www.google.com/maps/embed?pb=!1m18...</code></p>
+              </div>
+            {%- endif -%}
+            {% if section.settings.show_map_badge and section.settings.store_name != blank %}
+              <div class="lxcp-map-badge">
+                <p><strong>{{ section.settings.store_name }}</strong></p>
+                {% if section.settings.store_address != blank %}<p>{{ section.settings.store_address }}</p>{% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
+
+{% schema %}
+{
+  "name": "Contact Page (Full BG)",
+  "tag": "section",
+  "class": "section lx-contact-full-bg",
+  "disabled_on": { "groups": ["header","footer"] },
+  "settings": [
+    {
+      "type": "header",
+      "content": "━━━ GLOBAL BACKGROUND ━━━"
+    },
+    {
+      "type": "image_picker",
+      "id": "global_bg_image",
+      "label": "Main Background Image",
+      "info": "This image will cover the entire section (hero, form, hours & map)."
+    },
+    {
+      "type": "text",
+      "id": "global_bg_gradient",
+      "label": "Fallback Gradient",
+      "default": "linear-gradient(135deg, #0a0a0a 0%, #1a1208 50%, #0a0a0a 100%)"
+    },
+    {
+      "type": "range",
+      "id": "global_overlay_top",
+      "label": "Overlay Darkness (top)",
+      "min": 0,
+      "max": 95,
+      "step": 5,
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "global_overlay_mid",
+      "label": "Overlay Darkness (middle)",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "global_overlay_bottom",
+      "label": "Overlay Darkness (bottom)",
+      "min": 0,
+      "max": 95,
+      "step": 5,
+      "default": 70
+    },
+    {
+      "type": "header",
+      "content": "━━━ HERO (page title + content) ━━━"
+    },
+    {
+      "type": "range",
+      "id": "hero_heading_size",
+      "label": "Heading Size (max px)",
+      "min": 48,
+      "max": 140,
+      "step": 4,
+      "unit": "px",
+      "default": 100
+    },
+    {
+      "type": "color",
+      "id": "hero_heading_color",
+      "label": "Heading Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "hero_sub_color",
+      "label": "Content Text Color",
+      "default": "#b3b3b3"
+    },
+    {
+      "type": "range",
+      "id": "hero_height",
+      "label": "Hero Min Height",
+      "min": 280,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 500
+    },
+    {
+      "type": "range",
+      "id": "hero_padding_top",
+      "label": "Hero Padding Top",
+      "min": 40,
+      "max": 200,
+      "step": 8,
+      "unit": "px",
+      "default": 120
+    },
+    {
+      "type": "range",
+      "id": "hero_padding_bottom",
+      "label": "Hero Padding Bottom",
+      "min": 40,
+      "max": 160,
+      "step": 8,
+      "unit": "px",
+      "default": 72
+    },
+    {
+      "type": "header",
+      "content": "━━━ CONTACT FORM ━━━"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_contact_info",
+      "label": "Show Contact Info Panel",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_form",
+      "label": "Show Contact Form",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Get in touch"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Let's <em>talk</em>"
+    },
+    {
+      "type": "text",
+      "id": "btn_label",
+      "label": "Button Label",
+      "default": "Send Message"
+    },
+    {
+      "type": "text",
+      "id": "contact_address",
+      "label": "Address",
+      "default": "123 Luxury Ave, New York, NY 10001"
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "Email",
+      "default": "hello@yourbrand.com"
+    },
+    {
+      "type": "text",
+      "id": "contact_phone",
+      "label": "Phone",
+      "default": "+1 (555) 000-0000"
+    },
+    {
+      "type": "url",
+      "id": "social_instagram",
+      "label": "Instagram URL"
+    },
+    {
+      "type": "url",
+      "id": "social_facebook",
+      "label": "Facebook URL"
+    },
+    {
+      "type": "url",
+      "id": "social_linkedin",
+      "label": "LinkedIn URL"
+    },
+    {
+      "type": "range",
+      "id": "glass_blur",
+      "label": "Glass Blur",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "glass_alpha",
+      "label": "Glass Transparency",
+      "min": 5,
+      "max": 80,
+      "step": 5,
+      "default": 20
+    },
+    {
+      "type": "select",
+      "id": "layout_direction",
+      "label": "Layout Direction",
+      "options": [
+        { "value": "left-right", "label": "Info Left · Form Right" },
+        { "value": "right-left", "label": "Form Left · Info Right" }
+      ],
+      "default": "left-right"
+    },
+    {
+      "type": "select",
+      "id": "form_alignment",
+      "label": "Row Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column Gap",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "unit": "rem",
+      "default": 3
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "subheading_color",
+      "label": "Subheading Color",
+      "default": "#8a8a8a"
+    },
+    {
+      "type": "color",
+      "id": "input_text_color",
+      "label": "Input Text Color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "Label Color",
+      "default": "#666666"
+    },
+    {
+      "type": "color",
+      "id": "info_text_color",
+      "label": "Info Text Color",
+      "default": "#e6e6e6"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg_color",
+      "label": "Button Background",
+      "default": "#c9a96e"
+    },
+    {
+      "type": "color",
+      "id": "btn_text_color",
+      "label": "Button Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_hover_color",
+      "label": "Button Hover Color",
+      "default": "#a8843f"
+    },
+    {
+      "type": "range",
+      "id": "btn_border_radius",
+      "label": "Button Radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "select",
+      "id": "btn_width",
+      "label": "Button Width",
+      "options": [
+        { "value": "auto", "label": "Auto" },
+        { "value": "full", "label": "Full Width" }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size",
+      "label": "Heading Font Size",
+      "min": 32,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "subheading_font_size",
+      "label": "Subheading Font Size",
+      "min": 8,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "label": "Letter Spacing",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "form_padding_top",
+      "label": "Form Padding Top",
+      "min": 0,
+      "max": 160,
+      "step": 8,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "form_padding_bottom",
+      "label": "Form Padding Bottom",
+      "min": 0,
+      "max": 160,
+      "step": 8,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "header",
+      "content": "━━━ HOURS & MAP ━━━"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_hours_map",
+      "label": "Show Hours & Map Section",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_hm_heading",
+      "label": "Show Section Heading",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "hm_label",
+      "label": "Eyebrow Label",
+      "default": "Find Us"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "hm_heading",
+      "label": "Heading",
+      "default": "Visit <em>Our Store</em>"
+    },
+    {
+      "type": "text",
+      "id": "hm_subtext",
+      "label": "Subtext",
+      "default": "Come see us in person — we'd love to meet you."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_hours",
+      "label": "Show Working Hours",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "hours_title",
+      "label": "Hours Card Title",
+      "default": "Store Hours"
+    },
+    {
+      "type": "text",
+      "id": "hours_subtitle",
+      "label": "Hours Card Subtitle",
+      "default": "All times local"
+    },
+    {
+      "type": "header",
+      "content": "Monday"
+    },
+    {
+      "type": "text",
+      "id": "monday_hours",
+      "label": "Hours",
+      "default": "10:00 AM – 8:00 PM"
+    },
+    {
+      "type": "checkbox",
+      "id": "monday_closed",
+      "label": "Closed",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Tuesday"
+    },
+    {
+      "type": "text",
+      "id": "tuesday_hours",
+      "label": "Hours",
+      "default": "10:00 AM – 8:00 PM"
+    },
+    {
+      "type": "checkbox",
+      "id": "tuesday_closed",
+      "label": "Closed",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Wednesday"
+    },
+    {
+      "type": "text",
+      "id": "wednesday_hours",
+      "label": "Hours",
+      "default": "10:00 AM – 8:00 PM"
+    },
+    {
+      "type": "checkbox",
+      "id": "wednesday_closed",
+      "label": "Closed",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Thursday"
+    },
+    {
+      "type": "text",
+      "id": "thursday_hours",
+      "label": "Hours",
+      "default": "10:00 AM – 8:00 PM"
+    },
+    {
+      "type": "checkbox",
+      "id": "thursday_closed",
+      "label": "Closed",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Friday"
+    },
+    {
+      "type": "text",
+      "id": "friday_hours",
+      "label": "Hours",
+      "default": "10:00 AM – 9:00 PM"
+    },
+    {
+      "type": "checkbox",
+      "id": "friday_closed",
+      "label": "Closed",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Saturday"
+    },
+    {
+      "type": "text",
+      "id": "saturday_hours",
+      "label": "Hours",
+      "default": "11:00 AM – 9:00 PM"
+    },
+    {
+      "type": "checkbox",
+      "id": "saturday_closed",
+      "label": "Closed",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Sunday"
+    },
+    {
+      "type": "text",
+      "id": "sunday_hours",
+      "label": "Hours",
+      "default": "12:00 PM – 6:00 PM"
+    },
+    {
+      "type": "checkbox",
+      "id": "sunday_closed",
+      "label": "Closed",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Live Status"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_live_badge",
+      "label": "Show Live Open/Closed Badge",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "live_open_hour",
+      "label": "Opening Hour (24h)",
+      "min": 0,
+      "max": 23,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "live_close_hour",
+      "label": "Closing Hour (24h)",
+      "min": 0,
+      "max": 23,
+      "step": 1,
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Map"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_map",
+      "label": "Show Map",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "map_embed_url",
+      "label": "Google Maps Embed URL",
+      "info": "Paste either the src URL (starts with https://) or the full iframe code. The code will automatically extract the correct URL."
+    },
+    {
+      "type": "range",
+      "id": "map_height",
+      "label": "Map Height",
+      "min": 300,
+      "max": 700,
+      "step": 20,
+      "unit": "px",
+      "default": 480
+    },
+    {
+      "type": "range",
+      "id": "map_border_radius",
+      "label": "Map Border Radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "map_filter",
+      "label": "Map Style",
+      "options": [
+        { "value": "none", "label": "Default" },
+        { "value": "grayscale(100%)", "label": "Grayscale" },
+        { "value": "grayscale(100%) contrast(1.1)", "label": "High-contrast Grayscale" },
+        { "value": "sepia(60%) contrast(0.9) brightness(0.85)", "label": "Warm Sepia" },
+        { "value": "invert(90%) hue-rotate(180deg)", "label": "Dark Mode" }
+      ],
+      "default": "grayscale(100%) contrast(1.1)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_map_badge",
+      "label": "Show Store Badge on Map",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "store_name",
+      "label": "Store Name",
+      "default": "Our Store"
+    },
+    {
+      "type": "text",
+      "id": "store_address",
+      "label": "Store Address",
+      "default": "123 Luxury Ave, New York, NY"
+    },
+    {
+      "type": "header",
+      "content": "Hours & Map Colors"
+    },
+    {
+      "type": "color",
+      "id": "hm_card_bg",
+      "label": "Card Background",
+      "default": "#161616"
+    },
+    {
+      "type": "color",
+      "id": "hm_card_border",
+      "label": "Card Border",
+      "default": "#2a2a2a"
+    },
+    {
+      "type": "color",
+      "id": "hm_heading_color",
+      "label": "Heading Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "hm_text_color",
+      "label": "Text Color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "color",
+      "id": "hm_muted_color",
+      "label": "Muted Text Color",
+      "default": "#666666"
+    },
+    {
+      "type": "color",
+      "id": "hm_open_color",
+      "label": "Open Status Color",
+      "default": "#4ade80"
+    },
+    {
+      "type": "color",
+      "id": "hm_closed_color",
+      "label": "Closed Status Color",
+      "default": "#555555"
+    },
+    {
+      "type": "range",
+      "id": "hm_heading_size",
+      "label": "Section Heading Size",
+      "min": 28,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "hm_padding_top",
+      "label": "Hours & Map Padding Top",
+      "min": 0,
+      "max": 160,
+      "step": 8,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "hm_padding_bottom",
+      "label": "Hours & Map Padding Bottom",
+      "min": 0,
+      "max": 160,
+      "step": 8,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "header",
+      "content": "━━━ ANIMATION ━━━"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_animation",
+      "label": "Enable Animations",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contact Page (Full BG)",
+      "settings": {
+        "global_bg_gradient": "linear-gradient(135deg, #0a0a0a 0%, #1a1208 50%, #0a0a0a 100%)",
+        "global_overlay_top": 40,
+        "global_overlay_mid": 20,
+        "global_overlay_bottom": 70,
+        "hero_heading_size": 100,
+        "hero_heading_color": "#ffffff",
+        "hero_sub_color": "#b3b3b3",
+        "hero_height": 500,
+        "hero_padding_top": 120,
+        "hero_padding_bottom": 72,
+        "show_contact_info": true,
+        "show_form": true,
+        "subheading": "Get in touch",
+        "heading": "Let's <em>talk</em>",
+        "btn_label": "Send Message",
+        "contact_address": "123 Luxury Ave, New York, NY 10001",
+        "contact_email": "hello@yourbrand.com",
+        "contact_phone": "+1 (555) 000-0000",
+        "glass_blur": 18,
+        "glass_alpha": 20,
+        "layout_direction": "left-right",
+        "form_alignment": "center",
+        "column_gap": 3,
+        "heading_color": "#ffffff",
+        "subheading_color": "#8a8a8a",
+        "input_text_color": "#1a1a1a",
+        "label_color": "#666666",
+        "info_text_color": "#e6e6e6",
+        "icon_color": "#ffffff",
+        "btn_bg_color": "#c9a96e",
+        "btn_text_color": "#ffffff",
+        "btn_hover_color": "#a8843f",
+        "btn_border_radius": 50,
+        "btn_width": "auto",
+        "heading_font_size": 96,
+        "subheading_font_size": 14,
+        "letter_spacing": 20,
+        "form_padding_top": 80,
+        "form_padding_bottom": 80,
+        "show_hours_map": true,
+        "show_hm_heading": true,
+        "hm_label": "Find Us",
+        "hm_heading": "Visit <em>Our Store</em>",
+        "hm_subtext": "Come see us in person — we'd love to meet you.",
+        "show_hours": true,
+        "hours_title": "Store Hours",
+        "hours_subtitle": "All times local",
+        "monday_hours": "10:00 AM – 8:00 PM",
+        "tuesday_hours": "10:00 AM – 8:00 PM",
+        "wednesday_hours": "10:00 AM – 8:00 PM",
+        "thursday_hours": "10:00 AM – 8:00 PM",
+        "friday_hours": "10:00 AM – 9:00 PM",
+        "saturday_hours": "11:00 AM – 9:00 PM",
+        "sunday_hours": "12:00 PM – 6:00 PM",
+        "show_live_badge": true,
+        "live_open_hour": 10,
+        "live_close_hour": 20,
+        "show_map": true,
+        "map_height": 480,
+        "map_border_radius": 16,
+        "map_filter": "grayscale(100%) contrast(1.1)",
+        "show_map_badge": true,
+        "store_name": "Our Store",
+        "store_address": "123 Luxury Ave, New York, NY",
+        "hm_card_bg": "#161616",
+        "hm_card_border": "#2a2a2a",
+        "hm_heading_color": "#ffffff",
+        "hm_text_color": "#e0e0e0",
+        "hm_muted_color": "#666666",
+        "hm_open_color": "#4ade80",
+        "hm_closed_color": "#555555",
+        "hm_heading_size": 48,
+        "hm_padding_top": 80,
+        "hm_padding_bottom": 80,
+        "enable_animation": true
+      }
+    }
+  ]
+}
+{% endschema %}
