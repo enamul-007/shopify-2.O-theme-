@@ -2,9 +2,9 @@
   comment
     ╔══════════════════════════════════════════════════════╗
     ║   HERO SECTION — Full Customizable                  ║
-    ║   Supports: Dual Media, Mobile Media, Overlay,      ║
-    ║   Blurred Reflection, Layout, Spacing,              ║
-    ║   Hero Badge + Subheading + Heading + Button        ║
+    ║   All blocks are theme blocks (@theme)              ║
+    ║   Supports: group, hero-badge, subheading,          ║
+    ║   heading, button + any other @theme block          ║
     ╚══════════════════════════════════════════════════════╝
   endcomment
 
@@ -117,86 +117,6 @@
     {% endcase %};
   }
 
-  /* ── Hero Badge Block Styles ── */
-  .hero-badge {
-    display: inline-block;
-    padding: 0.4rem 1.2rem;
-    background: var(--hero-badge-bg, rgba(255,255,255,0.2));
-    color: var(--hero-badge-color, #ffffff);
-    font-size: var(--hero-badge-size, 1.2rem);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: 50px;
-    backdrop-filter: blur(4px);
-    line-height: 1.2;
-    text-decoration: none;
-    transition: 0.2s;
-  }
-  @media (min-width: 750px) {
-    .hero-badge {
-      font-size: var(--hero-badge-size-desktop, 1.4rem);
-      padding: 0.6rem 1.6rem;
-    }
-  }
-
-  /* ── Subheading Block Styles ── */
-  .hero-subheading {
-    margin: 0 0 var(--hero-subheading-margin, 0.5rem);
-    font-family: var(--font-body-family);
-    font-weight: var(--font-body-weight);
-    line-height: 1.4;
-    color: var(--hero-subheading-color, currentColor);
-    font-size: var(--hero-subheading-size, 1.2rem);
-  }
-  @media (min-width: 750px) {
-    .hero-subheading {
-      font-size: var(--hero-subheading-size-desktop, 1.4rem);
-    }
-  }
-
-  /* ── Heading Block Styles ── */
-  .hero-heading {
-    margin: 0;
-    font-weight: bold;
-    line-height: 1.2;
-    color: var(--hero-heading-color, #ffffff);
-    font-size: var(--hero-heading-size-mobile, 32px);
-  }
-  @media (min-width: 750px) {
-    .hero-heading {
-      font-size: var(--hero-heading-size-desktop, 48px);
-    }
-  }
-
-  /* ── Button Block Styles ── */
-  .hero-button {
-    display: inline-block;
-    padding: 0.8rem 2rem;
-    text-decoration: none;
-    border-radius: 4px;
-    font-weight: 600;
-    transition: 0.2s;
-    font-size: var(--hero-button-size-mobile, 14px);
-    cursor: pointer;
-  }
-  .hero-button--solid {
-    background: var(--hero-button-bg, #ffffff);
-    color: var(--hero-button-color, #000000);
-    border: 1px solid transparent;
-  }
-  .hero-button--outline {
-    background: transparent;
-    color: var(--hero-button-color, #ffffff);
-    border: 1px solid currentColor;
-  }
-  @media (min-width: 750px) {
-    .hero-button {
-      font-size: var(--hero-button-size-desktop, 16px);
-      padding: 1rem 2.5rem;
-    }
-  }
-
   {% if section.settings.custom_css != blank %}
     #shopify-section-{{ section.id }} {
       {{ section.settings.custom_css }}
@@ -205,12 +125,23 @@
 {%- endstyle -%}
 
 {%- if section.settings.section_link != blank -%}
-  <a href="{{ section.settings.section_link }}" class="hero-section-link" {% if section.settings.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %} aria-label="{{ 'accessibility.section_link' | t | default: 'Section link' }}"></a>
+  <a
+    href="{{ section.settings.section_link }}"
+    class="hero-section-link"
+    {% if section.settings.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+    aria-label="{{ 'accessibility.section_link' | t | default: 'Section link' }}"
+  ></a>
 {%- endif -%}
 
-<div class="hero{% if section.settings.stack_media_on_mobile %} hero--stack-mobile{% endif %}{% if section.settings.section_height == 'auto' and section.blocks.size == 0 %} hero--auto-height{% endif %}" id="Hero-{{ section.id }}" {% if section.settings.blurred_reflection and has_only_video == false %} data-blur-shadow="true"{% endif %}>
+<div
+  class="hero{% if section.settings.stack_media_on_mobile %} hero--stack-mobile{% endif %}{% if section.settings.section_height == 'auto' and section.blocks.size == 0 %} hero--auto-height{% endif %}"
+  id="Hero-{{ section.id }}"
+  {% if section.settings.blurred_reflection and has_only_video == false %}data-blur-shadow="true"{% endif %}
+>
 
+  {{- '<!-- Hero media grid -->' -}}
   <div class="hero__media-grid">
+
     {% if section.settings.toggle_overlay %}
       <div class="hero__overlay" aria-hidden="true"></div>
     {% endif %}
@@ -231,7 +162,14 @@
 
     {% if media_1 == 'image' %}
       <div class="hero__media-wrap hero__media-wrap--desktop">
-        {{ section.settings.image_1 | image_url: width: 3840 | image_tag: class: 'hero__media', loading: 'eager', fetchpriority: 'high', widths: '768,1200,1800,2560,3840', sizes: '(min-width: 750px) 100vw, 100vw', alt: section.settings.image_1.alt | escape }}
+        {{ section.settings.image_1 | image_url: width: 3840 | image_tag:
+          class: 'hero__media',
+          loading: 'eager',
+          fetchpriority: 'high',
+          widths: '768,1200,1800,2560,3840',
+          sizes: '(min-width: 750px) 100vw, 100vw',
+          alt: section.settings.image_1.alt | escape
+        }}
       </div>
     {% elsif media_1 == 'video' %}
       <div class="hero__media-wrap hero__media-wrap--desktop">
@@ -241,7 +179,13 @@
 
     {% if media_2 == 'image' %}
       <div class="hero__media-wrap hero__media-wrap--desktop">
-        {{ section.settings.image_2 | image_url: width: 3840 | image_tag: class: 'hero__media', loading: 'eager', widths: '768,1200,1800,2560,3840', sizes: '(min-width: 750px) 50vw, 100vw', alt: section.settings.image_2.alt | escape }}
+        {{ section.settings.image_2 | image_url: width: 3840 | image_tag:
+          class: 'hero__media',
+          loading: 'eager',
+          widths: '768,1200,1800,2560,3840',
+          sizes: '(min-width: 750px) 50vw, 100vw',
+          alt: section.settings.image_2.alt | escape
+        }}
       </div>
     {% elsif media_2 == 'video' %}
       <div class="hero__media-wrap hero__media-wrap--desktop">
@@ -252,7 +196,13 @@
     {% if section.settings.custom_mobile_media and media_count_mob > 0 %}
       {% if media_1_mob == 'image' %}
         <div class="hero__media-wrap hero__media-wrap--mobile">
-          {{ section.settings.image_1_mob | image_url: width: 1200 | image_tag: class: 'hero__media', loading: 'eager', widths: '400,600,800,1200', sizes: '100vw', alt: section.settings.image_1_mob.alt | escape }}
+          {{ section.settings.image_1_mob | image_url: width: 1200 | image_tag:
+            class: 'hero__media',
+            loading: 'eager',
+            widths: '400,600,800,1200',
+            sizes: '100vw',
+            alt: section.settings.image_1_mob.alt | escape
+          }}
         </div>
       {% elsif media_1_mob == 'video' %}
         <div class="hero__media-wrap hero__media-wrap--mobile">
@@ -262,7 +212,13 @@
 
       {% if media_2_mob == 'image' %}
         <div class="hero__media-wrap hero__media-wrap--mobile">
-          {{ section.settings.image_2_mob | image_url: width: 1200 | image_tag: class: 'hero__media', loading: 'eager', widths: '400,600,800,1200', sizes: '100vw', alt: section.settings.image_2_mob.alt | escape }}
+          {{ section.settings.image_2_mob | image_url: width: 1200 | image_tag:
+            class: 'hero__media',
+            loading: 'eager',
+            widths: '400,600,800,1200',
+            sizes: '100vw',
+            alt: section.settings.image_2_mob.alt | escape
+          }}
         </div>
       {% elsif media_2_mob == 'video' %}
         <div class="hero__media-wrap hero__media-wrap--mobile">
@@ -274,51 +230,17 @@
     {% if media_count == 0 %}
       {{ 'hero-apparel-1' | placeholder_svg_tag: 'hero__media hero__media--placeholder' }}
     {% endif %}
-  </div>
 
+  </div>
+  {{- '<!-- /Hero media grid -->' -}}
+
+  {{- '<!-- Hero content -->' -}}
   <div class="{{ content_class }}">
     <div class="hero__inner hero__inner--{{ section.settings.content_direction }}{% if section.settings.align_baseline %} hero__inner--baseline{% endif %}">
-      {% for block in section.blocks %}
-        {% case block.type %}
-          {% when 'hero-badge' %}
-            <div class="hero-badge" style="
-              --hero-badge-bg: {{ block.settings.background_color }};
-              --hero-badge-color: {{ block.settings.text_color }};
-              --hero-badge-size: {{ block.settings.font_size_mobile }}px;
-              --hero-badge-size-desktop: {{ block.settings.font_size_desktop }}px;
-            " {{ block.shopify_attributes }}>
-              {{ block.settings.text }}
-            </div>
-          {% when 'subheading' %}
-            <div class="hero-subheading" style="
-              --hero-subheading-color: {{ block.settings.text_color }};
-              --hero-subheading-size: {{ block.settings.font_size_mobile }}px;
-              --hero-subheading-size-desktop: {{ block.settings.font_size_desktop }}px;
-              --hero-subheading-margin: {{ block.settings.margin_bottom }}px;
-            " {{ block.shopify_attributes }}>
-              {{ block.settings.text }}
-            </div>
-          {% when 'heading' %}
-            <{{ block.settings.heading_tag }} class="hero-heading" style="
-              --hero-heading-color: {{ block.settings.text_color }};
-              --hero-heading-size-mobile: {{ block.settings.font_size_mobile }}px;
-              --hero-heading-size-desktop: {{ block.settings.font_size_desktop }}px;
-            " {{ block.shopify_attributes }}>
-              {{ block.settings.text }}
-            </{{ block.settings.heading_tag }}>
-          {% when 'button' %}
-            <a href="{{ block.settings.link }}" class="hero-button hero-button--{{ block.settings.button_style }}" style="
-              --hero-button-bg: {{ block.settings.background_color }};
-              --hero-button-color: {{ block.settings.text_color }};
-              --hero-button-size-mobile: {{ block.settings.font_size_mobile }}px;
-              --hero-button-size-desktop: {{ block.settings.font_size_desktop }}px;
-            " {{ block.shopify_attributes }}>
-              {{ block.settings.text }}
-            </a>
-        {% endcase %}
-      {% endfor %}
+      {%- content_for 'blocks' -%}
     </div>
   </div>
+  {{- '<!-- /Hero content -->' -}}
 
 </div>
 
@@ -401,7 +323,9 @@
   }
   .hero__blur--desktop {
     display: none;
-    @media screen and (min-width: 750px) { display: block; }
+  }
+  @media screen and (min-width: 750px) {
+    .hero__blur--desktop { display: block; }
   }
   .hero-section-link {
     position: absolute;
@@ -422,7 +346,7 @@
     max-width: 1400px;
     margin-inline: auto;
   }
-  .hero-content :is(a, button, input, select, textarea, details) {
+  .hero-content :is(a, button, input, select, textarea, details, .group-block) {
     pointer-events: auto;
   }
   .hero__inner {
@@ -455,211 +379,8 @@
   "tag": "section",
   "class": "hero-wrapper",
   "blocks": [
-    {
-      "type": "hero-badge",
-      "name": "Hero Badge",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "text",
-          "id": "text",
-          "label": "Badge Text",
-          "default": "NEW ARRIVAL"
-        },
-        {
-          "type": "color",
-          "id": "background_color",
-          "label": "Background Color",
-          "default": "#00000080"
-        },
-        {
-          "type": "color",
-          "id": "text_color",
-          "label": "Text Color",
-          "default": "#FFFFFF"
-        },
-        {
-          "type": "range",
-          "id": "font_size_mobile",
-          "label": "Font Size (Mobile)",
-          "min": 10,
-          "max": 24,
-          "step": 1,
-          "default": 12,
-          "unit": "px"
-        },
-        {
-          "type": "range",
-          "id": "font_size_desktop",
-          "label": "Font Size (Desktop)",
-          "min": 10,
-          "max": 32,
-          "step": 1,
-          "default": 14,
-          "unit": "px"
-        }
-      ]
-    },
-    {
-      "type": "subheading",
-      "name": "Subheading",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "text",
-          "id": "text",
-          "label": "Subheading Text",
-          "default": "Discover our latest collection"
-        },
-        {
-          "type": "color",
-          "id": "text_color",
-          "label": "Text Color",
-          "default": "#FFFFFF"
-        },
-        {
-          "type": "range",
-          "id": "font_size_mobile",
-          "label": "Font Size (Mobile)",
-          "min": 12,
-          "max": 28,
-          "step": 1,
-          "default": 14,
-          "unit": "px"
-        },
-        {
-          "type": "range",
-          "id": "font_size_desktop",
-          "label": "Font Size (Desktop)",
-          "min": 12,
-          "max": 40,
-          "step": 1,
-          "default": 18,
-          "unit": "px"
-        },
-        {
-          "type": "range",
-          "id": "margin_bottom",
-          "label": "Bottom Margin",
-          "min": 0,
-          "max": 40,
-          "step": 2,
-          "default": 8,
-          "unit": "px"
-        }
-      ]
-    },
-    {
-      "type": "heading",
-      "name": "Heading",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "text",
-          "id": "text",
-          "label": "Heading Text",
-          "default": "Welcome to our store"
-        },
-        {
-          "type": "color",
-          "id": "text_color",
-          "label": "Text Color",
-          "default": "#FFFFFF"
-        },
-        {
-          "type": "range",
-          "id": "font_size_mobile",
-          "label": "Font Size (Mobile)",
-          "min": 20,
-          "max": 60,
-          "step": 2,
-          "default": 32,
-          "unit": "px"
-        },
-        {
-          "type": "range",
-          "id": "font_size_desktop",
-          "label": "Font Size (Desktop)",
-          "min": 30,
-          "max": 96,
-          "step": 2,
-          "default": 48,
-          "unit": "px"
-        },
-        {
-          "type": "select",
-          "id": "heading_tag",
-          "label": "HTML Tag",
-          "options": [
-            { "value": "h1", "label": "H1" },
-            { "value": "h2", "label": "H2" },
-            { "value": "h3", "label": "H3" },
-            { "value": "div", "label": "Div" }
-          ],
-          "default": "h2"
-        }
-      ]
-    },
-    {
-      "type": "button",
-      "name": "Button",
-      "limit": 2,
-      "settings": [
-        {
-          "type": "text",
-          "id": "text",
-          "label": "Button Label",
-          "default": "Shop Now"
-        },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Button Link"
-        },
-        {
-          "type": "color",
-          "id": "background_color",
-          "label": "Background Color",
-          "default": "#FFFFFF"
-        },
-        {
-          "type": "color",
-          "id": "text_color",
-          "label": "Text Color",
-          "default": "#000000"
-        },
-        {
-          "type": "range",
-          "id": "font_size_mobile",
-          "label": "Font Size (Mobile)",
-          "min": 12,
-          "max": 24,
-          "step": 1,
-          "default": 14,
-          "unit": "px"
-        },
-        {
-          "type": "range",
-          "id": "font_size_desktop",
-          "label": "Font Size (Desktop)",
-          "min": 14,
-          "max": 32,
-          "step": 1,
-          "default": 16,
-          "unit": "px"
-        },
-        {
-          "type": "select",
-          "id": "button_style",
-          "label": "Button Style",
-          "options": [
-            { "value": "solid", "label": "Solid" },
-            { "value": "outline", "label": "Outline" }
-          ],
-          "default": "solid"
-        }
-      ]
-    }
+    { "type": "@theme" },
+    { "type": "@app" }
   ],
   "disabled_on": {
     "groups": ["header", "footer"]
@@ -910,10 +631,10 @@
       "id": "gradient_direction",
       "label": "Gradient Direction",
       "options": [
-        { "value": "to top", "label": "↑ Bottom to Top" },
+        { "value": "to top",    "label": "↑ Bottom to Top" },
         { "value": "to bottom", "label": "↓ Top to Bottom" },
-        { "value": "to right", "label": "→ Left to Right" },
-        { "value": "to left", "label": "← Right to Left" }
+        { "value": "to right",  "label": "→ Left to Right" },
+        { "value": "to left",   "label": "← Right to Left" }
       ],
       "default": "to top"
     },

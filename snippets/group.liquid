@@ -1,0 +1,231 @@
+{%- liquid
+  # Calculate width value
+  assign width_value = '100%'
+  if settings.width == 'fit-content'
+    assign width_value = 'fit-content'
+  endif
+
+  # Calculate width mobile value
+  assign width_mobile_value = '100%'
+  if settings.width_mobile == 'fit-content'
+    assign width_mobile_value = 'fit-content'
+  endif
+
+  # Calculate height value
+  assign height_value = 'auto'
+  if settings.height == 'fill'
+    assign height_value = '100%'
+  endif
+
+  # Get direction
+  assign direction = settings.content_direction | default: 'column'
+
+  # Get alignment values based on direction
+  if direction == 'row'
+    assign justify = settings.horizontal_alignment | default: 'flex-start'
+    assign align = settings.vertical_alignment | default: 'center'
+    if settings.align_baseline and settings.vertical_alignment == 'flex-end'
+      assign align = 'baseline'
+    endif
+  else
+    assign justify = settings.vertical_alignment_flex_direction_column | default: 'flex-start'
+    assign align = settings.horizontal_alignment_flex_direction_column | default: 'flex-start'
+  endif
+
+  assign gap = settings.gap | default: 12
+
+  # Calculate border opacity
+  assign border_opacity_decimal = settings.border_opacity | default: 100 | times: 1.0 | divided_by: 100
+
+  # Calculate overlay background
+  assign overlay_bg = ''
+  if settings.toggle_overlay
+    if settings.overlay_style == 'gradient'
+      assign overlay_bg = 'linear-gradient(' | append: settings.gradient_direction | append: ', ' | append: settings.overlay_color | append: ', transparent)'
+    else
+      assign overlay_bg = settings.overlay_color
+    endif
+  endif
+
+  # Custom width calculation
+  assign width_custom_value = 'auto'
+  if settings.width == 'custom'
+    assign width_custom_value = settings.custom_width | append: '%'
+  elsif settings.width == 'fill'
+    assign width_custom_value = '100%'
+  endif
+
+  # Custom height calculation
+  assign height_custom_value = 'auto'
+  if settings.height == 'custom'
+    assign height_custom_value = settings.custom_height | append: '%'
+  endif
+-%}
+
+<div
+  class="group-block
+    group-block--height-{{ settings.height | default: 'fit' }}
+    group-block--width-{{ settings.width | default: 'fill' }}
+    {% unless settings.inherit_color_scheme %}color-{{ settings.color_scheme }}{% endunless %}
+  "
+  style="
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+    border-radius: {{ settings.border_radius | default: 0 }}px;
+    width: {{ width_custom_value }};
+    height: {{ height_custom_value }};
+    padding-top: {{ settings['padding-block-start'] | default: 0 }}px;
+    padding-bottom: {{ settings['padding-block-end'] | default: 0 }}px;
+    padding-left: {{ settings['padding-inline-start'] | default: 0 }}px;
+    padding-right: {{ settings['padding-inline-end'] | default: 0 }}px;
+    {%- if settings.border != 'none' -%}
+      border: {{ settings.border_width | default: 1 }}px {{ settings.border }} rgba(var(--color-foreground), {{ border_opacity_decimal }});
+    {%- endif -%}
+  "
+  {{ shopify_attributes }}
+  data-testid="group-block"
+>
+
+  {%- comment -%} ── Background Media & Overlay ── {%- endcomment -%}
+  <div class="group-block__media-wrapper">
+    {%- if settings.background_media == 'image' and settings.background_image != blank -%}
+      <div
+        class="group-block__bg-image"
+        style="
+          background-image: url('{{ settings.background_image | image_url: width: 2000 }}');
+          background-size: {% if settings.background_image_position == 'fit' %}contain{% else %}cover{% endif %};
+          background-position: center;
+          background-repeat: no-repeat;
+        "
+      ></div>
+    {%- elsif settings.background_media == 'video' and settings.video != blank -%}
+      <div class="group-block__bg-video">
+        {{
+          settings.video
+          | video_tag:
+            autoplay: true,
+            loop: true,
+            muted: true,
+            playsinline: true,
+            class: 'group-block__video-el',
+            style: 'object-fit:' | append: settings.video_position | append: ';'
+        }}
+      </div>
+    {%- endif -%}
+
+    {%- if settings.toggle_overlay and overlay_bg != blank -%}
+      <div
+        class="group-block__overlay"
+        style="background: {{ overlay_bg }};"
+      ></div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} ── Clickable Link Overlay ── {%- endcomment -%}
+  {%- if settings.link != blank -%}
+    <a
+      href="{{ settings.link }}"
+      class="group-block__link"
+      {% if settings.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+      aria-label="Group link"
+    ></a>
+  {%- endif -%}
+
+  {%- comment -%} ── Flex Content Wrapper ── {%- endcomment -%}
+  <div
+    class="
+      group-block__content
+      {% if request.design_mode %}group-block__content--design-mode{% endif %}
+      {% if settings.vertical_on_mobile and direction == 'row' %}group-block__content--mobile-column{% endif %}
+    "
+    style="
+      display: flex;
+      flex-direction: {{ direction }};
+      justify-content: {{ justify }};
+      align-items: {{ align }};
+      gap: {{ gap }}px;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    "
+  >
+    {{- children -}}
+  </div>
+
+</div>
+
+{% stylesheet %}
+  /* ── Group Block Base ──────────────────────────────────────────────── */
+  .group-block {
+    display: block;
+  }
+
+  /* ── Background helpers ─────────────────────────────────────────────── */
+  .group-block__media-wrapper {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .group-block__bg-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .group-block__bg-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .group-block__video-el {
+    width: 100%;
+    height: 100%;
+  }
+
+  .group-block__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* ── Link overlay ───────────────────────────────────────────────── */
+  .group-block__link {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: block;
+  }
+
+  /* When a link exists, disable pointer events on children except interactive elements */
+  .group-block__link ~ .group-block__media-wrapper,
+  .group-block__link ~ .group-block__content {
+    pointer-events: none;
+  }
+
+  .group-block__link ~ .group-block__content :is(a, button, input, textarea, select) {
+    pointer-events: auto;
+  }
+
+  /* In design mode, re-enable pointer events so editor works */
+  .group-block__content--design-mode {
+    pointer-events: auto;
+  }
+
+  /* ── Mobile stacking ────────────────────────────────────────────────── */
+  @media screen and (max-width: 749px) {
+    .group-block__content--mobile-column {
+      flex-direction: column !important;
+    }
+  }
+{% endstylesheet %}
