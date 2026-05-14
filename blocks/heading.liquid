@@ -1,30 +1,11 @@
 {%- liquid
   assign tag = block.settings.heading_tag
-
-  # Typography preset overrides
   assign preset = block.settings.type_preset
-  assign font_family = block.settings.font
-  assign font_size = block.settings.font_size
-  assign font_weight = block.settings.font_weight
-  assign line_height = block.settings.line_height
-  assign letter_spacing = block.settings.letter_spacing
-  assign text_case = block.settings.text_case
-  assign text_wrap = block.settings.text_wrap
-
-  # Width
-  assign width = block.settings.width
-  assign max_width = block.settings.max_width
-
-  # Alignment
   assign alignment = block.settings.alignment
-
-  # Appearance
   assign color = block.settings.color
-  assign bg_color = block.settings.background_color
   assign has_bg = block.settings.background
+  assign bg_color = block.settings.background_color
   assign radius = block.settings.corner_radius
-
-  # Padding
   assign pt = block.settings.padding_top
   assign pb = block.settings.padding_bottom
   assign pl = block.settings.padding_left
@@ -33,20 +14,6 @@
 
 {%- style -%}
   #block-{{ block.id }} {
-    /* ── Width ── */
-    {%- if width == 'fill' -%}
-      width: 100%;
-    {%- elsif width == 'fit' -%}
-      width: fit-content;
-    {%- elsif width == 'custom' -%}
-      width: {{ block.settings.custom_width }}%;
-    {%- endif -%}
-
-    /* ── Max Width ── */
-    {%- unless max_width == 'none' -%}
-      max-width: {{ max_width }};
-    {%- endunless -%}
-
     /* ── Alignment ── */
     text-align: {{ alignment }};
     {%- if alignment == 'center' -%}
@@ -55,7 +22,7 @@
       margin-inline-start: auto;
     {%- endif -%}
 
-    /* ── Typography Preset ── */
+    /* ── Typography Presets ── */
     {%- if preset == 'h1' -%}
       font-size: clamp(2.5rem, 5vw, 4rem);
       font-weight: 700;
@@ -83,57 +50,40 @@
       font-weight: 600;
       line-height: 1.35;
       letter-spacing: 0.02em;
-    {%- elsif preset == 'p' -%}
-      font-size: 1rem;
-      font-weight: 400;
-      line-height: 1.6;
+    {%- elsif preset == 'custom' -%}
+      font-size: {{ block.settings.font_size }}px;
+      font-weight: {{ block.settings.font_weight }};
+      line-height: {{ block.settings.line_height | divided_by: 10.0 }};
+      letter-spacing: {{ block.settings.letter_spacing | divided_by: 100.0 }}em;
     {%- endif -%}
 
-    /* ── Custom Font (only if preset == custom) ── */
-    {%- if preset == 'custom' -%}
-      {%- if font_family == 'heading' -%}
-        font-family: var(--font-heading-family, serif);
-      {%- elsif font_family == 'subheading' -%}
-        font-family: var(--font-heading-family, sans-serif);
-        font-style: italic;
-      {%- elsif font_family == 'body' -%}
-        font-family: var(--font-body-family, sans-serif);
-      {%- elsif font_family == 'accent' -%}
-        font-family: var(--font-accent-family, monospace);
-      {%- endif -%}
-      font-size: {{ font_size }}px;
-      font-weight: {{ font_weight }};
-      line-height: {{ line_height | divided_by: 10.0 }};
-      letter-spacing: {{ letter_spacing | divided_by: 100.0 }}em;
-    {%- endif -%}
-
-    /* ── Case & Wrap ── */
-    {%- unless text_case == 'none' -%}
-      text-transform: {{ text_case }};
+    /* ── Text Case & Wrap ── */
+    {%- unless block.settings.text_case == 'none' -%}
+      text-transform: {{ block.settings.text_case }};
     {%- endunless -%}
-    text-wrap: {{ text_wrap }};
+    text-wrap: {{ block.settings.text_wrap }};
 
     /* ── Color ── */
-    {%- if color != blank -%}
-      color: {{ color }};
-    {%- endif -%}
+    color: {{ color }};
 
     /* ── Background ── */
     {%- if has_bg -%}
       background-color: {{ bg_color }};
-    {%- endif -%}
-
-    /* ── Corner Radius ── */
-    {%- if radius > 0 -%}
+      padding: {{ pt }}px {{ pr }}px {{ pb }}px {{ pl }}px;
       border-radius: {{ radius }}px;
+      display: inline-block;
+      {%- if alignment == 'center' -%}
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+      {%- endif -%}
+    {%- else -%}
+      padding: {{ pt }}px {{ pr }}px {{ pb }}px {{ pl }}px;
     {%- endif -%}
 
-    /* ── Padding ── */
-    padding: {{ pt }}px {{ pr }}px {{ pb }}px {{ pl }}px;
-
-    /* ── Display ── */
-    display: block;
     box-sizing: border-box;
+    display: block;
+    margin: 0;
   }
 {%- endstyle -%}
 
@@ -148,66 +98,27 @@
 {
   "name": "Heading",
   "settings": [
-
     {
       "type": "richtext",
       "id": "text",
       "label": "Text",
       "default": "<p>Timeless Design for Modern Living</p>"
     },
-
     {
       "type": "header",
-      "content": " Layout "
-    },
-    {
-      "type": "select",
-      "id": "width",
-      "label": "Width",
-      "options": [
-        { "value": "fit",    "label": "Fit Content" },
-        { "value": "fill",   "label": "Fill (100%)" },
-        { "value": "custom", "label": "Custom (%)" }
-      ],
-      "default": "fill"
-    },
-    {
-      "type": "range",
-      "id": "custom_width",
-      "label": "Custom Width",
-      "min": 10,
-      "max": 100,
-      "step": 5,
-      "unit": "%",
-      "default": 100,
-      "visible_if": "{{ block.settings.width == 'custom' }}"
-    },
-    {
-      "type": "select",
-      "id": "max_width",
-      "label": "Max Width",
-      "options": [
-        { "value": "none",   "label": "None" },
-        { "value": "320px",  "label": "Narrow (320px)" },
-        { "value": "480px",  "label": "Small (480px)" },
-        { "value": "640px",  "label": "Medium (640px)" },
-        { "value": "768px",  "label": "Wide (768px)" },
-        { "value": "100%",   "label": "Full" }
-      ],
-      "default": "none"
+      "content": "Layout"
     },
     {
       "type": "select",
       "id": "alignment",
       "label": "Alignment",
       "options": [
-        { "value": "left",    "label": "← Left" },
-        { "value": "center",  "label": "↔ Center" },
-        { "value": "right",   "label": "→ Right" }
+        { "value": "left", "label": "← Left" },
+        { "value": "center", "label": "↔ Center" },
+        { "value": "right", "label": "→ Right" }
       ],
       "default": "left"
     },
-
     {
       "type": "header",
       "content": "Typography"
@@ -222,8 +133,7 @@
         { "value": "h3", "label": "H3" },
         { "value": "h4", "label": "H4" },
         { "value": "h5", "label": "H5" },
-        { "value": "h6", "label": "H6" },
-        { "value": "p",  "label": "P (Paragraph)" }
+        { "value": "h6", "label": "H6" }
       ],
       "default": "h2"
     },
@@ -232,36 +142,21 @@
       "id": "type_preset",
       "label": "Typography Preset",
       "options": [
-        { "value": "h1",     "label": "H1 — Display" },
-        { "value": "h2",     "label": "H2 — Heading" },
-        { "value": "h3",     "label": "H3 — Subheading" },
-        { "value": "h4",     "label": "H4 — Section Title" },
-        { "value": "h5",     "label": "H5 — Small Heading" },
-        { "value": "h6",     "label": "H6 — Label" },
-        { "value": "p",      "label": "P — Body Text" },
+        { "value": "h1", "label": "H1 — Display (2.5-4rem)" },
+        { "value": "h2", "label": "H2 — Heading (2-3rem)" },
+        { "value": "h3", "label": "H3 — Subheading (1.5-2.25rem)" },
+        { "value": "h4", "label": "H4 — Section Title (1.25-1.75rem)" },
+        { "value": "h5", "label": "H5 — Small Heading (1-1.375rem)" },
+        { "value": "h6", "label": "H6 — Label (0.875-1.125rem)" },
         { "value": "custom", "label": "Custom" }
       ],
       "default": "h2"
     },
     {
-      "type": "select",
-      "id": "font",
-      "label": "Font Family",
-      "info": "Uses your theme font variables",
-      "options": [
-        { "value": "heading",    "label": "Heading Font" },
-        { "value": "subheading", "label": "Subheading (italic)" },
-        { "value": "body",       "label": "Body Font" },
-        { "value": "accent",     "label": "Accent Font" }
-      ],
-      "default": "heading",
-      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
-    },
-    {
       "type": "range",
       "id": "font_size",
       "label": "Font Size",
-      "min": 10,
+      "min": 12,
       "max": 120,
       "step": 2,
       "unit": "px",
@@ -299,7 +194,7 @@
       "type": "range",
       "id": "letter_spacing",
       "label": "Letter Spacing",
-      "min": -10,
+      "min": -30,
       "max": 30,
       "step": 1,
       "default": 0,
@@ -311,9 +206,9 @@
       "id": "text_case",
       "label": "Case",
       "options": [
-        { "value": "none",       "label": "Default" },
-        { "value": "uppercase",  "label": "UPPERCASE" },
-        { "value": "lowercase",  "label": "lowercase" },
+        { "value": "none", "label": "Default" },
+        { "value": "uppercase", "label": "UPPERCASE" },
+        { "value": "lowercase", "label": "lowercase" },
         { "value": "capitalize", "label": "Capitalize" }
       ],
       "default": "none"
@@ -323,14 +218,13 @@
       "id": "text_wrap",
       "label": "Text Wrap",
       "options": [
-        { "value": "wrap",    "label": "Wrap (default)" },
+        { "value": "wrap", "label": "Wrap" },
         { "value": "balance", "label": "Balance" },
-        { "value": "pretty",  "label": "Pretty" },
-        { "value": "nowrap",  "label": "No Wrap" }
+        { "value": "pretty", "label": "Pretty" },
+        { "value": "nowrap", "label": "No Wrap" }
       ],
-      "default": "pretty"
+      "default": "balance"
     },
-
     {
       "type": "header",
       "content": "Appearance"
@@ -339,7 +233,7 @@
       "type": "color",
       "id": "color",
       "label": "Text Color",
-      "default": "#ffffff"
+      "default": "#000000"
     },
     {
       "type": "checkbox",
@@ -351,7 +245,7 @@
       "type": "color",
       "id": "background_color",
       "label": "Background Color",
-      "default": "#F5F5F5",
+      "default": "#f5f5f5",
       "visible_if": "{{ block.settings.background }}"
     },
     {
@@ -364,15 +258,14 @@
       "unit": "px",
       "default": 0
     },
-
     {
       "type": "header",
-      "content": " Padding"
+      "content": "Padding"
     },
     {
       "type": "range",
       "id": "padding_top",
-      "label": "Padding Top",
+      "label": "Top",
       "min": 0,
       "max": 80,
       "step": 4,
@@ -382,7 +275,7 @@
     {
       "type": "range",
       "id": "padding_bottom",
-      "label": "Padding Bottom",
+      "label": "Bottom",
       "min": 0,
       "max": 80,
       "step": 4,
@@ -392,7 +285,7 @@
     {
       "type": "range",
       "id": "padding_left",
-      "label": "Padding Left",
+      "label": "Left",
       "min": 0,
       "max": 80,
       "step": 4,
@@ -402,14 +295,13 @@
     {
       "type": "range",
       "id": "padding_right",
-      "label": "Padding Right",
+      "label": "Right",
       "min": 0,
       "max": 80,
       "step": 4,
       "unit": "px",
       "default": 0
     }
-
   ],
   "presets": [
     {
@@ -438,20 +330,6 @@
         "heading_tag": "h6",
         "type_preset": "h6",
         "text_case": "uppercase",
-        "alignment": "left"
-      }
-    },
-    {
-      "name": "Custom Heading",
-      "settings": {
-        "text": "<p>Your Custom Heading</p>",
-        "heading_tag": "h2",
-        "type_preset": "custom",
-        "font": "heading",
-        "font_size": 48,
-        "font_weight": "700",
-        "line_height": 12,
-        "letter_spacing": -2,
         "alignment": "left"
       }
     }

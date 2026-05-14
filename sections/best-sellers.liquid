@@ -94,13 +94,42 @@
     opacity: 1;
     transform: translateY(0);
   }
+
+  /* ── FIX 1: Respect OS reduced-motion preference ── */
+  @media (prefers-reduced-motion: reduce) {
+    #shopify-section-{{ section.id }} .bestsellers-header,
+    #shopify-section-{{ section.id }} .product-card-wrap {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+  }
 {%- endstyle -%}
 
 {%- liquid
+  comment
+    FIX 2: Determine product list and placeholder count correctly.
+    Use section.settings.products_count for placeholder loop
+    so placeholder count matches the configured product count.
+  endcomment
+
+  assign product_list  = section.settings.collection.products
+  assign limit         = section.settings.products_count
+  assign has_products  = false
+  if product_list.size > 0
+    assign has_products = true
+  endif
+
+  comment
+    FIX 3: show_view_all logic
+    Show "view all" block area only when a collection is linked
+    and has more products than the limit shown, OR when no
+    collection is set (editor placeholder mode).
+  endcomment
   assign show_view_all = false
   if section.settings.collection == blank
     assign show_view_all = true
-  elsif section.settings.collection.products_count > section.settings.products_count
+  elsif section.settings.collection.products_count > limit
     assign show_view_all = true
   endif
 -%}
@@ -111,56 +140,67 @@
     <div class="bestsellers-header js-reveal">
       <div>
         {%- if section.settings.title != blank -%}
-          {%- assign title_tag = section.settings.title_tag -%}
-          <{{ title_tag }} class="bestsellers-title">{{ section.settings.title }}</{{ title_tag }}>
+          {%- assign title_tag = section.settings.title_tag | default: 'h2' -%}
+          <{{ title_tag }} class="bestsellers-title">{{ section.settings.title | escape }}</{{ title_tag }}>
         {%- endif -%}
         {%- if section.settings.subtitle != blank -%}
-          <p class="bestsellers-subtitle">{{ section.settings.subtitle }}</p>
+          <p class="bestsellers-subtitle">{{ section.settings.subtitle | escape }}</p>
         {%- endif -%}
       </div>
 
-      {%- if show_view_all -%}
+      {%- comment -%}
+        FIX 4: content_for 'blocks' renders the view-all-button block.
+        The block file blocks/view-all-button.liquid must exist.
+        We only show this wrapper when show_view_all is true AND
+        blocks are present (section.blocks.size > 0).
+      {%- endcomment -%}
+      {%- if show_view_all and section.blocks.size > 0 -%}
         <div class="bestsellers-blocks">
-          {% content_for 'blocks' %}
+          {%- content_for 'blocks' -%}
         </div>
       {%- endif -%}
     </div>
 
     <div class="bestsellers-grid">
-      {%- assign product_list = section.settings.collection.products -%}
 
-      {%- if product_list.size > 0 -%}
-        {%- assign limit = section.settings.products_count -%}
+      {%- if has_products -%}
+        {%- comment -%} Real products from collection {%- endcomment -%}
         {%- for product in product_list limit: limit -%}
           <div
             class="product-card-wrap js-reveal"
             style="transition-delay: {{ forloop.index0 | times: 100 }}ms;"
           >
             {%- render 'product-card',
-              product: product,
-              card_radius: section.settings.card_radius,
-              show_vendor: section.settings.show_vendor,
+              product:      product,
+              card_radius:  section.settings.card_radius,
+              show_vendor:  section.settings.show_vendor,
               color_scheme: section.settings.color_scheme
             -%}
           </div>
         {%- endfor -%}
 
       {%- else -%}
-        {%- for i in (1..4) -%}
+        {%- comment -%}
+          FIX 5: Use products_count for placeholder count,
+          not hardcoded 4. Caps at 8 to avoid over-rendering in editor.
+        {%- endcomment -%}
+        {%- assign placeholder_count = section.settings.products_count | at_most: 8 -%}
+        {%- for i in (1..placeholder_count) -%}
           <div
             class="product-card-wrap js-reveal"
             style="transition-delay: {{ forloop.index0 | times: 100 }}ms;"
           >
             {%- render 'product-card',
-              product: nil,
+              product:          nil,
               placeholder_index: forloop.index,
-              card_radius: section.settings.card_radius,
-              show_vendor: section.settings.show_vendor,
-              color_scheme: section.settings.color_scheme
+              card_radius:      section.settings.card_radius,
+              show_vendor:      section.settings.show_vendor,
+              color_scheme:     section.settings.color_scheme
             -%}
           </div>
         {%- endfor -%}
       {%- endif -%}
+
     </div>
 
   </div>
@@ -168,8 +208,23 @@
 
 <script>
 (function () {
-  var items = document.querySelectorAll('#shopify-section-{{ section.id }} .js-reveal');
+  var section = document.getElementById('shopify-section-{{ section.id }}');
+  if (!section) return;
+  var items = section.querySelectorAll('.js-reveal');
   if (!items.length) return;
+
+  /* FIX 6: Skip animation setup if reduced motion is preferred */
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    items.forEach(function (el) { el.classList.add('is-visible'); });
+    return;
+  }
+
+  /* FIX 7: Use IntersectionObserver with rootMargin for earlier trigger */
+  if (!('IntersectionObserver' in window)) {
+    items.forEach(function (el) { el.classList.add('is-visible'); });
+    return;
+  }
+
   var observer = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
@@ -177,7 +232,8 @@
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.1 });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
   items.forEach(function (el) { observer.observe(el); });
 })();
 </script>
@@ -187,7 +243,9 @@
   "name": "Best Sellers",
   "blocks": [
     {
-      "type": "view-all-button"
+      "type": "view-all-button",
+      "name": "View All Button",
+      "limit": 1
     }
   ],
   "settings": [
@@ -274,11 +332,11 @@
       "id": "title_weight",
       "label": "Title Font Weight",
       "options": [
-        { "value": "300", "label": "Light (300)" },
-        { "value": "400", "label": "Regular (400)" },
-        { "value": "500", "label": "Medium (500)" },
+        { "value": "300", "label": "Light (300)"     },
+        { "value": "400", "label": "Regular (400)"   },
+        { "value": "500", "label": "Medium (500)"    },
         { "value": "600", "label": "Semi Bold (600)" },
-        { "value": "700", "label": "Bold (700)" }
+        { "value": "700", "label": "Bold (700)"      }
       ],
       "default": "400"
     },
@@ -308,7 +366,7 @@
       "label": "Subtitle Color",
       "options": [
         { "value": "muted", "label": "Muted (secondary)" },
-        { "value": "text",  "label": "Main Text Color" }
+        { "value": "text",  "label": "Main Text Color"   }
       ],
       "default": "muted"
     },
@@ -351,7 +409,25 @@
   ],
   "presets": [
     {
-      "name": "Best Sellers"
+      "name": "Best Sellers",
+      "settings": {
+        "title": "Best Sellers",
+        "subtitle": "Customer favorites that stand the test of time",
+        "products_count": 4,
+        "columns_desktop": "4",
+        "title_size": 36,
+        "title_weight": "400",
+        "subtitle_size": 16,
+        "subtitle_color_source": "muted",
+        "card_radius": 0,
+        "padding_v_mobile": 64,
+        "padding_v_desktop": 96,
+        "show_vendor": false,
+        "color_scheme": "scheme-2"
+      },
+      "blocks": [
+        { "type": "view-all-button" }
+      ]
     }
   ]
 }

@@ -18,6 +18,6 @@
   },
   "order": [
     "main-contact",
-    "form"
+    // "form"
   ]
 }

@@ -2,234 +2,156 @@
   #shopify-section-{{ section.id }} .category-section {
     padding: {{ section.settings.padding_v_mobile }}px 0;
     background-color: {{ section.settings.color_scheme.settings.background }};
-    color: {{ section.settings.color_scheme.settings.text }};
   }
-
   @media (min-width: 768px) {
-    #shopify-section-{{ section.id }} .category-section {
-      padding: {{ section.settings.padding_v_desktop }}px 0;
+    #shopify-section-{{ section.id }} .category-section { 
+      padding: {{ section.settings.padding_v_desktop }}px 0; 
     }
   }
-
-  #shopify-section-{{ section.id }} .category-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 1rem;
+  #shopify-section-{{ section.id }} .category-inner { 
+    max-width: 1400px; 
+    margin: 0 auto; 
+    padding: 0 1.5rem; 
   }
-
-  @media (min-width: 640px) {
-    #shopify-section-{{ section.id }} .category-inner { padding: 0 1.5rem; }
-  }
-
-  @media (min-width: 1024px) {
-    #shopify-section-{{ section.id }} .category-inner { padding: 0 2rem; }
-  }
-
-  {% comment %} ── Section Header ── {% endcomment %}
   #shopify-section-{{ section.id }} .category-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    text-align: {{ section.settings.header_alignment }};
+    margin-bottom: {{ section.settings.header_margin_bottom }}px;
   }
-
-  #shopify-section-{{ section.id }} .category-header.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  #shopify-section-{{ section.id }} .category-title {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 400;
-    margin: 0 0 1rem 0;
-    color: {{ section.settings.color_scheme.settings.text }};
-  }
-
-  #shopify-section-{{ section.id }} .category-subtitle {
-    color: {{ section.settings.color_scheme.settings.secondary_button_label }};
-    max-width: 42rem;
-    margin: 0 auto;
-    font-size: 1rem;
-    line-height: 1.6;
-  }
-
-  {% comment %} ── Grid ── {% endcomment %}
   #shopify-section-{{ section.id }} .category-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 1.5rem;
   }
-
   @media (min-width: 768px) {
-    #shopify-section-{{ section.id }} .category-grid {
-      grid-template-columns: repeat({{ section.settings.columns_tablet }}, 1fr);
-      gap: 1.5rem;
+    #shopify-section-{{ section.id }} .category-grid { 
+      grid-template-columns: repeat(3, 1fr); 
     }
   }
-
   @media (min-width: 1024px) {
-    #shopify-section-{{ section.id }} .category-grid {
-      grid-template-columns: repeat({{ section.settings.columns_desktop }}, 1fr);
+    #shopify-section-{{ section.id }} .category-grid { 
+      grid-template-columns: repeat({{ section.settings.columns_desktop }}, 1fr); 
     }
-  }
-
-  {% comment %} ── Grid item reveal animation ── {% endcomment %}
-  #shopify-section-{{ section.id }} .category-grid-item {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
-
-  #shopify-section-{{ section.id }} .category-grid-item.is-visible {
-    opacity: 1;
-    transform: translateY(0);
   }
 {%- endstyle -%}
 
-<section class="category-section">
+<section class="category-section" id="CategorySection-{{ section.id }}">
   <div class="category-inner">
-
-    {% comment %} ── Section Header ── {% endcomment %}
-    {%- if section.settings.title != blank or section.settings.subtitle != blank -%}
-      <div class="category-header js-reveal">
-        {%- if section.settings.title != blank -%}
-          <h2 class="category-title">{{ section.settings.title }}</h2>
-        {%- endif -%}
-        {%- if section.settings.subtitle != blank -%}
-          <p class="category-subtitle">{{ section.settings.subtitle }}</p>
-        {%- endif -%}
+    {%- if section.settings.title != blank -%}
+      <div class="category-header">
+        <h2 class="category-title" style="color: {{ section.settings.title_color }};">{{ section.settings.title }}</h2>
       </div>
     {%- endif -%}
 
-    {% comment %} ── Category Grid (Theme Blocks) ── {% endcomment %}
     <div class="category-grid">
-      {% content_for 'blocks' %}
+      {%- content_for 'blocks' -%}
     </div>
-
   </div>
 </section>
-
-{% comment %}
-  NOTE FOR DEVELOPERS:
-  ─────────────────────────────────────────────────────────────────────────────
-  The grid items are rendered by theme blocks (category-card.liquid).
-  To apply staggered animation to each grid cell, the .category-grid-item
-  wrapper and transition-delay are handled inside category-card.liquid via
-  the block's shopify_attributes. The IntersectionObserver below targets
-  any .js-reveal element inside this section.
-  ─────────────────────────────────────────────────────────────────────────────
-{% endcomment %}
-
-<script>
-(function () {
-  var sectionEl = document.getElementById('shopify-section-{{ section.id }}');
-  if (!sectionEl) return;
-
-  var items = sectionEl.querySelectorAll('.js-reveal');
-  if (!items.length) return;
-
-  var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
-  items.forEach(function (el) { observer.observe(el); });
-})();
-</script>
 
 {% schema %}
 {
   "name": "Category Grid",
+  "tag": "section",
+  "class": "section-category-grid",
   "blocks": [
-    { "type": "@theme" }
+    {
+      "type": "category-card"
+    }
   ],
   "settings": [
     {
       "type": "header",
-      "content": "Color & Style"
+      "content": "Section Layout"
     },
-    {
-      "type": "color_scheme",
-      "id": "color_scheme",
-      "label": "Color Scheme",
-      "default": "scheme-1"
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color Scheme", "default": "scheme-1" },
+    { 
+      "type": "range", 
+      "id": "padding_v_mobile", 
+      "label": "Padding Mobile", 
+      "min": 0, 
+      "max": 100, 
+      "step": 2, 
+      "unit": "px", 
+      "default": 40 
     },
-    {
-      "type": "header",
-      "content": "Spacing"
-    },
-    {
-      "type": "range",
-      "id": "padding_v_mobile",
-      "label": "Padding Top/Bottom (Mobile)",
-      "min": 20,
-      "max": 100,
-      "step": 4,
-      "unit": "px",
-      "default": 64
-    },
-    {
-      "type": "range",
-      "id": "padding_v_desktop",
-      "label": "Padding Top/Bottom (Desktop)",
-      "min": 40,
-      "max": 160,
-      "step": 8,
-      "unit": "px",
-      "default": 96
-    },
-    {
-      "type": "header",
-      "content": "Grid Columns"
-    },
-    {
-      "type": "select",
-      "id": "columns_tablet",
-      "label": "Columns (Tablet)",
-      "options": [
-        { "value": "2", "label": "2" },
-        { "value": "3", "label": "3" },
-        { "value": "4", "label": "4" }
-      ],
-      "default": "3"
-    },
-    {
-      "type": "select",
-      "id": "columns_desktop",
-      "label": "Columns (Desktop)",
-      "options": [
-        { "value": "3", "label": "3" },
-        { "value": "4", "label": "4" },
-        { "value": "5", "label": "5" },
-        { "value": "6", "label": "6" }
-      ],
-      "default": "6"
+    { 
+      "type": "range", 
+      "id": "padding_v_desktop", 
+      "label": "Padding Desktop", 
+      "min": 0, 
+      "max": 200, 
+      "step": 2, 
+      "unit": "px", 
+      "default": 80 
     },
     {
       "type": "header",
       "content": "Section Header"
     },
-    {
-      "type": "text",
-      "id": "title",
-      "label": "Title",
-      "default": "Shop by Category"
+    { "type": "text", "id": "title", "label": "Title", "default": "Featured Categories" },
+    { "type": "color", "id": "title_color", "label": "Title Color", "default": "#121212" },
+    { 
+      "type": "select", 
+      "id": "header_alignment", 
+      "label": "Header Alignment", 
+      "options": [
+        {"value":"left","label":"Left"},
+        {"value":"center","label":"Center"},
+        {"value":"right","label":"Right"}
+      ], 
+      "default": "center" 
     },
+    { "type": "range", "id": "header_margin_bottom", "label": "Header Bottom Spacing", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 48 },
     {
-      "type": "textarea",
-      "id": "subtitle",
-      "label": "Subtitle",
-      "default": "Explore our carefully curated collections designed for every space in your home"
+      "type": "header",
+      "content": "Grid Settings"
+    },
+    { 
+      "type": "select", 
+      "id": "columns_desktop", 
+      "label": "Columns Desktop", 
+      "options": [
+        {"value":"3","label":"3"},
+        {"value":"4","label":"4"},
+        {"value":"5","label":"5"},
+        {"value":"6","label":"6"}
+      ], 
+      "default": "6" 
     }
   ],
   "presets": [
     {
-      "name": "Category Grid"
+      "name": "Category Grid",
+      "blocks": [
+        { 
+          "type": "category-card",
+          "blocks": [
+            { "type": "category-image" },
+            { "type": "category-title" }
+          ]
+        },
+        { 
+          "type": "category-card",
+          "blocks": [
+            { "type": "category-image" },
+            { "type": "category-title" }
+          ]
+        },
+        { 
+          "type": "category-card",
+          "blocks": [
+            { "type": "category-image" },
+            { "type": "category-title" }
+          ]
+        },
+        { 
+          "type": "category-card",
+          "blocks": [
+            { "type": "category-image" },
+            { "type": "category-title" }
+          ]
+        }
+      ]
     }
   ]
 }
